@@ -13,6 +13,11 @@ export class AuthService {
     private readonly userService: UsersService,
   ) {}
 
+  /**
+   * Create new jwt token
+   * @param user
+   * @returns
+   */
   async createToken(user: User) {
     return {
       expiresIn: this.configService.get('JWT_EXPIRATION_TIME'),
@@ -21,6 +26,11 @@ export class AuthService {
     };
   }
 
+  /**
+   * Validate a user
+   * @param payload
+   * @returns
+   */
   async validateUser(payload: LoginPayload): Promise<any> {
     const user = await this.userService.getByEmail(payload.email);
     if (!user || !Hash.compare(payload.password, user.password)) {

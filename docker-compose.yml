@@ -1,41 +1,28 @@
 version: "2"
 services:
-  nest:
+  binance_plus-backend:
     build: .
-    container_name: nest
+    image: binance_plus-backend:latest
+    container_name: binance_plus-backend
     depends_on:
-      - db
+      - mysql
     volumes:
       - ./src:/app/src
       - .env:/app/.env
 
-  nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile-nginx
-    container_name: nest-nginx
-    depends_on:
-      - nest
-    environment:
-      - NGINX_SERVER_NAME=localhost
-      - NEST_HOST=nest
-      - NEST_PORT=3000
-      - NGINX_MAX_BODY=100M
-    ports:
-      - 80:80
-
-  db:
-    image: mariadb:10
-    container_name: nest-db
-    environment:
-      MYSQL_DATABASE: nest
-      MYSQL_USER: nest
-      MYSQL_PASSWORD: nest
-      MYSQL_ROOT_PASSWORD: root
+  mysql:
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: mysql
     ports:
       - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=rnssolution@1234
+      - MYSQL_PASSWORD=rnssolution@1234
+      - MYSQL_USER=Binance+
+      - MYSQL_DATABASE=Binance+
     volumes:
-      - mariadbdata:/var/lib/mysql
-
+      - mysql-data:/var/lib/mysql 
+             
 volumes:
-  mariadbdata:
+  mysql-data:

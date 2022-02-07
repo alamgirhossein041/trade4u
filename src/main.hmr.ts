@@ -1,16 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './modules/main/app.module';
-import { setupSwagger } from './swagger';
+import { AppService } from 'modules/main/app.service';
 
 declare const module: any;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  setupSwagger(app);
   app.enableCors();
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(3000);
+  await app.listen(AppService.port);
 
   if (module.hot) {
     module.hot.accept();
