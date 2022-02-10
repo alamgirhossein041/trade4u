@@ -17,8 +17,6 @@ yarn-error.log
 # build
 /dist
 
-# tests
-/test
 /coverage
 /.nyc_output
 build/config\.gypi

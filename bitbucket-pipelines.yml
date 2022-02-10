@@ -1,0 +1,33 @@
+#  Template NodeJS build
+
+#  This template allows you to validate your NodeJS code.
+#  The workflow allows running tests and code linting on the default branch.
+
+image: node:lts-alpine
+
+definitions:
+  services:
+    mysql:
+      image: mysql:8
+      command: --default-authentication-plugin=mysql_native_password
+      ports:
+        - 3306:3306
+      volumes:
+        - mysql-data:/var/lib/mysql
+      environment:
+        - MYSQL_ROOT_PASSWORD=rnssolution@1234
+
+pipelines:
+  pull-requests:
+    '**':
+      - step:
+          name: Build and Test
+          caches:
+            - node
+          script:
+            - export NODE_OPTIONS=--max_old_space_size=4096
+            - npm install
+            - npm test
+          services:
+            - mysql
+

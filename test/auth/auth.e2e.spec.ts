@@ -1,0 +1,55 @@
+import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import { AppModule } from '../../src/modules/main/app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { Helper } from '../helper';
+import * as request from 'supertest';
+
+describe('BinancePlus auth test', () => {
+    let app: INestApplication;
+    let helper: Helper;
+
+    beforeAll(async () => {
+        const moduleRef = await Test.createTestingModule({
+            imports: [AppModule],
+        }).compile();
+        app = moduleRef.createNestApplication();
+        app.useGlobalPipes(new ValidationPipe());
+        await app.init();
+        helper = new Helper(app);
+    });
+
+    beforeAll(async () => {
+        await helper.removeDefaultUser();
+    })
+
+    it(`Test /register API`, async () => {
+        await helper.register();
+    });
+
+    it(`Test /login API`, async () => {
+        await helper.login();
+    });
+
+    it(`Test /me API`, async () => {
+        const expected = {
+            firstName: 'john',
+            lastName: 'smith',
+            email: 'testuser@yopmail.com'
+        }
+
+        await request(app.getHttpServer())
+            .get('/api/auth/me')
+            .set('Authorization', helper.getAccessToken())
+            .expect(200)
+            .expect(({ body }) => {
+                const { uuid, ...response } = body;
+                expect(response).toEqual(expected)
+            });
+    });
+
+    afterAll(async () => {
+        await helper.clearDB();
+        await app.close();
+    })
+});
