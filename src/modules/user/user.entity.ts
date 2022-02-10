@@ -1,3 +1,4 @@
+import { RegisterPayload } from 'modules/auth';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
 
@@ -9,13 +10,19 @@ export class User {
   uuid: string;
 
   @Column({ length: 255 })
-  firstName: string;
+  userName: string;
 
   @Column({ length: 255 })
-  lastName: string;
+  fullName: string;
 
   @Column({ length: 255 })
   email: string;
+
+  @Column({ length: 255 })
+  country: string;
+
+  @Column({ length: 255 })
+  phoneNumber: string;
 
   @Column({
     name: 'password',
@@ -27,6 +34,22 @@ export class User {
   toJSON() {
     const { password, ...self } = this;
     return self;
+  }
+
+  toDto() {
+    const { password, ...dto } = this;
+    return dto;
+  }
+
+  fromDto(payload: RegisterPayload) {
+    this.userName = payload.userName;
+    this.fullName = payload.fullName;
+    this.email = payload.email;
+    this.country = payload.country;
+    this.phoneNumber = payload.phoneNumber;
+    this.password = payload.password;
+
+    return this;
   }
 }
 

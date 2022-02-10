@@ -14,7 +14,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
-  ) { }
+  ) {}
 
   /**
    * Create new jwt token

@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService, LoginPayload, RegisterPayload } from './';
 import { CurrentUser } from './../common/decorator/current-user.decorator';
 import { User, UsersService } from './../user';
+import { Response } from 'express';
+import { ResponseCode, ResponseMessage } from '../../utils/enum';
 
 @Controller('api/auth')
 export class AuthController {
@@ -17,10 +19,17 @@ export class AuthController {
     return await this.authService.createToken(user);
   }
 
-  @Post('register')
-  async register(@Body() payload: RegisterPayload): Promise<any> {
+  @Post('genesis_user')
+  public async createGenesisUser(
+    @Body() payload: RegisterPayload,
+    @Res() res: Response,
+  ): Promise<any> {
     const user = await this.userService.create(payload);
-    return await this.authService.createToken(user);
+    return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
+      statusCode: ResponseCode.CREATED_SUCCESSFULLY,
+      data: user.toDto(),
+      message: ResponseMessage.CREATED_SUCCESSFULLY,
+    });
   }
 
   @UseGuards(AuthGuard())
