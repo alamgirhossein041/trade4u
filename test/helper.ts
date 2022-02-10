@@ -41,15 +41,17 @@ export class Helper {
     public async register() {
 
         const testUserDto = {
+            userName: 'john58',
+            fullName: 'john smith',
             email: 'testuser@yopmail.com',
-            firstName: 'john',
-            lastName: 'smith',
-            password: 'test@1234',
-            passwordConfirmation: 'test@1234'
+            country: 'United States',
+            phoneNumber: '+14842918831',
+            password: 'Test@1234',
+            passwordConfirmation: 'Test@1234'
         }
 
         await request(this.app.getHttpServer())
-            .post('/api/auth/register')
+            .post('/api/auth/genesis_user')
             .send(testUserDto)
             .expect(201);
         return;
@@ -62,7 +64,7 @@ export class Helper {
     public async login() {
         const testUserDto = {
             email: 'testuser@yopmail.com',
-            password: 'test@1234',
+            password: 'Test@1234',
         }
         await request(this.app.getHttpServer())
             .post('/api/auth/login')

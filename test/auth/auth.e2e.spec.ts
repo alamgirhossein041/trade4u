@@ -23,7 +23,7 @@ describe('BinancePlus auth test', () => {
         await helper.removeDefaultUser();
     })
 
-    it(`Test /register API`, async () => {
+    it(`Test /genesis_user API`, async () => {
         await helper.register();
     });
 
@@ -33,9 +33,11 @@ describe('BinancePlus auth test', () => {
 
     it(`Test /me API`, async () => {
         const expected = {
-            firstName: 'john',
-            lastName: 'smith',
-            email: 'testuser@yopmail.com'
+            userName: "john58",
+            fullName: "john smith",
+            country: "United States",
+            email: "testuser@yopmail.com",
+            phoneNumber: "+14842918831"
         }
 
         await request(app.getHttpServer())

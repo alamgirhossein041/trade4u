@@ -4,6 +4,7 @@ import {
   NotAcceptableException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { RegisterPayload } from 'modules/auth';
 import { Repository } from 'typeorm';
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
 import { User, UserFillableFields } from './user.entity';
@@ -38,15 +39,15 @@ export class UsersService {
    * @param payload
    * @returns
    */
-  async create(payload: UserFillableFields) {
+  async create(payload: RegisterPayload) {
     const user = await this.getByEmail(payload.email);
-
     if (user) {
       throw new HttpException(
         ResponseMessage.USER_ALREADY_EXISTS,
         ResponseCode.BAD_REQUEST,
       );
     }
-    return await this.userRepository.save(payload);
+    const newUser = new User().fromDto(payload);
+    return await this.userRepository.save(newUser);
   }
 }
