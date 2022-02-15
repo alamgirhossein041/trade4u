@@ -8,10 +8,7 @@ import { ResponseCode, ResponseMessage } from '../../utils/enum';
 
 @Controller('api/auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly userService: UsersService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('login')
   async login(@Body() payload: LoginPayload): Promise<any> {
@@ -24,7 +21,7 @@ export class AuthController {
     @Body() payload: RegisterPayload,
     @Res() res: Response,
   ): Promise<any> {
-    const user = await this.userService.create(payload);
+    const user = await this.authService.register(payload);
     return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
       statusCode: ResponseCode.CREATED_SUCCESSFULLY,
       data: user.toDto(),
