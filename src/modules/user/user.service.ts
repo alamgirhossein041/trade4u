@@ -1,13 +1,9 @@
-import {
-  HttpException,
-  Injectable,
-  NotAcceptableException,
-} from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
 import { Repository } from 'typeorm';
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
-import { User, UserFillableFields } from './user.entity';
+import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
@@ -49,5 +45,12 @@ export class UsersService {
     }
     const newUser = new User().fromDto(payload);
     return await this.userRepository.save(newUser);
+  }
+
+  /**
+   * Remove a user
+   */
+  async remove(user: User) {
+    await this.userRepository.delete({ uuid: user.uuid });
   }
 }

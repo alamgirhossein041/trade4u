@@ -21,6 +21,7 @@
     "migration:revert": "yarn ts-typeorm migration:revert"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^1.6.1",
     "@nestjs/common": "^8.0.6",
     "@nestjs/config": "^1.1.6",
     "@nestjs/core": "^8.0.6",
@@ -40,7 +41,6 @@
     "mysql": "^2.18.1",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
-    "pg": "^8.7.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.3.0",
     "typeorm": "^0.2.30",

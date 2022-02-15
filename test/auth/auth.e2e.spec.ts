@@ -4,6 +4,8 @@ import { AppModule } from '../../src/modules/main/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { Helper } from '../helper';
 import * as request from 'supertest';
+import { MailService } from '../../src/utils/mailer/mail.service';
+import { MailerMock } from '../mocks/mocks';
 
 describe('BinancePlus auth test', () => {
     let app: INestApplication;
@@ -12,7 +14,10 @@ describe('BinancePlus auth test', () => {
     beforeAll(async () => {
         const moduleRef = await Test.createTestingModule({
             imports: [AppModule],
-        }).compile();
+        })
+        .overrideProvider(MailService)
+        .useValue(MailerMock)
+        .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
         await app.init();
