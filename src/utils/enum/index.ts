@@ -8,6 +8,7 @@ export enum ResponseMessage {
   INVALID_USERNAME = `Invalid user name`,
   INVALID_COUNTRY = `Invalid country name`,
   INVALID_PHONE_NUMBER = `Invalid phone number`,
+  INVALID_BINANCE_API = `Invalid binance api key`,
   CHECK_INTERNET_CONNECTION = `Error while sending email please check internet connection`,
   CONTENT_NOT_FOUND = `Content not found`,
 }
