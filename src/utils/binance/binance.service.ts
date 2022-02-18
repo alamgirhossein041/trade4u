@@ -4,16 +4,30 @@ import { ResponseCode, ResponseMessage } from 'utils/enum';
 
 @Injectable()
 export class BinanceService {
-  constructor() {}
+  constructor(private binanceExchannge: binance) {
+    this.binanceExchannge = new binance();
+  }
   public async verifyApiKey(apiKey: string, secret: string) {
     try {
-      const binanceInstance = new binance({ apiKey: apiKey, secret: secret });
-      await binanceInstance.fetchBalance();
+      this.binanceExchannge = new binance({ apiKey, secret });
+      await this.binanceExchannge.fetchBalance();
       return;
     } catch (err) {
       throw new HttpException(
         ResponseMessage.INVALID_BINANCE_API,
         ResponseCode.BAD_REQUEST,
+      );
+    }
+  }
+
+  public async getNanoPrice() {
+    try {
+      const price = await this.binanceExchannge.fetchTicker(`XNOUSDT`);
+      return price.info.lastPrice;
+    } catch (err) {
+      throw new HttpException(
+        ResponseMessage.BINANCE_SERVER_ERROR,
+        ResponseCode.INTERNAL_ERROR,
       );
     }
   }

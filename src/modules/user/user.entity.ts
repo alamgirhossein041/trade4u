@@ -1,14 +1,14 @@
 import { RegisterPayload } from 'modules/auth';
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Plan } from '../plan/plan.entity';
+import { Entity, Column, ManyToOne, OneToOne } from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
+import { BinanceCreds } from '../onboarding/binance_creds.entity';
+import { BaseEntity } from '../../utils/base.entity';
 
 @Entity({
   name: 'users',
 })
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  uuid: string;
-
+export class User extends BaseEntity {
   @Column({ length: 255 })
   userName: string;
 
@@ -24,12 +24,26 @@ export class User {
   @Column({ length: 255 })
   phoneNumber: string;
 
+  @Column({ type: 'boolean', default: false })
+  planIsActive: boolean;
+
+  @Column({ type: 'uuid', default: null })
+  refereeUuid: string;
+
   @Column({
     name: 'password',
     length: 255,
     transformer: new PasswordTransformer(),
   })
   password: string;
+
+  @ManyToOne(() => Plan, (plan) => plan.users)
+  plan: Plan;
+
+  @OneToOne(() => BinanceCreds, (binanceCreds) => binanceCreds.user, {
+    cascade: ['insert', 'update'],
+  })
+  binanceCreds: BinanceCreds;
 
   toJSON() {
     const { password, ...self } = this;

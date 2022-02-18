@@ -94,7 +94,9 @@ export class Helper {
             if (entity.name === `User`)
                 continue;
             const repository = getConnection().getRepository(entity.name);
-            await repository.query(`TRUNCATE ${entity.tableName};`);
+            await repository.query(`SET FOREIGN_KEY_CHECKS=0`);
+            await repository.query(`TRUNCATE ${entity.tableName}`);
+            await repository.query(`ALTER TABLE ${entity.tableName} AUTO_INCREMENT=1`);
         }
     }
 }

@@ -42,7 +42,9 @@ describe('BinancePlus auth test', () => {
             fullName: "john smith",
             country: "United States",
             email: "testuser@yopmail.com",
-            phoneNumber: "+14842918831"
+            phoneNumber: "+14842918831",
+            planIsActive: false,
+            refereeUuid: null
         }
 
         await request(app.getHttpServer())
@@ -50,7 +52,7 @@ describe('BinancePlus auth test', () => {
             .set('Authorization', helper.getAccessToken())
             .expect(200)
             .expect(({ body }) => {
-                const { uuid, ...response } = body;
+                const { uuid,createdAt,updatedAt, ...response } = body;
                 expect(response).toEqual(expected)
             });
     });
