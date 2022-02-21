@@ -42,8 +42,10 @@ describe('BinancePlus auth test', () => {
             fullName: "john smith",
             country: "United States",
             email: "testuser@yopmail.com",
+            emailConfirmed: false,
             phoneNumber: "+14842918831",
             planIsActive: false,
+            referralLink: process.env.APP_URL+`signup?referrer=john58`,
             refereeUuid: null
         }
 

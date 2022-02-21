@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService, LoginPayload, RegisterPayload } from './';
 import { CurrentUser } from './../common/decorator/current-user.decorator';
@@ -19,14 +27,44 @@ export class AuthController {
   @Post('genesis_user')
   public async createGenesisUser(
     @Body() payload: RegisterPayload,
-    @Res() res: Response,
-  ): Promise<any> {
+    @Res() res: Response
+  ): Promise<Response> {
     const user = await this.authService.register(payload);
     return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
       statusCode: ResponseCode.CREATED_SUCCESSFULLY,
       data: user.toDto(),
       message: ResponseMessage.CREATED_SUCCESSFULLY,
     });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('confirmEmail')
+  async emailConfirmation(
+    @CurrentUser() user: User,
+    @Res() res: Response
+  ): Promise<Response> {
+    await this.authService.confirmEmail(user);
+    return res
+      .status(ResponseCode.SUCCESS)
+      .send({
+        statusCode: ResponseCode.SUCCESS,
+        message: ResponseMessage.EMAIL_CONFIRMED,
+      });
+  }
+
+  @Post('register')
+  async register(
+    @Body() payload: RegisterPayload,
+    @Query('referrer') referrer: string,
+    @Res() res: Response
+  ): Promise<Response> {
+    await this.authService.registerUser(payload, referrer);
+    return res
+      .status(ResponseCode.SUCCESS)
+      .send({
+        statusCode: ResponseCode.SUCCESS,
+        message: ResponseMessage.CONFIRAMATION_EMAIL_SENT,
+      });
   }
 
   @UseGuards(AuthGuard('jwt'))

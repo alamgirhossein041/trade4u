@@ -24,8 +24,14 @@ export class User extends BaseEntity {
   @Column({ length: 255 })
   phoneNumber: string;
 
+  @Column({ length: 255 })
+  referralLink: string;
+
   @Column({ type: 'boolean', default: false })
   planIsActive: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  emailConfirmed: boolean;
 
   @Column({ type: 'uuid', default: null })
   refereeUuid: string;
