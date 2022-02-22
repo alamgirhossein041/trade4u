@@ -29,7 +29,7 @@ export class AuthController {
     });
   }
 
-  @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard('jwt'))
   @Get('me')
   async getLoggedInUser(@CurrentUser() user: User): Promise<User> {
     return user;
