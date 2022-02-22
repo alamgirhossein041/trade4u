@@ -9,6 +9,7 @@ export enum ResponseMessage {
   INVALID_COUNTRY = `Invalid country name`,
   INVALID_PHONE_NUMBER = `Invalid phone number`,
   CHECK_INTERNET_CONNECTION = `Error while sending email please check internet connection`,
+  CONTENT_NOT_FOUND = `Content not found`,
 }
 
 // some code enums for sending response code in api response

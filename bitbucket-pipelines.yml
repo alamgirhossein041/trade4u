@@ -7,10 +7,13 @@ image: node:lts-alpine
 
 definitions:
   services:
-    mysql:
-      image: bondas83/mysql-native-password
+    postgres:
+      image: postgres
       environment:
-        MYSQL_ROOT_PASSWORD: 'rnssolution@1234'
+        POSTGRES_DB: test
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: '12345678'
+        DATABASE_URL: postgres://postgres@127.0.0.1:5432/test
 
 pipelines:
   pull-requests:
@@ -24,5 +27,5 @@ pipelines:
             - npm install
             - npm test
           services:
-            - mysql
+            - postgres
 

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
+import { SeedService } from '../../modules/seed/seed.service';
 import { dropDatabase, createDatabase } from 'typeorm-extension';
 import { NodeEnv } from '../../utils/enum';
 
@@ -25,7 +26,7 @@ export class AppService {
     await createDatabase(
       { ifNotExist: true },
       {
-        type: 'mysql',
+        type: 'postgres',
         host: process.env.DB_HOST,
         port: Number(process.env.DB_PORT),
         username: process.env.DB_USERNAME,
@@ -48,5 +49,9 @@ export class AppService {
       },
       logging: false,
     } as TypeOrmModuleAsyncOptions;
+  }
+
+  public static async insertSeed() {
+    return await SeedService.InsertSeed();
   }
 }

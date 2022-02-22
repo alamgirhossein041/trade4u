@@ -1,5 +1,5 @@
 import { INestApplication } from "@nestjs/common";
-import * as request from 'supertest';
+import request from 'supertest';
 import { getConnection } from 'typeorm';
 import { User } from "../src/modules/user";
 
