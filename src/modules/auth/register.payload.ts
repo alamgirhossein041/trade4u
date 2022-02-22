@@ -1,6 +1,7 @@
 import {
   IsEmail,
   IsNotEmpty,
+  IsString,
   Matches,
   MaxLength,
   MinLength,
@@ -56,4 +57,14 @@ export class RegisterPayload {
 
   @SameAs('password')
   passwordConfirmation: string;
+}
+
+export class ForgotPasswordDto {
+  @IsNotEmpty()
+  @MinLength(8, { message: ResponseMessage.INVALID_PASSWORD })
+  @MaxLength(15, { message: ResponseMessage.INVALID_PASSWORD })
+  @Matches(/(?=.*\d)(?=.*\W+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+    message: ResponseMessage.INVALID_PASSWORD,
+  })
+  password: string;
 }

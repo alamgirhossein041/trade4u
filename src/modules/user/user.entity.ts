@@ -1,14 +1,18 @@
-import { RegisterPayload } from 'modules/auth';
+import { RegisterPayload } from '../auth/register.payload';
+import { BinanceKeysDto } from '../onboarding/commons/onboarding.dtos'
 import { Plan } from '../plan/plan.entity';
-import { Entity, Column, ManyToOne, OneToOne } from 'typeorm';
+import { UserStats } from './user-stats.entity';
+import { Entity, Column, ManyToOne, OneToOne, PrimaryGeneratedColumn, JoinColumn } from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
-import { BinanceCreds } from '../onboarding/binance_creds.entity';
-import { BaseEntity } from '../../utils/base.entity';
+import { Crypto } from '../../utils/crypto';
 
 @Entity({
   name: 'users',
 })
-export class User extends BaseEntity {
+export class User {
+  @PrimaryGeneratedColumn('uuid')
+  uuid: string;
+
   @Column({ length: 255 })
   userName: string;
 
@@ -27,6 +31,12 @@ export class User extends BaseEntity {
   @Column({ length: 255 })
   referralLink: string;
 
+  @Column({ length: 35, nullable: true })
+  apiKey: string;
+
+  @Column({ length: 35, nullable: true })
+  apiSecret: string;
+
   @Column({ type: 'boolean', default: false })
   planIsActive: boolean;
 
@@ -43,13 +53,12 @@ export class User extends BaseEntity {
   })
   password: string;
 
-  @ManyToOne(() => Plan, (plan) => plan.users)
+  @ManyToOne(() => Plan, plan => plan.users)
   plan: Plan;
 
-  @OneToOne(() => BinanceCreds, (binanceCreds) => binanceCreds.user, {
-    cascade: ['insert', 'update'],
-  })
-  binanceCreds: BinanceCreds;
+  @OneToOne(() => UserStats, userStats => userStats.user)
+  @JoinColumn()
+  userStats: UserStats;
 
   toJSON() {
     const { password, ...self } = this;
@@ -58,16 +67,25 @@ export class User extends BaseEntity {
 
   toDto() {
     const { password, ...dto } = this;
+    if(dto.apiKey) dto.apiKey = Crypto.decrypt(dto.apiKey);
+    if(dto.apiSecret) dto.apiSecret = Crypto.decrypt(dto.apiSecret);
     return dto;
   }
 
-  fromDto(payload: RegisterPayload) {
+  fromDto(payload: RegisterPayload): User {
     this.userName = payload.userName;
     this.fullName = payload.fullName;
     this.email = payload.email;
     this.country = payload.country;
     this.phoneNumber = payload.phoneNumber;
     this.password = payload.password;
+
+    return this;
+  }
+
+  fromKeysDto(body: BinanceKeysDto): User {
+    this.apiKey = Crypto.encrypt(body.apiKey);
+    this.apiSecret = Crypto.encrypt(body.apiSecret);
 
     return this;
   }

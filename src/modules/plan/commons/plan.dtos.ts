@@ -15,14 +15,8 @@ export class BasePlanDto {
   public earningLimit: string;
 
   @IsPositive()
-  public directBonusPercentage: number;
+  public minUSDT: number;
 
   @IsPositive()
-  public performanceBonusPercentage: number;
-
-  @IsPositive()
-  public minimumUSDT: number;
-
-  @IsPositive()
-  public minimumBTC: number;
+  public minBTC: number;
 }

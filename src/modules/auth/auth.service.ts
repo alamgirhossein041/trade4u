@@ -13,7 +13,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
     private readonly mailerservice: MailService,
-  ) {}
+  ) { }
 
   /**
    * Create new jwt token
@@ -94,11 +94,44 @@ export class AuthService {
   }
 
   /**
+   * Send Password Recovery Link To User Email
+   * @param email 
+   * @returns 
+   */
+  public async forgotPassword(email: string): Promise<any> {
+    const user = await this.userService.getByEmail(email);
+    if (user) {
+      const tokenObj = await this.createToken(user);
+      await this.mailerservice.forgotPassword(user.email, tokenObj.accessToken)
+      return;
+    } else {
+      throw new HttpException(ResponseMessage.EMAIL_NOT_REGISTERED, ResponseCode.NOT_FOUND);
+    }
+  }
+
+
+  /**
+     * Confirm the forgot password and update
+     * @param email
+     * @param password 
+     * @returns 
+     */
+    public async confirmForgotPassword(email: string, password: string) {
+      await this.userService.confirmForgotPassword(email, password);
+      return;
+    }
+
+
+  /**
    * Confirm a Mail
    * @param user
    * @returns
    */
   public async confirmEmail(user: User): Promise<User> {
+    if(user.emailConfirmed) throw new HttpException(
+        ResponseMessage.EMAIL_LINK_EXPIRED,
+        ResponseCode.BAD_REQUEST,
+      );
     return await this.userService.updateEmailStatus(user);
   }
 
@@ -109,6 +142,12 @@ export class AuthService {
    */
   async validateUser(payload: LoginPayload): Promise<any> {
     const user = await this.userService.getByEmail(payload.email);
+    if(user.refereeUuid && !user.emailConfirmed) {
+      throw new HttpException(
+        ResponseMessage.CONFIRM_EMAIL_FIRST,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
     if (!user || !Hash.compare(payload.password, user.password)) {
       throw new HttpException(
         ResponseMessage.INVALID_CREDENTIALS,

@@ -1,5 +1,7 @@
 import { INestApplication } from "@nestjs/common";
 import request from 'supertest';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { getConnection } from 'typeorm';
 import { User } from "../src/modules/user";
 
@@ -76,6 +78,17 @@ export class Helper {
             });
     }
 
+    public getJwtToken(user: User): string {
+        const configService = new ConfigService();
+        const jwtService = new JwtService({
+            secret: configService.get<string>('JWT_SECRET_KEY'),
+        });
+
+        const authPayload = { id: user.uuid };
+        const authToken = jwtService.sign(authPayload);
+        return `Bearer ${authToken}`;
+    }
+
     /**
      * Remove Default user i.e testuser
      */
@@ -91,12 +104,8 @@ export class Helper {
     public async clearDB() {
         const entities = getConnection().entityMetadatas;
         for (const entity of entities) {
-            if (entity.name === `User`)
-                continue;
             const repository = getConnection().getRepository(entity.name);
-            await repository.query(`SET FOREIGN_KEY_CHECKS=0`);
-            await repository.query(`TRUNCATE ${entity.tableName}`);
-            await repository.query(`ALTER TABLE ${entity.tableName} AUTO_INCREMENT=1`);
+            await repository.query(`TRUNCATE ${entity.tableName} RESTART IDENTITY CASCADE;`);
         }
     }
 }

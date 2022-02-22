@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
 import { Repository } from 'typeorm';
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
+import { UserStats } from './user-stats.entity';
 import { User } from './user.entity';
 
 @Injectable()
@@ -10,6 +11,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(UserStats)
+    private readonly userStatsRepository: Repository<UserStats>,
   ) {}
 
   /**
@@ -17,7 +20,7 @@ export class UsersService {
    * @param id
    * @returns
    */
-  async get(uuid: string) {
+  async get(uuid: string): Promise<User> {
     return this.userRepository.findOne({ uuid });
   }
 
@@ -26,7 +29,7 @@ export class UsersService {
    * @param email
    * @returns
    */
-  async getByEmail(email: string) {
+  async getByEmail(email: string): Promise<User> {
     return await this.userRepository.findOne({ email });
   }
 
@@ -35,7 +38,7 @@ export class UsersService {
    * @param username
    * @returns
    */
-  async getByUserName(userName: string) {
+  async getByUserName(userName: string): Promise<User> {
     return await this.userRepository.findOne({ userName });
   }
 
@@ -44,7 +47,7 @@ export class UsersService {
    * @param payload
    * @returns
    */
-  async create(payload: RegisterPayload) {
+  async create(payload: RegisterPayload):Promise<User> {
     const user = await this.getByEmail(payload.email);
     if (user) {
       throw new HttpException(
@@ -53,7 +56,7 @@ export class UsersService {
       );
     }
     const newUser = new User().fromDto(payload);
-    newUser.referralLink = this.getReferralLink(newUser.userName);
+    newUser.referralLink = this.getReferralLink(newUser);
     return await this.userRepository.save(newUser);
   }
 
@@ -62,9 +65,19 @@ export class UsersService {
    * @param username
    * @returns
    */
-  public getReferralLink(userName: string): string {
-    const link = process.env.APP_URL + `signup?referrer=` + userName;
+  public getReferralLink(user: User): string {
+    const link = process.env.APP_URL + `signup?referrer=` + user.userName;
     return link;
+  }
+
+  /**
+   * Initiate user stats
+   * @returns
+   */
+  public async initializeStats(): Promise<UserStats> {
+    let userStats: UserStats;
+    userStats = new UserStats();
+    return this.userStatsRepository.save(userStats);
   }
 
   /**
@@ -72,7 +85,7 @@ export class UsersService {
    * @param payload
    * @returns
    */
-  async createUser(payload: RegisterPayload, referrer: string) {
+  async createUser(payload: RegisterPayload, referrer: string): Promise<User> {
     const referee = await this.getByUserName(referrer);
     if (!referee) {
       throw new HttpException(
@@ -95,19 +108,36 @@ export class UsersService {
       );
     }
     const newUser = new User().fromDto(payload);
-    newUser.referralLink = this.getReferralLink(user.userName);
+    newUser.userStats = await this.initializeStats();
+    newUser.referralLink = this.getReferralLink(newUser);
     newUser.refereeUuid = referee.uuid;
     return await this.userRepository.save(newUser);
   }
 
   /**
-   * Create a new user
-   * @param payload
+   * Update user email status
+   * @param user
    * @returns
    */
-  async updateEmailStatus(user: User) {
+  async updateEmailStatus(user: User): Promise<User> {
     user.emailConfirmed = true;
     return await this.userRepository.save(user);
+  }
+
+  /**
+   * Forget password confirmation
+   * @param email 
+   * @param password 
+   * @returns 
+   */
+  public async confirmForgotPassword(email: string, password: string): Promise<User> {
+    const user: User = await this.userRepository.findOne({ email });
+    if (user) {
+      await this.userRepository.update({ email }, { password })
+      return user;
+    } else {
+      throw new HttpException(ResponseMessage.USER_DOES_NOT_EXIST,ResponseCode.NOT_FOUND);
+    }
   }
 
   /**

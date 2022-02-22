@@ -1,11 +1,11 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class BinanceApiCredsDto {
+export class BinanceKeysDto {
   @IsNotEmpty()
   @IsString()
   public apiKey: string;
 
   @IsNotEmpty()
   @IsString()
-  public secret: string;
+  public apiSecret: string;
 }

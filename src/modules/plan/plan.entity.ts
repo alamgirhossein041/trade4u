@@ -19,17 +19,11 @@ export class Plan extends BaseEntity {
   @Column({ default: '3X' })
   earningLimit: string;
 
-  @Column()
-  directBonusPercentage: number;
-
-  @Column()
-  performanceBonusPercentage: number;
+  @Column({ type: 'double precision' })
+  minUSDT: number;
 
   @Column({ type: 'double precision' })
-  minimumUSDT: number;
-
-  @Column({ type: 'double precision' })
-  minimumBTC: number;
+  minBTC: number;
 
   @OneToMany(() => User, (user) => user.plan)
   public users: User[];
@@ -39,10 +33,8 @@ export class Plan extends BaseEntity {
     this.price = body.price;
     this.levels = body.levels;
     this.earningLimit = body.earningLimit;
-    this.directBonusPercentage = body.directBonusPercentage;
-    this.performanceBonusPercentage = body.performanceBonusPercentage;
-    this.minimumBTC = body.minimumBTC;
-    this.minimumUSDT = body.minimumUSDT;
+    this.minBTC = body.minBTC;
+    this.minUSDT = body.minUSDT;
 
     return this;
   }
