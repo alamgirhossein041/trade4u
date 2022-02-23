@@ -43,7 +43,7 @@ export class MailService {
  * @param email 
  * @param token 
  */
-  async forgotPassword(email: string, token: string) {
+  async sendForgotPasswordMail(email: string, token: string) {
     const url = process.env.APP_URL;
     const subRoute = 'create_new_password';
     await this.mailerService.sendMail({

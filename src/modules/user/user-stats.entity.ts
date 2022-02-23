@@ -1,6 +1,5 @@
-import { Column, Entity, OneToOne } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { BaseEntity } from '../../utils/base.entity';
-import { User } from './user.entity';
 
 @Entity('user_stats')
 export class UserStats extends BaseEntity {
@@ -21,6 +20,4 @@ export class UserStats extends BaseEntity {
     })
     total_amount: number;
 
-    @OneToOne(() => User, { onDelete: 'CASCADE' })
-    user: User;
 }

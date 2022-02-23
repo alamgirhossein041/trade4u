@@ -98,11 +98,11 @@ export class AuthService {
    * @param email 
    * @returns 
    */
-  public async forgotPassword(email: string): Promise<any> {
+  public async forgotPassword(email: string): Promise<void> {
     const user = await this.userService.getByEmail(email);
     if (user) {
       const tokenObj = await this.createToken(user);
-      await this.mailerservice.forgotPassword(user.email, tokenObj.accessToken)
+      await this.mailerservice.sendForgotPasswordMail(user.email, tokenObj.accessToken)
       return;
     } else {
       throw new HttpException(ResponseMessage.EMAIL_NOT_REGISTERED, ResponseCode.NOT_FOUND);
@@ -140,9 +140,9 @@ export class AuthService {
    * @param payload
    * @returns
    */
-  async validateUser(payload: LoginPayload): Promise<any> {
+  async validateUser(payload: LoginPayload): Promise<User> {
     const user = await this.userService.getByEmail(payload.email);
-    if(user.refereeUuid && !user.emailConfirmed) {
+    if(!user.emailConfirmed) {
       throw new HttpException(
         ResponseMessage.CONFIRM_EMAIL_FIRST,
         ResponseCode.BAD_REQUEST,

@@ -19,7 +19,7 @@ export class PhoneNumberValidator implements ValidatorConstraintInterface {
       const country = Country.getAllCountries().find(
         (c) => c.name === args.object.country,
       );
-      return isValidPhoneNumber(value,{defaultCallingCode: country.phonecode});
+      return isValidPhoneNumber(value,{defaultCallingCode: country.isoCode});
     } catch (e) {
       return false;
     }

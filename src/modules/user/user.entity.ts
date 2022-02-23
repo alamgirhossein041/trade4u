@@ -1,8 +1,6 @@
 import { RegisterPayload } from '../auth/register.payload';
-import { BinanceKeysDto } from '../onboarding/commons/onboarding.dtos'
-import { Plan } from '../plan/plan.entity';
 import { UserStats } from './user-stats.entity';
-import { Entity, Column, ManyToOne, OneToOne, PrimaryGeneratedColumn, JoinColumn } from 'typeorm';
+import { Entity, Column, OneToOne, PrimaryGeneratedColumn, JoinColumn } from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
 import { Crypto } from '../../utils/crypto';
 
@@ -53,10 +51,7 @@ export class User {
   })
   password: string;
 
-  @ManyToOne(() => Plan, plan => plan.users)
-  plan: Plan;
-
-  @OneToOne(() => UserStats, userStats => userStats.user)
+  @OneToOne(() => UserStats)
   @JoinColumn()
   userStats: UserStats;
 
@@ -79,13 +74,6 @@ export class User {
     this.country = payload.country;
     this.phoneNumber = payload.phoneNumber;
     this.password = payload.password;
-
-    return this;
-  }
-
-  fromKeysDto(body: BinanceKeysDto): User {
-    this.apiKey = Crypto.encrypt(body.apiKey);
-    this.apiSecret = Crypto.encrypt(body.apiSecret);
 
     return this;
   }

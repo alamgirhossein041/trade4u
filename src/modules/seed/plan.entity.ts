@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity()
+@Entity({name: `plans`})
 export class Plan {
   @PrimaryColumn()
   planId: Number;

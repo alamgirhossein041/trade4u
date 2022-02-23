@@ -1,5 +1,6 @@
 export const MailerMock = {
     sendEmailConfirmation: jest.fn(),
+    sendForgotPasswordMail: jest.fn(),
 }
 export const LoggerMock = {
     log: jest.fn((value: string) => {

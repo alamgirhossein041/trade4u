@@ -7,7 +7,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from '../../modules/user';
 import { SeedModule } from '../../modules/seed/seed.module';
-import { PlanModule } from '../plan/plan.module';
 
 @Module({
   imports: [
@@ -22,7 +21,6 @@ import { PlanModule } from '../plan/plan.module';
     CommonModule,
     UserModule,
     SeedModule,
-    PlanModule,
   ],
   controllers: [AppController],
   providers: [AppService],

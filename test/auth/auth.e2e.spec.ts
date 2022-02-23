@@ -28,24 +28,26 @@ describe('BinancePlus auth test', () => {
     });
 
     beforeAll(async () => {
-        await helper.removeDefaultUser();
+        await helper.removeUser(`testuser@yopmail.com`);
+        await helper.removeUser(`bnptestuser@yopmail.com`);
     })
 
-    it(`Test /genesis_user API`, async () => {
+    it(`Test register /genesis_user API`, async () => {
         await helper.register();
+        await helper.updateEmailConfirmation(`testuser@yopmail.com`)
     });
 
-    it(`Test /login API`, async () => {
-        await helper.login();
+    it(`Test /login genesis user API`, async () => {
+        await helper.login('testuser@yopmail.com','Test@1234');
     });
 
-    it(`Test /me API`, async () => {
+    it(`Test /me genesis user API`, async () => {
         const expected = {
             userName: "john58",
             fullName: "john smith",
             country: "United States",
             email: "testuser@yopmail.com",
-            emailConfirmed: false,
+            emailConfirmed: true,
             apiKey: null,
             apiSecret: null,
             phoneNumber: "+14842918831",
@@ -64,7 +66,7 @@ describe('BinancePlus auth test', () => {
             });
     });
 
-    it(`Test /register API`, async () => {
+    it(`Test /register bnp user API`, async () => {
         const regDto = {
             userName: "bnptestuser32",
             fullName: "bnp user",
@@ -84,8 +86,65 @@ describe('BinancePlus auth test', () => {
             });
     });
 
+    it(`Test /confirmEmail of bnp user`, async () => {
+        await helper.updateEmailConfirmation(`bnptestuser@yopmail.com`);
+    });
+
+    it(`Test /login bnp user API`, async () => {
+        await helper.login('bnptestuser@yopmail.com','Rnssol@21');
+    });
+
+    it(`Test /me bnp user API`, async () => {
+        const expectedbnpuser = {
+            userName: "bnptestuser32",
+            fullName: "bnp user",
+            country: "United States",
+            email: "bnptestuser@yopmail.com",
+            emailConfirmed: true,
+            apiKey: null,
+            apiSecret: null,
+            phoneNumber: "+14842918831",
+            planIsActive: false,
+            referralLink: process.env.APP_URL + `signup?referrer=bnptestuser32`
+        }
+
+        await request(app.getHttpServer())
+            .get('/api/auth/me')
+            .set('Authorization', helper.getAccessToken())
+            .expect(200)
+            .expect(({ body }) => {
+                const { uuid,refereeUuid,createdAt, updatedAt, ...response } = body;
+                expect(response).toEqual(expectedbnpuser)
+            });
+    });
+
+    it(`Test /forgot_password bnp user API`, async () => {
+        await request(app.getHttpServer())
+            .get('/api/auth/forgot_password?email=bnptestuser@yopmail.com')
+            .expect(200)
+            .expect(({ body }) => {
+                expect(body.message).toEqual(ResponseMessage.FORGOT_PASSWORD_EMAIL);
+            });
+    });
+
+    it(`Test /confirm_forgot_password bnp user API`, async () => {
+        await request(app.getHttpServer())
+            .post('/api/auth/confirm_forgot_password')
+            .set('Authorization', helper.getAccessToken())
+            .send({password: 'Rnssol@12'})
+            .expect(200)
+            .expect(({ body }) => {
+                expect(body.message).toEqual(ResponseMessage.SUCCESS);
+            });
+    });
+
+    it(`Test /login bnp user after forgot password change API`, async () => {
+        await helper.login('bnptestuser@yopmail.com','Rnssol@12');
+    });
+
 
     afterAll(async () => {
+        await helper.removeUser(`bnptestuser@yopmail.com`);
         await helper.clearDB();
         await app.close();
     })
