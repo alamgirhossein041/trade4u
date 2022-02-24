@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { Country, State, City } from 'country-state-city';
 import { ResponseMessage } from '../../../utils/enum';
-import { isValidPhoneNumber } from 'libphonenumber-js';
+import { isPossiblePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 
 @ValidatorConstraint({ name: 'ValidCountry', async: true })
 @Injectable()
@@ -19,6 +19,7 @@ export class PhoneNumberValidator implements ValidatorConstraintInterface {
       const country = Country.getAllCountries().find(
         (c) => c.name === args.object.country,
       );
+      console.log(country);
       return isValidPhoneNumber(value, { defaultCallingCode: country.isoCode });
     } catch (e) {
       return false;
