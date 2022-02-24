@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, MinLength,MaxLength,Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  MinLength,
+  MaxLength,
+  Matches,
+} from 'class-validator';
 import { ResponseMessage } from '../../utils/enum';
 export class LoginPayload {
   @IsEmail()

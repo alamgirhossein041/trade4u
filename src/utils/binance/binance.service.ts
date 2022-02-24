@@ -7,6 +7,12 @@ export class BinanceService {
   constructor(private binanceExchannge: binance) {
     this.binanceExchannge = new binance();
   }
+  /**
+   * Verify The Binance Api Key Given By User
+   * @param apiKey 
+   * @param secret 
+   * @returns 
+   */
   public async verifyApiKey(apiKey: string, secret: string) {
     try {
       this.binanceExchannge = new binance({ apiKey, secret });
@@ -19,7 +25,10 @@ export class BinanceService {
       );
     }
   }
-
+/**
+ * Get current Nano Price
+ * @returns 
+ */
   public async getNanoPrice() {
     try {
       const price = await this.binanceExchannge.fetchTicker(`XNOUSDT`);

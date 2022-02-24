@@ -1,8 +1,15 @@
 import { RegisterPayload } from '../auth/register.payload';
 import { UserStats } from './user-stats.entity';
-import { Entity, Column, OneToOne, PrimaryGeneratedColumn, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  JoinColumn,
+} from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
 import { Crypto } from '../../utils/crypto';
+import { Plan } from '../seed/plan.entity';
 
 @Entity({
   name: 'users',
@@ -55,6 +62,10 @@ export class User {
   @JoinColumn()
   userStats: UserStats;
 
+  @OneToOne(() => Plan)
+  @JoinColumn()
+  plan: Plan;
+
   toJSON() {
     const { password, ...self } = this;
     return self;
@@ -62,8 +73,8 @@ export class User {
 
   toDto() {
     const { password, ...dto } = this;
-    if(dto.apiKey) dto.apiKey = Crypto.decrypt(dto.apiKey);
-    if(dto.apiSecret) dto.apiSecret = Crypto.decrypt(dto.apiSecret);
+    if (dto.apiKey) dto.apiKey = Crypto.decrypt(dto.apiKey);
+    if (dto.apiSecret) dto.apiSecret = Crypto.decrypt(dto.apiSecret);
     return dto;
   }
 

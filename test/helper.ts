@@ -1,6 +1,7 @@
 import { INestApplication } from "@nestjs/common";
 import request from 'supertest';
 import { getConnection } from 'typeorm';
+import { Plan } from "../src/modules/seed/plan.entity";
 import { User } from "../src/modules/user";
 
 export class Helper {
@@ -23,13 +24,13 @@ export class Helper {
             await this.register();
             await this.updateEmailConfirmation(`testuser@yopmail.com`);
         }
-        await this.login(email,'Test@1234');
+        await this.login(email, 'Test@1234');
         return this.token;
     }
 
     /**
-     * 
-     * @returns 
+     * Get Jwt Token of User
+     * @returns JwtToken
      */
     public getAccessToken() {
         return `Bearer ${this.token}`;
@@ -59,19 +60,38 @@ export class Helper {
     }
 
     /**
-* Update Email Confirmation of user
-* @returns 
-*/
+    * Update Email Confirmation of user
+    * @returns 
+    */
     public async updateEmailConfirmation(email: string) {
         const repository = getConnection().getRepository(User);
-        return await repository.update({email},{emailConfirmed: true});
+        return await repository.update({ email }, { emailConfirmed: true });
+    }
+
+    /**
+    * Update Email Confirmation of user
+    * @returns 
+    */
+    public async getPlan() {
+        const repository = getConnection().getRepository(Plan);
+        return await repository.findOne({planId: 1});
+    }
+
+    /**
+    * Update Plan of user
+    * @returns 
+    */
+    public async updateUserPlan(email: string) {
+        const plan = await this.getPlan();
+        const repository = getConnection().getRepository(User);
+        return await repository.update({ email }, {plan: plan});
     }
 
     /**
      * Login a test user
      * @returns 
      */
-    public async login(mail: string,pass: string) {
+    public async login(mail: string, pass: string) {
         const testUserDto = {
             email: mail,
             password: pass,
@@ -100,10 +120,8 @@ export class Helper {
     public async clearDB() {
         const entities = getConnection().entityMetadatas;
         for (const entity of entities) {
-            if (entity.name === `User` || entity.name === `UserStats`)
-                continue;
             const repository = getConnection().getRepository(entity.name);
-            await repository.query(`TRUNCATE ${entity.tableName};`);
+            await repository.query(`TRUNCATE ${entity.tableName} RESTART IDENTITY CASCADE;`);
         }
     }
 }

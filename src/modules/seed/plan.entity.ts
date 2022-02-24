@@ -1,31 +1,31 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity({name: `plans`})
+@Entity({ name: `plans` })
 export class Plan {
   @PrimaryColumn()
-  planId: Number;
+  planId: number;
 
-  @Column({})
+  @Column()
   planName: string;
 
   @Column({ type: 'double precision' })
-  price: Number;
+  price: number;
 
   @Column({ type: 'double precision' })
-  minBTC: Number;
+  minBTC: number;
 
   @Column({ type: 'double precision' })
-  minUSDT: Number;
+  minUSDT: number;
 
   @Column()
-  levels: Number;
+  levels: number;
 
   @Column()
-  preformanceFeePercentage: Number;
+  preformanceFeePercentage: number;
 
   @Column()
-  directBonusPercentage: Number;
+  directBonusPercentage: number;
 
   @Column()
-  directPreformanceBonusPercentage: Number;
+  directPreformanceBonusPercentage: number;
 }

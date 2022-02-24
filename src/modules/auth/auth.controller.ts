@@ -9,16 +9,26 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthService, LoginPayload, RegisterPayload, ForgotPasswordDto } from './';
+import {
+  AuthService,
+  LoginPayload,
+  RegisterPayload,
+  ForgotPasswordDto,
+} from './';
 import { CurrentUser } from './../common/decorator/current-user.decorator';
 import { User } from '../user/user.entity';
 import { Response } from 'express';
-import { ResponseCode, ResponseMessage,LoggerMessages } from '../../utils/enum';
+import {
+  ResponseCode,
+  ResponseMessage,
+  LoggerMessages,
+} from '../../utils/enum';
 import { LoggerService } from '../../utils/logger/logger.service';
 
 @Controller('api/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService,
+  constructor(
+    private readonly authService: AuthService,
     private readonly loggerService: LoggerService,
   ) {
     this.loggerService.setContext('AuthController');
@@ -34,7 +44,7 @@ export class AuthController {
   @Post('genesis_user')
   async createGenesisUser(
     @Body() payload: RegisterPayload,
-    @Res() res: Response
+    @Res() res: Response,
   ): Promise<Response> {
     const user = await this.authService.register(payload);
     return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
@@ -44,51 +54,70 @@ export class AuthController {
     });
   }
 
-
   @Post('register')
   async register(
     @Body() payload: RegisterPayload,
     @Query('referrer') referrer: string,
-    @Res() res: Response
+    @Res() res: Response,
   ): Promise<Response> {
-    if (!referrer) throw new HttpException(`${ResponseMessage.INVALID_QUERY_PARAM} referrer`, ResponseCode.BAD_REQUEST);
+    if (!referrer)
+      throw new HttpException(
+        `${ResponseMessage.INVALID_QUERY_PARAM} referrer`,
+        ResponseCode.BAD_REQUEST,
+      );
     await this.authService.registerUser(payload, referrer);
-    return res
-      .status(ResponseCode.SUCCESS)
-      .send({
-        statusCode: ResponseCode.SUCCESS,
-        message: ResponseMessage.CONFIRAMATION_EMAIL_SENT,
-      });
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.CONFIRAMATION_EMAIL_SENT,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('confirm_email')
   async emailConfirmation(
     @CurrentUser() user: User,
-    @Res() res: Response
+    @Res() res: Response,
   ): Promise<Response> {
     await this.authService.confirmEmail(user);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.EMAIL_CONFIRMED,
+    });
+  }
+
+  @Get('forgot_password')
+  async forgotPassword(
+    @Query('email') email: string,
+    @Res() res: Response,
+  ): Promise<Response> {
+    if (!email)
+      throw new HttpException(
+        `${ResponseMessage.INVALID_QUERY_PARAM} email`,
+        ResponseCode.BAD_REQUEST,
+      );
+    await this.authService.forgotPassword(email);
     return res
       .status(ResponseCode.SUCCESS)
       .send({
         statusCode: ResponseCode.SUCCESS,
-        message: ResponseMessage.EMAIL_CONFIRMED,
+        message: ResponseMessage.FORGOT_PASSWORD_EMAIL,
       });
-  }
-
-
-  @Get('forgot_password')
-  async forgotPassword(@Query('email') email: string, @Res() res: Response): Promise<Response> {
-    if (!email) throw new HttpException(`${ResponseMessage.INVALID_QUERY_PARAM} email`, ResponseCode.BAD_REQUEST);
-    await this.authService.forgotPassword(email);
-    return res.status(ResponseCode.SUCCESS).send({ statusCode: ResponseCode.SUCCESS, message: ResponseMessage.FORGOT_PASSWORD_EMAIL })
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('confirm_forgot_password')
-  async forgotConfirmPassword(@CurrentUser() user: User, @Res() res: Response, @Body() payload: ForgotPasswordDto): Promise<Response> {
+  async forgotConfirmPassword(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+    @Body() payload: ForgotPasswordDto,
+  ): Promise<Response> {
     await this.authService.confirmForgotPassword(user.email, payload.password);
-    return res.status(ResponseCode.SUCCESS).send({ statusCode: ResponseCode.SUCCESS, message: ResponseMessage.SUCCESS });
+    return res
+      .status(ResponseCode.SUCCESS)
+      .send({
+        statusCode: ResponseCode.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+      });
   }
 
   @UseGuards(AuthGuard('jwt'))

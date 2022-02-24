@@ -8,6 +8,7 @@ import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
 import { MailerMock, LoggerMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
+import { AppService } from '../../src/modules/main/app.service';
 
 describe('BinancePlus auth test', () => {
     let app: INestApplication;
@@ -26,11 +27,6 @@ describe('BinancePlus auth test', () => {
         await app.init();
         helper = new Helper(app);
     });
-
-    beforeAll(async () => {
-        await helper.removeUser(`testuser@yopmail.com`);
-        await helper.removeUser(`bnptestuser@yopmail.com`);
-    })
 
     it(`Test register /genesis_user API`, async () => {
         await helper.register();
@@ -61,7 +57,7 @@ describe('BinancePlus auth test', () => {
             .set('Authorization', helper.getAccessToken())
             .expect(200)
             .expect(({ body }) => {
-                const { uuid, createdAt, updatedAt, ...response } = body;
+                const { uuid, createdAt, updatedAt,plan, ...response } = body;
                 expect(response).toEqual(expected)
             });
     });
@@ -90,6 +86,10 @@ describe('BinancePlus auth test', () => {
         await helper.updateEmailConfirmation(`bnptestuser@yopmail.com`);
     });
 
+    it(`Test /update plan of bnp user`, async () => {
+        await helper.updateUserPlan(`bnptestuser@yopmail.com`);
+    });
+
     it(`Test /login bnp user API`, async () => {
         await helper.login('bnptestuser@yopmail.com','Rnssol@21');
     });
@@ -113,7 +113,7 @@ describe('BinancePlus auth test', () => {
             .set('Authorization', helper.getAccessToken())
             .expect(200)
             .expect(({ body }) => {
-                const { uuid,refereeUuid,createdAt, updatedAt, ...response } = body;
+                const { uuid,refereeUuid,createdAt, updatedAt,plan, ...response } = body;
                 expect(response).toEqual(expectedbnpuser)
             });
     });
@@ -144,7 +144,6 @@ describe('BinancePlus auth test', () => {
 
 
     afterAll(async () => {
-        await helper.removeUser(`bnptestuser@yopmail.com`);
         await helper.clearDB();
         await app.close();
     })

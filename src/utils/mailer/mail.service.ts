@@ -4,8 +4,13 @@ import { User } from '../../modules/user/user.entity';
 
 @Injectable()
 export class MailService {
-  constructor(private mailerService: MailerService) {}
+  constructor(private mailerService: MailerService) { }
 
+  /**
+     * Send Account Confirmation Email To User On Signup
+     * @param email
+     * @param token
+     */
   public async sendEmailConfirmation(user: User, token: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       const url = process.env.APP_URL;
@@ -38,11 +43,11 @@ export class MailService {
     });
   }
 
-/**
- * Send Password Recovery Email To User on Forgot Password
- * @param email 
- * @param token 
- */
+  /**
+   * Send Password Recovery Email To User on Forgot Password
+   * @param email
+   * @param token
+   */
   async sendForgotPasswordMail(email: string, token: string) {
     const url = process.env.APP_URL;
     const subRoute = 'create_new_password';
@@ -59,7 +64,7 @@ export class MailService {
 
               Thanks,
               </p>
-            `
+            `,
     });
   }
 }
