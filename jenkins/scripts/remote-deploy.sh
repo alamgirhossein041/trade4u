@@ -18,6 +18,6 @@ ssh $HOST_USER@$HOST_IP<<EOF
     docker-compose up -d
     docker stop $CONTAINER_NAME-$BRANCH_NAME
     docker rm -f $CONTAINER_NAME-$BRANCH_NAME
-    docker run -v /var/binance+/.env:/app/.env -d -p $PORT:4000 --name $CONTAINER_NAME-$BRANCH_NAME $CONTAINER_CURRENT
+    docker run -v /var/binance+/.env:/app/.env -d -p $PORT:3836 --name $CONTAINER_NAME-$BRANCH_NAME $CONTAINER_CURRENT
     exit
 EOF
