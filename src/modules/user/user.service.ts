@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { ResponseCode, ResponseMessage } from '../../utils/enum';
 import { UserStats } from './user-stats.entity';
 import { AffliatesInterface } from './commons/user.types';
 import { User } from './user.entity';
+import { SeedService } from '../seed/seed.service';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserStats)
     private readonly userStatsRepository: Repository<UserStats>,
+    private readonly seedService: SeedService,
   ) {}
 
   /**
@@ -90,6 +92,38 @@ export class UsersService {
       affiliates: affiliatesResult,
       affiliatesCount: affiliatesCountResult,
     };
+  }
+
+  /**
+   * Get Parent tree of user
+   * @param user
+   * @returns
+   */
+  async getUserParentsTree(user: User): Promise<unknown> {
+    const sql = `WITH RECURSIVE ReverseMlmTree AS 
+              (
+                    (
+                        SELECT h.uuid,h."balance",h."refereeUuid",h."planPlanId", h."fullName",h."userName" ,0 AS level
+                        FROM users h
+                        WHERE h.uuid = $1
+                    )
+                      UNION ALL
+                    (
+                      SELECT u.uuid,u."balance",u."refereeUuid",u."planPlanId",u."fullName",u."userName", h.level + 1 as level
+                      FROM users u
+                      INNER JOIN ReverseMlmTree h ON u.uuid = h."refereeUuid" 
+                    )
+            ) 
+             SELECT "fullName","balance","userName",p."planName" as plan_name,level FROM ReverseMlmTree
+             INNER JOIN plans p ON "planPlanId" = p."planId"
+             WHERE level > 0 AND level <= $2 AND "refereeUuid" IS NOT NULL
+             ORDER BY level;
+            `;
+    const parentsResult = await this.userRepository.query(sql, [
+      user.uuid,
+      user.plan.levels,
+    ]);
+    return parentsResult;
   }
 
   /**
@@ -171,6 +205,18 @@ export class UsersService {
    */
   async updateEmailStatus(user: User): Promise<User> {
     user.emailConfirmed = true;
+    return await this.userRepository.save(user);
+  }
+
+  /**
+   * Update user plan on purchase and compensate parent users
+   * @param user
+   * @returns
+   */
+  async updateUserPlanOnPurchase(user: User, planId: number): Promise<any> {
+    const plan = await this.seedService.getPlanById(planId);
+    user.planIsActive = true;
+    user.plan = plan;
     return await this.userRepository.save(user);
   }
 

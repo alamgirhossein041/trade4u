@@ -6,6 +6,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
 import { Crypto } from '../../utils/crypto';
@@ -42,6 +43,9 @@ export class User {
   @Column({ length: 35, nullable: true })
   apiSecret: string;
 
+  @Column({ default: 0 })
+  balance: number;
+
   @Column({ type: 'boolean', default: false })
   planIsActive: boolean;
 
@@ -62,8 +66,7 @@ export class User {
   @JoinColumn()
   userStats: UserStats;
 
-  @OneToOne(() => Plan)
-  @JoinColumn()
+  @ManyToOne(() => Plan)
   plan: Plan;
 
   toJSON() {

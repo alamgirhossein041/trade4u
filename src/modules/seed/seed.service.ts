@@ -128,6 +128,21 @@ export class SeedService {
   }
 
   /**
+   * Get all business plan
+   */
+  async getPlanById(planId: number) {
+    const plan = await this.planRepository.findOne({ planId });
+    if (!plan) {
+      throw new HttpException(
+        ResponseMessage.DOES_NOT_EXIST,
+        ResponseCode.NOT_FOUND,
+      );
+    }
+
+    return plan;
+  }
+
+  /**
    * Get all license fee
    */
   async getlicenseFee() {

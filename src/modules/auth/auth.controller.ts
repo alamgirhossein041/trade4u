@@ -96,12 +96,10 @@ export class AuthController {
         ResponseCode.BAD_REQUEST,
       );
     await this.authService.forgotPassword(email);
-    return res
-      .status(ResponseCode.SUCCESS)
-      .send({
-        statusCode: ResponseCode.SUCCESS,
-        message: ResponseMessage.FORGOT_PASSWORD_EMAIL,
-      });
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.FORGOT_PASSWORD_EMAIL,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -112,12 +110,10 @@ export class AuthController {
     @Body() payload: ForgotPasswordDto,
   ): Promise<Response> {
     await this.authService.confirmForgotPassword(user.email, payload.password);
-    return res
-      .status(ResponseCode.SUCCESS)
-      .send({
-        statusCode: ResponseCode.SUCCESS,
-        message: ResponseMessage.SUCCESS,
-      });
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.SUCCESS,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))

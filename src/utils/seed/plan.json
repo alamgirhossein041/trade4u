@@ -5,7 +5,7 @@
         "price": 100,
         "minBTC": 0.005,
         "minUSDT": 150,
-        "levels": 10,
+        "levels": 7,
         "preformanceFeePercentage": 30,
         "directBonusPercentage": 10,
         "directPreformanceBonusPercentage": 10
@@ -16,7 +16,7 @@
         "price": 200,
         "minBTC": 0.005,
         "minUSDT": 200,
-        "levels": 20,
+        "levels": 10,
         "preformanceFeePercentage": 25,
         "directBonusPercentage": 15,
         "directPreformanceBonusPercentage": 15
@@ -27,7 +27,7 @@
         "price": 500,
         "minBTC": 0.005,
         "minUSDT": 150,
-        "levels": 30,
+        "levels": 12,
         "preformanceFeePercentage": 20,
         "directBonusPercentage": 20,
         "directPreformanceBonusPercentage": 20

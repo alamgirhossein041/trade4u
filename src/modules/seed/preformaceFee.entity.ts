@@ -3,14 +3,14 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 @Entity()
 export class PerformanceFee {
   @PrimaryColumn()
-  levelNo: Number;
+  levelNo: number;
 
   @Column({ type: 'double precision' })
-  silverPercentage: Number;
+  silverPercentage: number;
 
   @Column({ type: 'double precision' })
-  goldPercentage: Number;
+  goldPercentage: number;
 
   @Column({ type: 'double precision' })
-  platinumPercentage: Number;
+  platinumPercentage: number;
 }

@@ -46,6 +46,7 @@ describe('BinancePlus auth test', () => {
             emailConfirmed: true,
             apiKey: null,
             apiSecret: null,
+            balance: 0,
             phoneNumber: "+14842918831",
             planIsActive: false,
             referralLink: process.env.APP_URL + `signup?referrer=john58`,
@@ -103,6 +104,7 @@ describe('BinancePlus auth test', () => {
             emailConfirmed: true,
             apiKey: null,
             apiSecret: null,
+            balance: 0,
             phoneNumber: "+14842918831",
             planIsActive: false,
             referralLink: process.env.APP_URL + `signup?referrer=bnptestuser32`
