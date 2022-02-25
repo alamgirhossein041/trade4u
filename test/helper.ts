@@ -1,6 +1,7 @@
 import { INestApplication } from "@nestjs/common";
 import request from 'supertest';
 import { getConnection } from 'typeorm';
+import { Plan } from "../src/modules/seed/plan.entity";
 import { User } from "../src/modules/user";
 
 export class Helper {
@@ -21,14 +22,15 @@ export class Helper {
         const exists = await repository.findOne({ email });
         if (!exists) {
             await this.register();
+            await this.updateEmailConfirmation(`testuser@yopmail.com`);
         }
-        await this.login();
+        await this.login(email, 'Test@1234');
         return this.token;
     }
 
     /**
-     * 
-     * @returns 
+     * Get Jwt Token of User
+     * @returns JwtToken
      */
     public getAccessToken() {
         return `Bearer ${this.token}`;
@@ -58,13 +60,41 @@ export class Helper {
     }
 
     /**
+    * Update Email Confirmation of user
+    * @returns 
+    */
+    public async updateEmailConfirmation(email: string) {
+        const repository = getConnection().getRepository(User);
+        return await repository.update({ email }, { emailConfirmed: true });
+    }
+
+    /**
+    * Update Email Confirmation of user
+    * @returns 
+    */
+    public async getPlan() {
+        const repository = getConnection().getRepository(Plan);
+        return await repository.findOne({planId: 1});
+    }
+
+    /**
+    * Update Plan of user
+    * @returns 
+    */
+    public async updateUserPlan(email: string) {
+        const plan = await this.getPlan();
+        const repository = getConnection().getRepository(User);
+        return await repository.update({ email }, {plan: plan});
+    }
+
+    /**
      * Login a test user
      * @returns 
      */
-    public async login() {
+    public async login(mail: string, pass: string) {
         const testUserDto = {
-            email: 'testuser@yopmail.com',
-            password: 'Test@1234',
+            email: mail,
+            password: pass,
         }
         await request(this.app.getHttpServer())
             .post('/api/auth/login')
@@ -79,8 +109,7 @@ export class Helper {
     /**
      * Remove Default user i.e testuser
      */
-    public async removeDefaultUser() {
-        const email = `testuser@yopmail.com`;
+    public async removeUser(email: string) {
         const repository = getConnection().getRepository(User);
         return await repository.delete({ email });
     }
@@ -91,10 +120,8 @@ export class Helper {
     public async clearDB() {
         const entities = getConnection().entityMetadatas;
         for (const entity of entities) {
-            if (entity.name === `User`)
-                continue;
             const repository = getConnection().getRepository(entity.name);
-            await repository.query(`TRUNCATE ${entity.tableName};`);
+            await repository.query(`TRUNCATE ${entity.tableName} RESTART IDENTITY CASCADE;`);
         }
     }
 }
