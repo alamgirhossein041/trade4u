@@ -24,7 +24,10 @@ export class UsersService {
    * @returns
    */
   async get(uuid: string): Promise<User> {
-    return this.userRepository.findOne({ uuid }, { relations: ['plan'] });
+    return this.userRepository.findOne(
+      { uuid },
+      { relations: ['plan', 'userStats'] },
+    );
   }
 
   /**
@@ -46,11 +49,30 @@ export class UsersService {
   }
 
   /**
+   * Get user by userName
+   * @param username
+   * @returns
+   */
+  async checkReferee(userName: string): Promise<User> {
+    return await this.userRepository.findOne({
+      userName,
+      emailConfirmed: true,
+      planIsActive: true,
+    });
+  }
+
+  /**
    * Get affiliates of user
    * @param user
    * @returns
    */
   async getUserAffiliates(user: User): Promise<AffliatesInterface> {
+    if (user.refereeUuid && !user.plan) {
+      throw new HttpException(
+        ResponseMessage.PURCHASE_PLAN,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
     const sql = `WITH RECURSIVE MlmTree AS 
               (
                     (
@@ -100,6 +122,12 @@ export class UsersService {
    * @returns
    */
   async getUserParentsTree(user: User): Promise<unknown> {
+    if (user.refereeUuid && !user.plan) {
+      throw new HttpException(
+        ResponseMessage.PURCHASE_PLAN,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
     const sql = `WITH RECURSIVE ReverseMlmTree AS 
               (
                     (
@@ -141,6 +169,7 @@ export class UsersService {
     }
     const newUser = new User().fromDto(payload);
     newUser.referralLink = this.getReferralLink(newUser);
+    newUser.planIsActive = true;
     return await this.userRepository.save(newUser);
   }
 
@@ -170,10 +199,10 @@ export class UsersService {
    * @returns
    */
   async createUser(payload: RegisterPayload, referrer: string): Promise<User> {
-    const referee = await this.getByUserName(referrer);
+    const referee = await this.checkReferee(referrer);
     if (!referee) {
       throw new HttpException(
-        ResponseMessage.INVALID_REFERRER_USERNAME,
+        ResponseMessage.INVALID_REFERRER,
         ResponseCode.BAD_REQUEST,
       );
     }
@@ -199,13 +228,42 @@ export class UsersService {
   }
 
   /**
+   * Get Total Affiliates of Referrer
+   * @param uuid
+   */
+  async getRefereeAffiliates(uuid: string): Promise<UserStats> {
+    const referee = await this.get(uuid);
+    const sql = `Select COUNT(DISTINCT(u.uuid)) as total_affiliates
+                FROM
+                    users u
+                WHERE
+                    u."refereeUuid" = $1;`;
+    let refereeStats = referee.userStats;
+    const totalAffiliates = await this.userRepository.query(sql, [uuid]);
+    refereeStats.total_affiliates = Number(totalAffiliates[0].total_affiliates);
+    return refereeStats;
+  }
+  /**
+   * Update Stats Of User
+   * @param userStats
+   */
+  async updateRefereeStats(userStats: UserStats) {
+    return await this.userStatsRepository.save(userStats);
+  }
+
+  /**
    * Update user email status
    * @param user
    * @returns
    */
   async updateEmailStatus(user: User): Promise<User> {
     user.emailConfirmed = true;
-    return await this.userRepository.save(user);
+    const confirmedUser = await this.userRepository.save(user);
+    if (user.refereeUuid) {
+      const refereeStats = await this.getRefereeAffiliates(user.refereeUuid);
+      await this.updateRefereeStats(refereeStats);
+    }
+    return confirmedUser;
   }
 
   /**

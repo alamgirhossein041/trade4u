@@ -13,4 +13,7 @@ export class PerformanceFee {
 
   @Column({ type: 'double precision' })
   platinumPercentage: number;
+
+  @Column({ type: 'double precision' })
+  premiumPercentage: number;
 }

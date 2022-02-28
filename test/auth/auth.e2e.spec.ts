@@ -48,7 +48,7 @@ describe('BinancePlus auth test', () => {
             apiSecret: null,
             balance: 0,
             phoneNumber: "+14842918831",
-            planIsActive: false,
+            planIsActive: true,
             referralLink: process.env.APP_URL + `signup?referrer=john58`,
             refereeUuid: null
         }
@@ -58,7 +58,7 @@ describe('BinancePlus auth test', () => {
             .set('Authorization', helper.getAccessToken())
             .expect(200)
             .expect(({ body }) => {
-                const { uuid, createdAt, updatedAt,plan, ...response } = body;
+                const { uuid, createdAt, updatedAt,plan,userStats, ...response } = body;
                 expect(response).toEqual(expected)
             });
     });
@@ -106,7 +106,7 @@ describe('BinancePlus auth test', () => {
             apiSecret: null,
             balance: 0,
             phoneNumber: "+14842918831",
-            planIsActive: false,
+            planIsActive: true,
             referralLink: process.env.APP_URL + `signup?referrer=bnptestuser32`
         }
 
@@ -115,7 +115,7 @@ describe('BinancePlus auth test', () => {
             .set('Authorization', helper.getAccessToken())
             .expect(200)
             .expect(({ body }) => {
-                const { uuid,refereeUuid,createdAt, updatedAt,plan, ...response } = body;
+                const { uuid,refereeUuid,createdAt, updatedAt,plan,userStats, ...response } = body;
                 expect(response).toEqual(expectedbnpuser)
             });
     });

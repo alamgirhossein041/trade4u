@@ -13,4 +13,7 @@ export class LicenseFee {
 
   @Column({ type: 'double precision' })
   platinumPercentage: number;
+
+  @Column({ type: 'double precision' })
+  premiumPercentage: number;
 }

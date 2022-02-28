@@ -108,6 +108,10 @@ export class CompensationTransaction {
         row = await this.licenseRepository.findOne({ levelNo: level });
         percentage = row.platinumPercentage;
         break;
+      case PlanNameEnum.Premium:
+        row = await this.licenseRepository.findOne({ levelNo: level });
+        percentage = row.premiumPercentage;
+        break;
     }
     return percentage;
   }

@@ -84,7 +84,7 @@ export class Helper {
     public async updateUserPlan(email: string) {
         const plan = await this.getPlan();
         const repository = getConnection().getRepository(User);
-        return await repository.update({ email }, {plan: plan});
+        return await repository.update({ email }, {plan: plan,planIsActive: true});
     }
 
     /**

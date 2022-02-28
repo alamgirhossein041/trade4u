@@ -108,6 +108,34 @@ describe('BinancePlus auth test', () => {
                     expect(body.data).toEqual(expectedParents);
                 });
         });
+
+        it(`Test post user/purchase_plan of bnp user 2  API`, async () => {
+            await request(app.getHttpServer())
+                .post('/api/user/purchase_plan')
+                .set('Authorization', helper.getAccessToken())
+                .send({ planId: 3 })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.message).toEqual(ResponseMessage.SUCCESS);
+                });
+
+        });
+        it(`Test get user/parents of bnp user 2 after plan purchase to verify balance  API`, async () => {
+            const expectedParents = [
+                { level: 1, fullName: `bnp user`,  userName: `testuser1`, balance: 50, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`,  userName: `bnptestuser32`, balance: 20, plan_name: 'Silver' }
+            ];
+            await request(app.getHttpServer())
+                .get('/api/user/parents')
+                .set('Authorization', helper.getAccessToken())
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data).toEqual(expectedParents);
+                });
+        });
+
+
+
     });
 
 

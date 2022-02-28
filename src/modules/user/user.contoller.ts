@@ -56,7 +56,7 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('update_plan')
+  @Post('purchase_plan')
   public async updateUserPlanOnPurchase(
     @CurrentUser() user: User,
     @Body() body: { planId: number },
@@ -69,20 +69,16 @@ export class UserContoller {
     await this.compensationTransaction
       .initLicenseBonusTransaction(userAfterUpdate)
       .then(() => {
-        return res
-          .status(ResponseCode.SUCCESS)
-          .send({
-            statusCode: ResponseCode.SUCCESS,
-            message: ResponseMessage.SUCCESS,
-          });
+        return res.status(ResponseCode.SUCCESS).send({
+          statusCode: ResponseCode.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+        });
       })
       .catch((err) => {
-        return res
-          .status(ResponseCode.BAD_REQUEST)
-          .send({
-            statusCode: ResponseCode.BAD_REQUEST,
-            message: ResponseMessage.ERROR_WHILE_DISTRIBUTING_BONUS,
-          });
+        return res.status(ResponseCode.BAD_REQUEST).send({
+          statusCode: ResponseCode.BAD_REQUEST,
+          message: ResponseMessage.ERROR_WHILE_DISTRIBUTING_BONUS,
+        });
       });
   }
 

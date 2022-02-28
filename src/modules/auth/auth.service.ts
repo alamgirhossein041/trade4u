@@ -147,6 +147,12 @@ export class AuthService {
    */
   async validateUser(payload: LoginPayload): Promise<User> {
     const user = await this.userService.getByEmail(payload.email);
+    if (!user) {
+      throw new HttpException(
+        ResponseMessage.DOES_NOT_EXIST,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
     if (!user.emailConfirmed) {
       throw new HttpException(
         ResponseMessage.CONFIRM_EMAIL_FIRST,
