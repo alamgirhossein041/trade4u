@@ -22,7 +22,6 @@ export class Helper {
         const exists = await repository.findOne({ email });
         if (!exists) {
             await this.register();
-            await this.updateEmailConfirmation(`testuser@yopmail.com`);
         }
         await this.login(email, 'Test@1234');
         return this.token;

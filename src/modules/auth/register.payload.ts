@@ -13,7 +13,7 @@ import { SameAs } from './../common/validator/same-as.validator';
 
 export class RegisterPayload {
   @IsNotEmpty()
-  @Matches(/^[a-zA-Z]+[a-zA-Z0-9 $&+,:;=?@#|'<>.^*()%!-]{3,26}$/, {
+  @Matches(/^[a-zA-Z0-9$&+,:;=?@#|'<>.^*()%!-]{3,26}$/, {
     message: ResponseMessage.INVALID_USERNAME,
   })
   @Matches(/^(?!.*[$&+,:;=?@#|'<>.^*()%!-]{2}).*$/, {

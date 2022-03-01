@@ -33,10 +33,10 @@ export class AuthService {
    * @param payload
    * @returns
    */
-  public async register(payload: RegisterPayload): Promise<User> {
+  public async registerGenesisUser(payload: RegisterPayload): Promise<User> {
     return new Promise<User>(async (resolve, reject) => {
       await this.userService
-        .create(payload)
+        .createGenesisUser(payload)
         .then(async (user: User) => {
           try {
             const token = await this.createToken(user);
@@ -64,13 +64,13 @@ export class AuthService {
    * @param payload
    * @returns
    */
-  public async registerUser(
+  public async register(
     payload: RegisterPayload,
     referrer: string,
   ): Promise<User> {
     return new Promise<User>(async (resolve, reject) => {
       await this.userService
-        .createUser(payload, referrer)
+        .create(payload, referrer)
         .then(async (user: User) => {
           try {
             const token = await this.createToken(user);
