@@ -64,6 +64,9 @@ describe('BinancePlus auth test', () => {
                     expect(body.message).toEqual(ResponseMessage.CONFIRAMATION_EMAIL_SENT);
                 });
 
+            await helper.updateEmailConfirmation(`bnptestuser1@yopmail.com`);
+            await helper.updateUserPlan(`bnptestuser1@yopmail.com`);
+
             regDto.userName = `testuser2`;
             regDto.email = `bnptestuser2@yopmail.com`;
             await request(app.getHttpServer())
@@ -73,6 +76,8 @@ describe('BinancePlus auth test', () => {
                 .expect(({ body }) => {
                     expect(body.message).toEqual(ResponseMessage.CONFIRAMATION_EMAIL_SENT);
                 });
+            await helper.updateEmailConfirmation(`bnptestuser2@yopmail.com`);
+            await helper.updateUserPlan(`bnptestuser2@yopmail.com`);
         });
 
         it(`Test get user/affiliates of bnp user after plan purchase API`, async () => {
@@ -88,6 +93,49 @@ describe('BinancePlus auth test', () => {
                     expect(affiliatesCount).toEqual(expectedAffiliatesCount);
                 });
         });
+
+        it(`Test get user/parents of bnp user 2  API`, async () => {
+            await helper.login('bnptestuser2@yopmail.com', 'Rnssol@21');
+            const expectedParents = [
+                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
+            ];
+            await request(app.getHttpServer())
+                .get('/api/user/parents')
+                .set('Authorization', helper.getAccessToken())
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data).toEqual(expectedParents);
+                });
+        });
+
+        it(`Test post user/purchase_plan of bnp user 2  API`, async () => {
+            await request(app.getHttpServer())
+                .post('/api/user/purchase_plan')
+                .set('Authorization', helper.getAccessToken())
+                .send({ planId: 3 })
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.message).toEqual(ResponseMessage.SUCCESS);
+                });
+
+        });
+        it(`Test get user/parents of bnp user 2 after plan purchase to verify balance  API`, async () => {
+            const expectedParents = [
+                { level: 1, fullName: `bnp user`,  userName: `testuser1`, balance: 50, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`,  userName: `bnptestuser32`, balance: 20, plan_name: 'Silver' }
+            ];
+            await request(app.getHttpServer())
+                .get('/api/user/parents')
+                .set('Authorization', helper.getAccessToken())
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data).toEqual(expectedParents);
+                });
+        });
+
+
+
     });
 
 

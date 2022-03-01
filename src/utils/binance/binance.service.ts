@@ -9,9 +9,9 @@ export class BinanceService {
   }
   /**
    * Verify The Binance Api Key Given By User
-   * @param apiKey 
-   * @param secret 
-   * @returns 
+   * @param apiKey
+   * @param secret
+   * @returns
    */
   public async verifyApiKey(apiKey: string, secret: string) {
     try {
@@ -25,10 +25,10 @@ export class BinanceService {
       );
     }
   }
-/**
- * Get current Nano Price
- * @returns 
- */
+  /**
+   * Get current Nano Price
+   * @returns
+   */
   public async getNanoPrice() {
     try {
       const price = await this.binanceExchannge.fetchTicker(`XNOUSDT`);

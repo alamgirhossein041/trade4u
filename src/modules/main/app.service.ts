@@ -11,10 +11,10 @@ export class AppService {
   root(): string {
     return process.env.APP_URL;
   }
-/**
- * Configures The App Environment
- * @returns 
- */
+  /**
+   * Configures The App Environment
+   * @returns
+   */
   static envConfiguration(): string {
     switch (process.env.NODE_ENV) {
       case NodeEnv.TEST:
@@ -24,10 +24,10 @@ export class AppService {
         return `.env`;
     }
   }
-/**
- * Create Connection to Database on App Start
- * @returns 
- */
+  /**
+   * Create Connection to Database on App Start
+   * @returns
+   */
   static async createConnection() {
     await createDatabase(
       { ifNotExist: true },
@@ -56,10 +56,10 @@ export class AppService {
       logging: false,
     } as TypeOrmModuleAsyncOptions;
   }
-/**
- * Insert Seed Data in Database
- * @returns 
- */
+  /**
+   * Insert Seed Data in Database
+   * @returns
+   */
   public static async insertSeed() {
     return await SeedService.InsertSeed();
   }

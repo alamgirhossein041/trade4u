@@ -19,7 +19,6 @@ export class PhoneNumberValidator implements ValidatorConstraintInterface {
       const country = Country.getAllCountries().find(
         (c) => c.name === args.object.country,
       );
-      console.log(country);
       return isValidPhoneNumber(value, { defaultCallingCode: country.isoCode });
     } catch (e) {
       return false;

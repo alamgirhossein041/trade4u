@@ -46,8 +46,9 @@ describe('BinancePlus auth test', () => {
             emailConfirmed: true,
             apiKey: null,
             apiSecret: null,
+            balance: 0,
             phoneNumber: "+14842918831",
-            planIsActive: false,
+            planIsActive: true,
             referralLink: process.env.APP_URL + `signup?referrer=john58`,
             refereeUuid: null
         }
@@ -57,7 +58,7 @@ describe('BinancePlus auth test', () => {
             .set('Authorization', helper.getAccessToken())
             .expect(200)
             .expect(({ body }) => {
-                const { uuid, createdAt, updatedAt,plan, ...response } = body;
+                const { uuid, createdAt, updatedAt,plan,userStats, ...response } = body;
                 expect(response).toEqual(expected)
             });
     });
@@ -103,8 +104,9 @@ describe('BinancePlus auth test', () => {
             emailConfirmed: true,
             apiKey: null,
             apiSecret: null,
+            balance: 0,
             phoneNumber: "+14842918831",
-            planIsActive: false,
+            planIsActive: true,
             referralLink: process.env.APP_URL + `signup?referrer=bnptestuser32`
         }
 
@@ -113,14 +115,15 @@ describe('BinancePlus auth test', () => {
             .set('Authorization', helper.getAccessToken())
             .expect(200)
             .expect(({ body }) => {
-                const { uuid,refereeUuid,createdAt, updatedAt,plan, ...response } = body;
+                const { uuid,refereeUuid,createdAt, updatedAt,plan,userStats, ...response } = body;
                 expect(response).toEqual(expectedbnpuser)
             });
     });
 
     it(`Test /forgot_password bnp user API`, async () => {
         await request(app.getHttpServer())
-            .get('/api/auth/forgot_password?email=bnptestuser@yopmail.com')
+            .get('/api/auth/forgot_password')
+            .send({email:`bnptestuser@yopmail.com`})
             .expect(200)
             .expect(({ body }) => {
                 expect(body.message).toEqual(ResponseMessage.FORGOT_PASSWORD_EMAIL);

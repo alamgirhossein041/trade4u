@@ -4,13 +4,13 @@ import { User } from '../../modules/user/user.entity';
 
 @Injectable()
 export class MailService {
-  constructor(private mailerService: MailerService) { }
+  constructor(private mailerService: MailerService) {}
 
   /**
-     * Send Account Confirmation Email To User On Signup
-     * @param email
-     * @param token
-     */
+   * Send Account Confirmation Email To User On Signup
+   * @param email
+   * @param token
+   */
   public async sendEmailConfirmation(user: User, token: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       const url = process.env.APP_URL;

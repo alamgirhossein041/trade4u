@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { ResponseCode, ResponseMessage } from '../../utils/enum';
 import { UserStats } from './user-stats.entity';
 import { AffliatesInterface } from './commons/user.types';
 import { User } from './user.entity';
+import { SeedService } from '../seed/seed.service';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserStats)
     private readonly userStatsRepository: Repository<UserStats>,
+    private readonly seedService: SeedService,
   ) {}
 
   /**
@@ -22,7 +24,10 @@ export class UsersService {
    * @returns
    */
   async get(uuid: string): Promise<User> {
-    return this.userRepository.findOne({ uuid }, { relations: ['plan'] });
+    return this.userRepository.findOne(
+      { uuid },
+      { relations: ['plan', 'userStats'] },
+    );
   }
 
   /**
@@ -44,11 +49,30 @@ export class UsersService {
   }
 
   /**
+   * Get user by userName
+   * @param username
+   * @returns
+   */
+  async checkReferee(userName: string): Promise<User> {
+    return await this.userRepository.findOne({
+      userName,
+      emailConfirmed: true,
+      planIsActive: true,
+    });
+  }
+
+  /**
    * Get affiliates of user
    * @param user
    * @returns
    */
   async getUserAffiliates(user: User): Promise<AffliatesInterface> {
+    if (user.refereeUuid && !user.plan) {
+      throw new HttpException(
+        ResponseMessage.PURCHASE_PLAN,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
     const sql = `WITH RECURSIVE MlmTree AS 
               (
                     (
@@ -93,6 +117,44 @@ export class UsersService {
   }
 
   /**
+   * Get Parent tree of user
+   * @param user
+   * @returns
+   */
+  async getUserParentsTree(user: User): Promise<unknown> {
+    if (user.refereeUuid && !user.plan) {
+      throw new HttpException(
+        ResponseMessage.PURCHASE_PLAN,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
+    const sql = `WITH RECURSIVE ReverseMlmTree AS 
+              (
+                    (
+                        SELECT h.uuid,h."balance",h."refereeUuid",h."planPlanId", h."fullName",h."userName" ,0 AS level
+                        FROM users h
+                        WHERE h.uuid = $1
+                    )
+                      UNION ALL
+                    (
+                      SELECT u.uuid,u."balance",u."refereeUuid",u."planPlanId",u."fullName",u."userName", h.level + 1 as level
+                      FROM users u
+                      INNER JOIN ReverseMlmTree h ON u.uuid = h."refereeUuid" 
+                    )
+            ) 
+             SELECT "fullName","balance","userName",p."planName" as plan_name,level FROM ReverseMlmTree
+             INNER JOIN plans p ON "planPlanId" = p."planId"
+             WHERE level > 0 AND level <= $2 AND "refereeUuid" IS NOT NULL
+             ORDER BY level;
+            `;
+    const parentsResult = await this.userRepository.query(sql, [
+      user.uuid,
+      user.plan.levels,
+    ]);
+    return parentsResult;
+  }
+
+  /**
    * Create a new user
    * @param payload
    * @returns
@@ -107,6 +169,7 @@ export class UsersService {
     }
     const newUser = new User().fromDto(payload);
     newUser.referralLink = this.getReferralLink(newUser);
+    newUser.planIsActive = true;
     return await this.userRepository.save(newUser);
   }
 
@@ -136,10 +199,10 @@ export class UsersService {
    * @returns
    */
   async createUser(payload: RegisterPayload, referrer: string): Promise<User> {
-    const referee = await this.getByUserName(referrer);
+    const referee = await this.checkReferee(referrer);
     if (!referee) {
       throw new HttpException(
-        ResponseMessage.INVALID_REFERRER_USERNAME,
+        ResponseMessage.INVALID_REFERRER,
         ResponseCode.BAD_REQUEST,
       );
     }
@@ -165,12 +228,53 @@ export class UsersService {
   }
 
   /**
+   * Get Total Affiliates of Referrer
+   * @param uuid
+   */
+  async getReferrerAffiliates(uuid: string): Promise<UserStats> {
+    const referrer = await this.get(uuid);
+    const sql = `Select COUNT(DISTINCT(u.uuid)) as total_affiliates
+                FROM
+                    users u
+                WHERE
+                    u."refereeUuid" = $1;`;
+    let userStats = referrer.userStats;
+    const totalAffiliates = await this.userRepository.query(sql, [uuid]);
+    userStats.total_affiliates = Number(totalAffiliates[0].total_affiliates);
+    return userStats;
+  }
+  /**
+   * Update Stats Of User
+   * @param userStats
+   */
+  async updateRefereeStats(userStats: UserStats) {
+    return await this.userStatsRepository.save(userStats);
+  }
+
+  /**
    * Update user email status
    * @param user
    * @returns
    */
   async updateEmailStatus(user: User): Promise<User> {
     user.emailConfirmed = true;
+    const confirmedUser = await this.userRepository.save(user);
+    if (user.refereeUuid) {
+      const refereeStats = await this.getReferrerAffiliates(user.refereeUuid);
+      await this.updateRefereeStats(refereeStats);
+    }
+    return confirmedUser;
+  }
+
+  /**
+   * Update user plan on purchase and compensate parent users
+   * @param user
+   * @returns
+   */
+  async updateUserPlanOnPurchase(user: User, planId: number): Promise<any> {
+    const plan = await this.seedService.getPlanById(planId);
+    user.planIsActive = true;
+    user.plan = plan;
     return await this.userRepository.save(user);
   }
 
