@@ -17,6 +17,7 @@ export enum ResponseMessage {
   INVALID_EMAIL = `Invalid email address`,
   INVALID_PASSWORD = `Use 8-15 characters with a mix of letters, numbers & symbols`,
   INVALID_USERNAME = `Invalid user name`,
+  INVALID_NAME = `Invalid name`,
   INVALID_COUNTRY = `Invalid country name`,
   INVALID_PHONE_NUMBER = `Invalid phone number`,
   INVALID_BINANCE_API = `Invalid binance api key`,

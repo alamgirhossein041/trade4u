@@ -14,6 +14,7 @@ import {
   LoginPayload,
   RegisterPayload,
   ForgotPasswordDto,
+  EmailDto
 } from './';
 import { CurrentUser } from './../common/decorator/current-user.decorator';
 import { User } from '../user/user.entity';
@@ -87,15 +88,10 @@ export class AuthController {
 
   @Get('forgot_password')
   async forgotPassword(
-    @Query('email') email: string,
+    @Body() body: EmailDto,
     @Res() res: Response,
   ): Promise<Response> {
-    if (!email)
-      throw new HttpException(
-        `${ResponseMessage.INVALID_QUERY_PARAM} email`,
-        ResponseCode.BAD_REQUEST,
-      );
-    await this.authService.forgotPassword(email);
+    await this.authService.forgotPassword(body.email);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       message: ResponseMessage.FORGOT_PASSWORD_EMAIL,

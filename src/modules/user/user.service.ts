@@ -231,17 +231,17 @@ export class UsersService {
    * Get Total Affiliates of Referrer
    * @param uuid
    */
-  async getRefereeAffiliates(uuid: string): Promise<UserStats> {
-    const referee = await this.get(uuid);
+  async getReferrerAffiliates(uuid: string): Promise<UserStats> {
+    const referrer = await this.get(uuid);
     const sql = `Select COUNT(DISTINCT(u.uuid)) as total_affiliates
                 FROM
                     users u
                 WHERE
                     u."refereeUuid" = $1;`;
-    let refereeStats = referee.userStats;
+    let userStats = referrer.userStats;
     const totalAffiliates = await this.userRepository.query(sql, [uuid]);
-    refereeStats.total_affiliates = Number(totalAffiliates[0].total_affiliates);
-    return refereeStats;
+    userStats.total_affiliates = Number(totalAffiliates[0].total_affiliates);
+    return userStats;
   }
   /**
    * Update Stats Of User
@@ -260,7 +260,7 @@ export class UsersService {
     user.emailConfirmed = true;
     const confirmedUser = await this.userRepository.save(user);
     if (user.refereeUuid) {
-      const refereeStats = await this.getRefereeAffiliates(user.refereeUuid);
+      const refereeStats = await this.getReferrerAffiliates(user.refereeUuid);
       await this.updateRefereeStats(refereeStats);
     }
     return confirmedUser;

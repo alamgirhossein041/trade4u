@@ -122,7 +122,8 @@ describe('BinancePlus auth test', () => {
 
     it(`Test /forgot_password bnp user API`, async () => {
         await request(app.getHttpServer())
-            .get('/api/auth/forgot_password?email=bnptestuser@yopmail.com')
+            .get('/api/auth/forgot_password')
+            .send({email:`bnptestuser@yopmail.com`})
             .expect(200)
             .expect(({ body }) => {
                 expect(body.message).toEqual(ResponseMessage.FORGOT_PASSWORD_EMAIL);

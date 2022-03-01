@@ -67,7 +67,7 @@ export class UserContoller {
       body.planId,
     );
     await this.compensationTransaction
-      .initLicenseBonusTransaction(userAfterUpdate)
+      .initCompensationPlan(userAfterUpdate)
       .then(() => {
         return res.status(ResponseCode.SUCCESS).send({
           statusCode: ResponseCode.SUCCESS,

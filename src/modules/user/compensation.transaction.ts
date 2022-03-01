@@ -27,7 +27,7 @@ export class CompensationTransaction {
    * @param user
    * @returns
    */
-  public async initLicenseBonusTransaction(user: User) {
+  public async initCompensationPlan(user: User) {
     return new Promise<void>(async (resolve, reject) => {
       // get a connection and create a new query runner
       const connection = getConnection();
@@ -50,8 +50,6 @@ export class CompensationTransaction {
         await queryRunner.release();
         return reject();
       } finally {
-        //this.socketService.emitNotification(Notifications.NEW_COURSE, this.course);
-
         // you need to release query runner which is manually created:
         await queryRunner.release();
         return resolve();
