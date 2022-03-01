@@ -8,7 +8,6 @@ import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
 import { MailerMock, LoggerMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
-import { AppService } from '../../src/modules/main/app.service';
 
 describe('BinancePlus auth test', () => {
     let app: INestApplication;
@@ -30,7 +29,6 @@ describe('BinancePlus auth test', () => {
 
     it(`Test register /genesis_user API`, async () => {
         await helper.register();
-        await helper.updateEmailConfirmation(`testuser@yopmail.com`)
     });
 
     it(`Test /login genesis user API`, async () => {
@@ -122,7 +120,7 @@ describe('BinancePlus auth test', () => {
 
     it(`Test /forgot_password bnp user API`, async () => {
         await request(app.getHttpServer())
-            .get('/api/auth/forgot_password')
+            .post('/api/auth/forgot_password')
             .send({email:`bnptestuser@yopmail.com`})
             .expect(200)
             .expect(({ body }) => {

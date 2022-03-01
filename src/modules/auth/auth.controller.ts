@@ -47,7 +47,7 @@ export class AuthController {
     @Body() payload: RegisterPayload,
     @Res() res: Response,
   ): Promise<Response> {
-    const user = await this.authService.register(payload);
+    const user = await this.authService.registerGenesisUser(payload);
     return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
       statusCode: ResponseCode.CREATED_SUCCESSFULLY,
       data: user.toDto(),
@@ -66,7 +66,7 @@ export class AuthController {
         `${ResponseMessage.INVALID_QUERY_PARAM} referrer`,
         ResponseCode.BAD_REQUEST,
       );
-    await this.authService.registerUser(payload, referrer);
+    await this.authService.register(payload, referrer);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       message: ResponseMessage.CONFIRAMATION_EMAIL_SENT,
@@ -86,7 +86,7 @@ export class AuthController {
     });
   }
 
-  @Get('forgot_password')
+  @Post('forgot_password')
   async forgotPassword(
     @Body() body: EmailDto,
     @Res() res: Response,

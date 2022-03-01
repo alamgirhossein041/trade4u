@@ -155,11 +155,11 @@ export class UsersService {
   }
 
   /**
-   * Create a new user
+   * Create a genesis user
    * @param payload
    * @returns
    */
-  async create(payload: RegisterPayload): Promise<User> {
+  async createGenesisUser(payload: RegisterPayload): Promise<User> {
     const user = await this.getByEmail(payload.email);
     if (user) {
       throw new HttpException(
@@ -168,8 +168,10 @@ export class UsersService {
       );
     }
     const newUser = new User().fromDto(payload);
+    newUser.userStats = await this.initializeStats();
     newUser.referralLink = this.getReferralLink(newUser);
     newUser.planIsActive = true;
+    newUser.emailConfirmed = true;
     return await this.userRepository.save(newUser);
   }
 
@@ -198,7 +200,7 @@ export class UsersService {
    * @param payload
    * @returns
    */
-  async createUser(payload: RegisterPayload, referrer: string): Promise<User> {
+  async create(payload: RegisterPayload, referrer: string): Promise<User> {
     const referee = await this.checkReferee(referrer);
     if (!referee) {
       throw new HttpException(
