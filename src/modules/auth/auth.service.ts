@@ -149,7 +149,7 @@ export class AuthService {
     const user = await this.userService.getByEmail(payload.email);
     if (!user) {
       throw new HttpException(
-        ResponseMessage.DOES_NOT_EXIST,
+        ResponseMessage.USER_DOES_NOT_EXIST,
         ResponseCode.BAD_REQUEST,
       );
     }

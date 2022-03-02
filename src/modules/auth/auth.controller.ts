@@ -14,7 +14,7 @@ import {
   LoginPayload,
   RegisterPayload,
   ForgotPasswordDto,
-  EmailDto
+  EmailDto,
 } from './';
 import { CurrentUser } from './../common/decorator/current-user.decorator';
 import { User } from '../user/user.entity';

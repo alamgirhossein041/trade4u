@@ -1,20 +1,29 @@
 import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Request, Response } from 'express';
-import { ResponseCode, ResponseMessage } from '../../utils/enum';
+import {
+  ResponseCode,
+  ResponseMessage,
+  LoggerMessages,
+} from '../../utils/enum';
 import { SeedService } from '../../modules/seed/seed.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 import { User } from './user.entity';
 import { CompensationTransaction } from './compensation.transaction';
+import { DepositWebHook } from './commons/user.dtos';
+import { LoggerService } from '../../utils/logger/logger.service';
 
 @Controller('api/user')
 export class UserContoller {
   constructor(
     private readonly userService: UsersService,
     private readonly seedService: SeedService,
+    private readonly loggerService: LoggerService,
     private readonly compensationTransaction: CompensationTransaction,
-  ) {}
+  ) {
+    this.loggerService.setContext('UserController');
+  }
 
   @Get('business_plan')
   @UseGuards(AuthGuard('jwt'))
@@ -25,6 +34,13 @@ export class UserContoller {
       data: plans,
       message: ResponseMessage.SUCCESS,
     });
+  }
+
+  @Post('deposit_webhook')
+  public async getDepositObject(@Body() body: DepositWebHook): Promise<void> {
+    this.loggerService.log(
+      `POST user/deposit_webhook ${LoggerMessages.API_CALLED}`,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'))
