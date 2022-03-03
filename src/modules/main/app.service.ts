@@ -6,7 +6,7 @@ import { NodeEnv } from '../../utils/enum';
 
 @Injectable()
 export class AppService {
-  constructor() {}
+  constructor() { }
 
   root(): string {
     return process.env.APP_URL;
@@ -56,11 +56,12 @@ export class AppService {
       logging: false,
     } as TypeOrmModuleAsyncOptions;
   }
+
   /**
    * Insert Seed Data in Database
    * @returns
    */
-  public static async insertSeed() {
+  public static async startup() {
     return await SeedService.InsertSeed();
   }
 }

@@ -6,14 +6,16 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, SchedulerMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
+import { SchedulerService } from '../../src/modules/scheduler/scheduler.service';
 
 describe('BinancePlus auth test', () => {
     let app: INestApplication;
     let helper: Helper;
     let token: string;
+    let  server: any;
     const regDto = {
         userName: "bnptestuser32",
         fullName: "bnp user",
@@ -31,19 +33,21 @@ describe('BinancePlus auth test', () => {
             .useValue(MailerMock)
             .overrideProvider(LoggerService)
             .useValue(LoggerMock)
+            .overrideProvider(SchedulerService)
+            .useValue(SchedulerMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
         await app.init();
-        await AppService.insertSeed();
+        await AppService.startup();
         helper = new Helper(app);
         token = await helper.init();
+        server = app.getHttpServer();
     });
 
     describe(`Get /affiliates of bnp user`, () => {
         it(`Test /register bnp user affiliates API`, async () => {
-
-            await request(app.getHttpServer())
+            await request(server)
                 .post('/api/auth/register?referrer=john58')
                 .send(regDto)
                 .expect(200)
@@ -56,7 +60,7 @@ describe('BinancePlus auth test', () => {
 
             regDto.userName = `testuser1`;
             regDto.email = `bnptestuser1@yopmail.com`;
-            await request(app.getHttpServer())
+            await request(server)
                 .post('/api/auth/register?referrer=bnptestuser32')
                 .send(regDto)
                 .expect(200)
@@ -69,7 +73,7 @@ describe('BinancePlus auth test', () => {
 
             regDto.userName = `testuser2`;
             regDto.email = `bnptestuser2@yopmail.com`;
-            await request(app.getHttpServer())
+            await request(server)
                 .post('/api/auth/register?referrer=testuser1')
                 .send(regDto)
                 .expect(200)
@@ -86,7 +90,7 @@ describe('BinancePlus auth test', () => {
                 { level: 2, fullName: `bnp user`, tradingSystem: null, userName: `testuser2`, phoneNumber: '+14842918831', plan_name: 'Silver' }
             ];
             const expectedAffiliatesCount = [{ level: 1, total_affiliates: 1 }, { level: 2, total_affiliates: 1 }];
-            await request(app.getHttpServer())
+            await request(server)
                 .get('/api/user/affiliates')
                 .set('Authorization', helper.getAccessToken())
                 .expect(200)
@@ -104,7 +108,7 @@ describe('BinancePlus auth test', () => {
                 { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
                 { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
             ];
-            await request(app.getHttpServer())
+            await request(server)
                 .get('/api/user/parents')
                 .set('Authorization', helper.getAccessToken())
                 .expect(200)
@@ -114,7 +118,7 @@ describe('BinancePlus auth test', () => {
         });
 
         it(`Test post user/purchase_plan of bnp user 2  API`, async () => {
-            await request(app.getHttpServer())
+            await request(server)
                 .post('/api/user/purchase_plan')
                 .set('Authorization', helper.getAccessToken())
                 .send({ planId: 3 })
@@ -129,7 +133,7 @@ describe('BinancePlus auth test', () => {
                 { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 50, plan_name: 'Silver' },
                 { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 20, plan_name: 'Silver' }
             ];
-            await request(app.getHttpServer())
+            await request(server)
                 .get('/api/user/parents')
                 .set('Authorization', helper.getAccessToken())
                 .expect(200)
@@ -137,11 +141,7 @@ describe('BinancePlus auth test', () => {
                     expect(body.data).toEqual(expectedParents);
                 });
         });
-
-
-
     });
-
 
     afterAll(async () => {
         await helper.clearDB();

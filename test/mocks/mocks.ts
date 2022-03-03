@@ -13,3 +13,9 @@ export const LoggerMock = {
         return;
     })
 }
+
+export const SchedulerMock = {
+    initKlayPrice: jest.fn((value: string) => {
+        return;
+    }),
+};
