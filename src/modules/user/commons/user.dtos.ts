@@ -27,10 +27,6 @@ export class DepositWebHook {
   @IsNumber()
   outputIndex: number;
 
-  @IsNotEmpty()
-  @IsString()
-  data: string;
-
   @IsPositive()
   blockHeight: number;
 
