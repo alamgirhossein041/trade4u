@@ -10,8 +10,6 @@ import { SeedService } from '../../modules/seed/seed.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 import { User } from './user.entity';
-import { CompensationTransaction } from './compensation.transaction';
-import { DepositWebHook } from './commons/user.dtos';
 import { LoggerService } from '../../utils/logger/logger.service';
 
 @Controller('api/user')
@@ -20,7 +18,6 @@ export class UserContoller {
     private readonly userService: UsersService,
     private readonly seedService: SeedService,
     private readonly loggerService: LoggerService,
-    private readonly compensationTransaction: CompensationTransaction,
   ) {
     this.loggerService.setContext('UserController');
   }
@@ -35,16 +32,6 @@ export class UserContoller {
       data: plans,
       message: ResponseMessage.SUCCESS,
     });
-  }
-
-  @Post('deposit_webhook')
-  public async getDepositObject(@Body() body: DepositWebHook): Promise<void> {
-    this.loggerService.log(
-      `POST user/deposit_webhook ${LoggerMessages.API_CALLED}`,
-    );
-    this.loggerService.log(
-      body
-    );
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -82,10 +69,7 @@ export class UserContoller {
     @Body() body: { planId: number },
     @Res() res: Response,
   ): Promise<any> {
-  await this.userService.updateUserPlanOnPurchase(
-      user,
-      body.planId,
-    );
+    await this.userService.updateUserPlanOnPurchase(user, body.planId);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       message: ResponseMessage.SUCCESS,

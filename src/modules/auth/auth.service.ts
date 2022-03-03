@@ -13,7 +13,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
     private readonly mailerservice: MailService,
-  ) { }
+  ) {}
 
   /**
    * Create new jwt token
@@ -34,7 +34,10 @@ export class AuthService {
    * @returns
    */
   async createForgotPasswordToken(user: User) {
-    const accessToken = this.jwtService.sign({ uuid: user.uuid }, { expiresIn: process.env.JWT_TIME_FORGOT_PASSWORD })
+    const accessToken = this.jwtService.sign(
+      { uuid: user.uuid },
+      { expiresIn: process.env.JWT_TIME_FORGOT_PASSWORD },
+    );
     return accessToken;
   }
 
@@ -112,10 +115,7 @@ export class AuthService {
     const user = await this.userService.getByEmail(email);
     if (user) {
       const token = await this.createForgotPasswordToken(user);
-      await this.mailerservice.sendForgotPasswordMail(
-        user.email,
-        token
-      );
+      await this.mailerservice.sendForgotPasswordMail(user.email, token);
       return;
     } else {
       throw new HttpException(

@@ -21,7 +21,7 @@ export class SchedulerService {
   ) {
     this.loggerService.setContext('SchedulerService');
     (async () => {
-      await this.initKlayPrice()
+      await this.initKlayPrice();
     })();
   }
 
