@@ -76,20 +76,21 @@ export class UsersService {
     const sql = `WITH RECURSIVE MlmTree AS 
               (
                     (
-                        SELECT h.uuid, h."fullName",h."userName" ,0 AS level
+                        SELECT h.uuid, h."fullName",h."userName",h."phoneNumber",h."createdAt",h."planPlanId",h."tradingSystem", 0 AS level
                         FROM users h
                         WHERE h.uuid = $1
                     )
                       UNION ALL
                     (
-                      SELECT u.uuid, u."fullName",u."userName", h.level + 1 as level
+                      SELECT u.uuid, u."fullName",u."userName",u."phoneNumber",u."createdAt",u."planPlanId",u."tradingSystem", h.level + 1 as level
                       FROM users u
                       INNER JOIN MlmTree h ON h.uuid = u."refereeUuid"
                     )
             )`;
-    const affiliates = ` SELECT level,"fullName","userName"
+    const affiliates = ` SELECT level,"fullName","userName","phoneNumber","tradingSystem",p."planName" as plan_name,"createdAt"
                 FROM
                   MlmTree
+                INNER JOIN plans p ON "planPlanId" = p."planId"
               WHERE
                   level > 0 AND level <= $2
               ORDER BY level;`;
@@ -169,7 +170,7 @@ export class UsersService {
     }
     const newUser = new User().fromDto(payload);
     newUser.userStats = await this.initializeStats();
-    newUser.referralLink = this.getReferralLink(newUser);
+    newUser.referralLink = this.getUserReferralLink(newUser);
     newUser.planIsActive = true;
     newUser.emailConfirmed = true;
     return await this.userRepository.save(newUser);
@@ -180,7 +181,7 @@ export class UsersService {
    * @param username
    * @returns
    */
-  public getReferralLink(user: User): string {
+  public getUserReferralLink(user: User): string {
     const link = process.env.APP_URL + `signup?referrer=` + user.userName;
     return link;
   }
@@ -224,7 +225,7 @@ export class UsersService {
     }
     const newUser = new User().fromDto(payload);
     newUser.userStats = await this.initializeStats();
-    newUser.referralLink = this.getReferralLink(newUser);
+    newUser.referralLink = this.getUserReferralLink(newUser);
     newUser.refereeUuid = referee.uuid;
     return await this.userRepository.save(newUser);
   }

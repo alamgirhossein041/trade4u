@@ -7,6 +7,8 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
 import { Crypto } from '../../utils/crypto';
@@ -37,6 +39,9 @@ export class User {
   @Column({ length: 255 })
   referralLink: string;
 
+  @Column({ length: 10, nullable: true })
+  tradingSystem: string;
+
   @Column({ length: 35, nullable: true })
   apiKey: string;
 
@@ -61,6 +66,9 @@ export class User {
     transformer: new PasswordTransformer(),
   })
   password: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @OneToOne(() => UserStats)
   @JoinColumn()

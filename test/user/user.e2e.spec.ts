@@ -81,7 +81,10 @@ describe('BinancePlus auth test', () => {
         });
 
         it(`Test get user/affiliates of bnp user after plan purchase API`, async () => {
-            const expectedAffiliates = [{ level: 1, fullName: `bnp user`, userName: `testuser1` }, { level: 2, fullName: `bnp user`, userName: `testuser2` }];
+            const expectedAffiliates = [
+                { level: 1, fullName: `bnp user`, tradingSystem: null, userName: `testuser1`, phoneNumber: '+14842918831', plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, tradingSystem: null, userName: `testuser2`, phoneNumber: '+14842918831', plan_name: 'Silver' }
+            ];
             const expectedAffiliatesCount = [{ level: 1, total_affiliates: 1 }, { level: 2, total_affiliates: 1 }];
             await request(app.getHttpServer())
                 .get('/api/user/affiliates')
@@ -89,6 +92,7 @@ describe('BinancePlus auth test', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     const { affiliates, affiliatesCount } = body.data;
+                    affiliates.map(affiliate => delete affiliate.createdAt);
                     expect(affiliates).toEqual(expectedAffiliates);
                     expect(affiliatesCount).toEqual(expectedAffiliatesCount);
                 });
@@ -122,8 +126,8 @@ describe('BinancePlus auth test', () => {
         });
         it(`Test get user/parents of bnp user 2 after plan purchase to verify balance  API`, async () => {
             const expectedParents = [
-                { level: 1, fullName: `bnp user`,  userName: `testuser1`, balance: 50, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`,  userName: `bnptestuser32`, balance: 20, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 50, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 20, plan_name: 'Silver' }
             ];
             await request(app.getHttpServer())
                 .get('/api/user/parents')
