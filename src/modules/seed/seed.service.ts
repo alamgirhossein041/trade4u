@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, UseFilters } from '@nestjs/common';
 import { Connection, getConnection, Repository } from 'typeorm';
 import { LicenseFee } from './licensefee.entity';
 import { Plan } from './plan.entity';
@@ -8,6 +8,7 @@ import { default as preformanceFee } from '../../utils/seed/preformanceFee.json'
 import { default as plan } from '../../utils/seed/plan.json';
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
 import { InjectRepository } from '@nestjs/typeorm';
+import { HttpExceptionFilter } from '../../modules/common/filters/http-exception.filter';
 
 @Injectable()
 export class SeedService {

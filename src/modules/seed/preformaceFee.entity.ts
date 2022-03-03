@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity()
+@Entity({ name: 'performance_fee' })
 export class PerformanceFee {
   @PrimaryColumn()
   levelNo: number;

@@ -24,7 +24,10 @@ export enum ResponseMessage {
   INVALID_REFERRER = `Referrer does not exist / has no active plan`,
   PURCHASE_PLAN = `Purchase plan from available plans first`,
   BINANCE_SERVER_ERROR = `Binance server error`,
+  INVALID_REFERRER_USERNAME = `Referrer with specified username does not exist`,
+  INTERNAL_SERVER_ERROR = `Internal server error`,
   CHECK_INTERNET_CONNECTION = `Error while sending email please check internet connection`,
+  UNABLE_TO_PING_COINMARKET = `Unable to ping coin-gecko market`,
   CONTENT_NOT_FOUND = `Content not found`,
 }
 

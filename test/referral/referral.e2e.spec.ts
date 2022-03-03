@@ -4,8 +4,9 @@ import { AppModule } from '../../src/modules/main/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { LoggerMock, MailerMock } from '../mocks/mocks';
+import { LoggerMock, MailerMock, SchedulerMock } from '../mocks/mocks';
 import { Helper } from '../helper';
+import { SchedulerService } from '../../src/modules/scheduler/scheduler.service';
 
 describe('BinancePlus referrals test', () => {
     let app: INestApplication;
@@ -19,6 +20,8 @@ describe('BinancePlus referrals test', () => {
             .useValue(LoggerMock)
             .overrideProvider(MailService)
             .useValue(MailerMock)
+            .overrideProvider(SchedulerService)
+            .useValue(SchedulerMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());

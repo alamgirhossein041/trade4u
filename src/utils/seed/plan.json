@@ -6,6 +6,7 @@
         "minBTC": 0.005,
         "minUSDT": 150,
         "levels": 7,
+        "limit": "5X",
         "preformanceFeePercentage": 30,
         "directBonusPercentage": 10,
         "directPreformanceBonusPercentage": 10
@@ -17,6 +18,7 @@
         "minBTC": 0.005,
         "minUSDT": 200,
         "levels": 10,
+        "limit": "5X",
         "preformanceFeePercentage": 25,
         "directBonusPercentage": 15,
         "directPreformanceBonusPercentage": 15
@@ -28,6 +30,7 @@
         "minBTC": 0.015,
         "minUSDT": 500,
         "levels": 12,
+        "limit": "5X",
         "preformanceFeePercentage": 20,
         "directBonusPercentage": 20,
         "directPreformanceBonusPercentage": 20
@@ -36,11 +39,13 @@
         "planId": 4,
         "planName": "Premium",
         "price": 1000,
-        "minBTC": 0.5,
+        "minBTC": 0.25,
         "minUSDT": 50000,
         "levels": 12,
+        "limit": "5X",
         "preformanceFeePercentage": 15,
         "directBonusPercentage": 25,
         "directPreformanceBonusPercentage": 25
     }
+
 ]

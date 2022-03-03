@@ -1,6 +1,6 @@
 import { binance } from 'ccxt';
 import { HttpException, Injectable } from '@nestjs/common';
-import { ResponseCode, ResponseMessage } from 'utils/enum';
+import { ResponseCode, ResponseMessage } from '../../utils/enum';
 
 @Injectable()
 export class BinanceService {
@@ -35,7 +35,7 @@ export class BinanceService {
       return price.info.lastPrice;
     } catch (err) {
       throw new HttpException(
-        ResponseMessage.BINANCE_SERVER_ERROR,
+        ResponseMessage.INTERNAL_SERVER_ERROR,
         ResponseCode.INTERNAL_ERROR,
       );
     }

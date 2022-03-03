@@ -6,12 +6,14 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, SchedulerMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
+import { SchedulerService } from '../../src/modules/scheduler/scheduler.service';
 
 describe('BinancePlus auth test', () => {
     let app: INestApplication;
     let helper: Helper;
+    let server: any;
 
     beforeAll(async () => {
         const moduleRef = await Test.createTestingModule({
@@ -20,14 +22,17 @@ describe('BinancePlus auth test', () => {
             .useValue(MailerMock)
             .overrideProvider(LoggerService)
             .useValue(LoggerMock)
+            .overrideProvider(SchedulerService)
+            .useValue(SchedulerMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
         await app.init();
         helper = new Helper(app);
+        server = app.getHttpServer();
     });
 
-    it(`Test register /genesis_user API`, async () => {
+    it(`Test /genesis_user register API`, async () => {
         await helper.register();
     });
 
@@ -52,7 +57,7 @@ describe('BinancePlus auth test', () => {
             refereeUuid: null
         }
 
-        await request(app.getHttpServer())
+        await request(server)
             .get('/api/auth/me')
             .set('Authorization', helper.getAccessToken())
             .expect(200)
@@ -73,7 +78,7 @@ describe('BinancePlus auth test', () => {
             passwordConfirmation: "Rnssol@21"
         }
 
-        await request(app.getHttpServer())
+        await request(server)
             .post('/api/auth/register?referrer=john58')
             .send(regDto)
             .expect(200)
@@ -94,34 +99,8 @@ describe('BinancePlus auth test', () => {
         await helper.login('bnptestuser@yopmail.com','Rnssol@21');
     });
 
-    it(`Test /me bnp user API`, async () => {
-        const expectedbnpuser = {
-            userName: "bnptestuser32",
-            fullName: "bnp user",
-            country: "United States",
-            email: "bnptestuser@yopmail.com",
-            emailConfirmed: true,
-            apiKey: null,
-            apiSecret: null,
-            tradingSystem: null,
-            balance: 0,
-            phoneNumber: "+14842918831",
-            planIsActive: true,
-            referralLink: process.env.APP_URL + `signup?referrer=bnptestuser32`
-        }
-
-        await request(app.getHttpServer())
-            .get('/api/auth/me')
-            .set('Authorization', helper.getAccessToken())
-            .expect(200)
-            .expect(({ body }) => {
-                const { uuid,refereeUuid,createdAt, updatedAt,plan,userStats, ...response } = body;
-                expect(response).toEqual(expectedbnpuser)
-            });
-    });
-
     it(`Test /forgot_password bnp user API`, async () => {
-        await request(app.getHttpServer())
+        await request(server)
             .post('/api/auth/forgot_password')
             .send({email:`bnptestuser@yopmail.com`})
             .expect(200)
@@ -131,7 +110,7 @@ describe('BinancePlus auth test', () => {
     });
 
     it(`Test /confirm_forgot_password bnp user API`, async () => {
-        await request(app.getHttpServer())
+        await request(server)
             .post('/api/auth/confirm_forgot_password')
             .set('Authorization', helper.getAccessToken())
             .send({password: 'Rnssol@12'})
@@ -144,7 +123,6 @@ describe('BinancePlus auth test', () => {
     it(`Test /login bnp user after forgot password change API`, async () => {
         await helper.login('bnptestuser@yopmail.com','Rnssol@12');
     });
-
 
     afterAll(async () => {
         await helper.clearDB();

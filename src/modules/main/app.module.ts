@@ -7,6 +7,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from '../../modules/user';
 import { SeedModule } from '../../modules/seed/seed.module';
+import { OctetModule } from '../../modules/octet/octet.module';
+import { PaymentModule } from '../../modules/payment/payment.module';
+import { SchedulerModule } from '../../modules/scheduler/scheduler.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -17,10 +21,14 @@ import { SeedModule } from '../../modules/seed/seed.module';
     ConfigModule.forRoot({
       envFilePath: [AppService.envConfiguration()],
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     CommonModule,
     UserModule,
+    OctetModule,
     SeedModule,
+    PaymentModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
