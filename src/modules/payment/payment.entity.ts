@@ -13,7 +13,7 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'payment',
+  name: 'payments',
 })
 export class Payment {
   @PrimaryColumn()

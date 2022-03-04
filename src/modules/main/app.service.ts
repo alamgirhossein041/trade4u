@@ -6,7 +6,7 @@ import { NodeEnv } from '../../utils/enum';
 
 @Injectable()
 export class AppService {
-  constructor() { }
+  constructor() {}
 
   root(): string {
     return process.env.APP_URL;

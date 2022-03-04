@@ -1,6 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios, { AxiosInstance } from 'axios';
+import console from 'console';
 import { Repository } from 'typeorm';
 import { Account } from './account.entity';
 import { CURRENCY } from './commons/octet.enum';
