@@ -89,23 +89,21 @@ export class DepositTransaction {
    * @returns
    */
   private async getPaymentByAddress(address: string) {
-    return new Promise<{ paymentId: string}>(
-      async (resolve, reject) => {
-        try {
-          const sql = `Select p."paymentId" AS payment_Id
+    return new Promise<{ paymentId: string }>(async (resolve, reject) => {
+      try {
+        const sql = `Select p."paymentId" AS payment_Id
                        From account a
                        INNER JOIN payment p ON a."position" = p."recieverPosition"
                        WHERE
                               a."address" = $1`;
-          const result = await this.accountRepository.query(sql, [address]);
-          return resolve({
-            paymentId: result[0].payment_Id
-          });
-        } catch (err) {
-          reject(err);
-        }
-      },
-    );
+        const result = await this.accountRepository.query(sql, [address]);
+        return resolve({
+          paymentId: result[0].payment_Id,
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
   }
 
   /**

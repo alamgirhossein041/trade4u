@@ -20,25 +20,17 @@ export class AuthService {
    * @param user
    * @returns
    */
-  async createToken(user: User) {
+  async createToken(user: User, expiryTime?: number | string) {
     return {
       expiresIn: process.env.JWT_EXPIRATION_TIME,
-      accessToken: this.jwtService.sign({ uuid: user.uuid }),
+      accessToken: this.jwtService.sign(
+        { uuid: user.uuid },
+        {
+          expiresIn: expiryTime ? expiryTime : process.env.JWT_EXPIRATION_TIME,
+        },
+      ),
       user,
     };
-  }
-
-  /**
-   * Create Forgot Password jwt token
-   * @param user
-   * @returns
-   */
-  async createForgotPasswordToken(user: User) {
-    const accessToken = this.jwtService.sign(
-      { uuid: user.uuid },
-      { expiresIn: process.env.JWT_TIME_FORGOT_PASSWORD },
-    );
-    return accessToken;
   }
 
   /**
@@ -114,8 +106,14 @@ export class AuthService {
   public async forgotPassword(email: string): Promise<void> {
     const user = await this.userService.getByEmail(email);
     if (user) {
-      const token = await this.createForgotPasswordToken(user);
-      await this.mailerservice.sendForgotPasswordMail(user.email, token);
+      const token = await this.createToken(
+        user,
+        process.env.JWT_TIME_FORGOT_PASSWORD,
+      );
+      await this.mailerservice.sendForgotPasswordMail(
+        user.email,
+        token.accessToken,
+      );
       return;
     } else {
       throw new HttpException(
