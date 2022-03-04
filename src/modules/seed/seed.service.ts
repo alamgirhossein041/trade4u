@@ -8,7 +8,7 @@ import { default as preformanceFee } from '../../utils/seed/preformanceFee.json'
 import { default as plan } from '../../utils/seed/plan.json';
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
 import { InjectRepository } from '@nestjs/typeorm';
-import { HttpExceptionFilter } from '../../modules/common/filters/http-exception.filter';
+import console from 'console';
 
 @Injectable()
 export class SeedService {
@@ -136,7 +136,7 @@ export class SeedService {
     if (!plan) {
       throw new HttpException(
         ResponseMessage.DOES_NOT_EXIST,
-        ResponseCode.NOT_FOUND,
+        ResponseCode.CONTENT_NOT_FOUND,
       );
     }
 

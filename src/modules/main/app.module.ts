@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { CommonModule } from '../common/common.module';
 import { ConfigModule } from '@nestjs/config';
@@ -16,7 +16,9 @@ import { ScheduleModule } from '@nestjs/schedule';
   imports: [
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: AppService.createConnection,
+      useFactory: async () => {
+        return await AppService.createConnection();
+      },
     }),
     ConfigModule.forRoot({
       envFilePath: [AppService.envConfiguration()],

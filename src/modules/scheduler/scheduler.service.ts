@@ -60,9 +60,10 @@ export class SchedulerService {
     const result: any[] = await this.priceRepository.query(`SELECT 
                     price 
                 FROM 
-                    price 
+                    prices 
                 WHERE 
-                    timestamp = (SELECT MAX(timestamp) FROM price);`);
+                    timestamp = (SELECT MAX(timestamp) FROM prices);`);
+
     if (!result.length) {
       this.loggerService.log(`Get klay latest price on startup`);
       SchedulerService.klayPrice = await this.getKlaytnPrice();
