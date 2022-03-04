@@ -10,8 +10,6 @@ import { SeedService } from '../../modules/seed/seed.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 import { User } from './user.entity';
-import { CompensationTransaction } from './compensation.transaction';
-import { DepositWebHook } from './commons/user.dtos';
 import { LoggerService } from '../../utils/logger/logger.service';
 
 @Controller('api/user')
@@ -20,11 +18,11 @@ export class UserContoller {
     private readonly userService: UsersService,
     private readonly seedService: SeedService,
     private readonly loggerService: LoggerService,
-    private readonly compensationTransaction: CompensationTransaction,
   ) {
     this.loggerService.setContext('UserController');
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('business_plan')
   @UseGuards(AuthGuard('jwt'))
   public async getBussniessPlan(@Res() res: Response): Promise<Response> {
@@ -34,13 +32,6 @@ export class UserContoller {
       data: plans,
       message: ResponseMessage.SUCCESS,
     });
-  }
-
-  @Post('deposit_webhook')
-  public async getDepositObject(@Body() body: DepositWebHook): Promise<void> {
-    this.loggerService.log(
-      `POST user/deposit_webhook ${LoggerMessages.API_CALLED}`,
-    );
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -78,24 +69,11 @@ export class UserContoller {
     @Body() body: { planId: number },
     @Res() res: Response,
   ): Promise<any> {
-    const userAfterUpdate = await this.userService.updateUserPlanOnPurchase(
-      user,
-      body.planId,
-    );
-    await this.compensationTransaction
-      .initCompensationPlan(userAfterUpdate)
-      .then(() => {
-        return res.status(ResponseCode.SUCCESS).send({
-          statusCode: ResponseCode.SUCCESS,
-          message: ResponseMessage.SUCCESS,
-        });
-      })
-      .catch((err) => {
-        return res.status(ResponseCode.BAD_REQUEST).send({
-          statusCode: ResponseCode.BAD_REQUEST,
-          message: ResponseMessage.ERROR_WHILE_DISTRIBUTING_BONUS,
-        });
-      });
+    await this.userService.updateUserPlanOnPurchase(user, body.planId);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.SUCCESS,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))

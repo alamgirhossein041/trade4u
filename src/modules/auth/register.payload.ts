@@ -45,11 +45,12 @@ export class RegisterPayload {
   phoneNumber: string;
 
   @IsNotEmpty()
-  @MinLength(8, { message: ResponseMessage.INVALID_PASSWORD })
-  @MaxLength(15, { message: ResponseMessage.INVALID_PASSWORD })
-  @Matches(/(?=.*\d)(?=.*\W+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message: ResponseMessage.INVALID_PASSWORD,
-  })
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$&+,:;=?@#|'<>.^*()_%!-])[A-Za-z\d$&+,:;=?@#|'<>.^*()_%!-]{8,15}$/,
+    {
+      message: ResponseMessage.INVALID_PASSWORD,
+    },
+  )
   password: string;
 
   @SameAs('password')
@@ -58,11 +59,12 @@ export class RegisterPayload {
 
 export class ForgotPasswordDto {
   @IsNotEmpty()
-  @MinLength(8, { message: ResponseMessage.INVALID_PASSWORD })
-  @MaxLength(15, { message: ResponseMessage.INVALID_PASSWORD })
-  @Matches(/(?=.*\d)(?=.*\W+)(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message: ResponseMessage.INVALID_PASSWORD,
-  })
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$&+,:;=?@#|'<>.^*()_%!-])[A-Za-z\d$&+,:;=?@#|'<>.^*()_%!-]{8,15}$/,
+    {
+      message: ResponseMessage.INVALID_PASSWORD,
+    },
+  )
   password: string;
 }
 

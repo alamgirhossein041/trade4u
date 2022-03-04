@@ -130,8 +130,8 @@ describe('BinancePlus auth test', () => {
         });
         it(`Test get user/parents of bnp user 2 after plan purchase to verify balance  API`, async () => {
             const expectedParents = [
-                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 50, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 20, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
             ];
             await request(server)
                 .get('/api/user/parents')

@@ -8,6 +8,7 @@ export enum ResponseMessage {
   INVALID_CREDENTIALS = `Invalid credentials!`,
   DOES_NOT_EXIST = `Does Not Exist`,
   ERROR_WHILE_DISTRIBUTING_BONUS = `Error While Distributing The Bonus`,
+  ERROR_WHILE_DEPOSIT = `Error While Confirming Deposit Amount`,
   INVALID_QUERY_PARAM = `Invalid query parameter`,
   USER_ALREADY_EXISTS = `User with the same email already exists`,
   USER_DOES_NOT_EXIST = `User with specified email does not exists`,

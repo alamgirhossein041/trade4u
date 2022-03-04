@@ -5,7 +5,6 @@ import { UserContoller } from './user.contoller';
 import { UserStats } from './user-stats.entity';
 import { User } from './user.entity';
 import { UsersService } from './user.service';
-import { CompensationTransaction } from './compensation.transaction';
 import { LicenseFee } from '../seed/licensefee.entity';
 import { LoggerModule } from '../../utils/logger/logger.module';
 
@@ -16,7 +15,7 @@ import { LoggerModule } from '../../utils/logger/logger.module';
     LoggerModule,
   ],
   exports: [UsersService],
-  providers: [UsersService, CompensationTransaction],
+  providers: [UsersService],
   controllers: [UserContoller],
 })
 export class UserModule {}

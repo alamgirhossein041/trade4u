@@ -274,9 +274,8 @@ export class UsersService {
    * @param user
    * @returns
    */
-  async updateUserPlanOnPurchase(user: User, planId: number): Promise<any> {
+  async updateUserPlanOnPurchase(user: User, planId: number): Promise<User> {
     const plan = await this.seedService.getPlanById(planId);
-    user.planIsActive = true;
     user.plan = plan;
     return await this.userRepository.save(user);
   }

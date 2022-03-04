@@ -29,6 +29,19 @@ export class AuthService {
   }
 
   /**
+   * Create Forgot Password jwt token
+   * @param user
+   * @returns
+   */
+  async createForgotPasswordToken(user: User) {
+    const accessToken = this.jwtService.sign(
+      { uuid: user.uuid },
+      { expiresIn: process.env.JWT_TIME_FORGOT_PASSWORD },
+    );
+    return accessToken;
+  }
+
+  /**
    * Register a genesis user
    * @param payload
    * @returns
@@ -101,11 +114,8 @@ export class AuthService {
   public async forgotPassword(email: string): Promise<void> {
     const user = await this.userService.getByEmail(email);
     if (user) {
-      const tokenObj = await this.createToken(user);
-      await this.mailerservice.sendForgotPasswordMail(
-        user.email,
-        tokenObj.accessToken,
-      );
+      const token = await this.createForgotPasswordToken(user);
+      await this.mailerservice.sendForgotPasswordMail(user.email, token);
       return;
     } else {
       throw new HttpException(

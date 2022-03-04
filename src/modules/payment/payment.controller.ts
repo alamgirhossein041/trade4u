@@ -5,8 +5,9 @@ import {
   Post,
   Req,
   Res,
-  UseFilters,
+  Body,
   UseGuards,
+  HttpException,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { Request, response, Response } from 'express';
@@ -16,10 +17,18 @@ import { User } from '../../modules/user';
 import { AuthGuard } from '@nestjs/passport';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { Pagination } from '../../utils/paginate';
+import { DepositWebHook } from './commons/payment.dtos';
+import { LoggerService } from '../../utils/logger/logger.service';
+import { LoggerMessages } from '../../utils/enum';
+import { DepositTransaction } from './deposit.transaction';
 
 @Controller('api/payment')
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly depositTransaction: DepositTransaction,
+    private readonly loggerService: LoggerService,
+  ) {}
 
   @Post(`order_plan/:planId`)
   @UseGuards(AuthGuard('jwt'))
@@ -55,4 +64,29 @@ export class PaymentController {
 
   @Post(`make_payment`)
   public async makePayment() {}
+
+  @Post('deposit_webhook')
+  public async initDepositTransaction(
+    @Body() body: DepositWebHook,
+    @Res() res: Response,
+  ): Promise<void> {
+    if (body.toAddress === process.env.OCTET_REPRESENTATIVE_ADDRESS) return;
+    this.loggerService.log(
+      `POST payment/deposit_webhook ${LoggerMessages.API_CALLED}`,
+    );
+    await this.depositTransaction
+      .initDepositTransaction(body.toAddress, body.amount)
+      .then(() => {
+        return res.status(ResponseCode.SUCCESS).send({
+          statusCode: ResponseCode.SUCCESS,
+          message: ResponseMessage.SUCCESS,
+        });
+      })
+      .catch((err) => {
+        throw new HttpException(
+          ResponseMessage.ERROR_WHILE_DEPOSIT,
+          ResponseCode.BAD_REQUEST,
+        );
+      });
+  }
 }

@@ -14,7 +14,7 @@ export class MailService {
   public async sendEmailConfirmation(user: User, token: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       const url = process.env.APP_URL;
-      const subRoute = 'login';
+      const subRoute = 'ready_to_go';
       try {
         await this.mailerService.sendMail({
           to: user.email,
@@ -50,7 +50,7 @@ export class MailService {
    */
   async sendForgotPasswordMail(email: string, token: string) {
     const url = process.env.APP_URL;
-    const subRoute = 'create_new_password';
+    const subRoute = 'changepassword';
     await this.mailerService.sendMail({
       to: email,
       from: '"Support Team" <support@binanceplus.com>', // override default from
