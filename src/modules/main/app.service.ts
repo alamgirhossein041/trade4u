@@ -2,11 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { SeedService } from '../../modules/seed/seed.service';
 import { dropDatabase, createDatabase } from 'typeorm-extension';
-import { NodeEnv } from '../../utils/enum';
+import { NodeEnv, ResponseMessage } from '../../utils/enum';
+import { Cron, SchedulerRegistry, CronExpression } from '@nestjs/schedule';
+import { LoggerService } from '../../utils/logger/logger.service';
+import { JOB } from '../scheduler/commons/scheduler.enum';
+import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
 export class AppService {
-  constructor() {}
+  constructor(
+    private readonly loggerService: LoggerService,
+    private readonly paymentService: PaymentService,
+  ) {}
 
   root(): string {
     return process.env.APP_URL;
@@ -63,5 +70,15 @@ export class AppService {
    */
   public static async startup() {
     return await SeedService.InsertSeed();
+  }
+
+  @Cron(CronExpression.EVERY_10_MINUTES, {
+    name: JOB.RECOVER_DEPOSIT,
+  })
+  public async recoverUnProcessedDeposits(): Promise<void> {
+    this.loggerService.warn(ResponseMessage.DEPOSIT_RECOVERY_PROCESS_STARTED);
+    await this.paymentService.initDepositRecoveryProcess().catch((err) => {
+      this.loggerService.error(err);
+    });
   }
 }

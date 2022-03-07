@@ -3,6 +3,8 @@ export enum ResponseMessage {
   SUCCESS = `Success`,
   CREATED_SUCCESSFULLY = `Created successfully`,
   EMAIL_CONFIRMED = `Email Confirmed Successfully`,
+  DEPOSIT_RECOVERY_PROCESS_STARTED = `Deposit Recovery Routine started`,
+  DEPOSIT_RECOVERY_PROCESS_ERROR = `Deposit Recovery Routine Failed`,
   EMAIL_LINK_EXPIRED = `This email link has been expired`,
   FORGOT_PASSWORD_EMAIL = `Please Check Your Email`,
   INVALID_CREDENTIALS = `Invalid credentials!`,

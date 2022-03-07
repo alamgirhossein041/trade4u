@@ -4,6 +4,7 @@ import axios, { AxiosInstance } from 'axios';
 import { Repository } from 'typeorm';
 import { Account } from './account.entity';
 import { CURRENCY } from './commons/octet.enum';
+import { DepositListInterface } from './commons/octet.types';
 
 @Injectable()
 export class OctetService {
@@ -62,6 +63,41 @@ export class OctetService {
         );
         const account = await this.saveAccount(response.data.addresses[0]);
         resolve(account);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * Get Halted Account List
+   * @returns Accounts[]
+   */
+  public async getHaltedAcocounts(): Promise<Account[]> {
+    return new Promise<Account[]>(async (resolve, reject) => {
+      try {
+        const accounts = await this.addressRepository.find({ isHalt: true });
+        resolve(accounts);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * Get Account Deposit List
+   * @returns
+   */
+  public async getAccountDepositList(
+    address: string,
+  ): Promise<DepositListInterface[]> {
+    return new Promise<DepositListInterface[]>(async (resolve, reject) => {
+      try {
+        const response = await this.octectClient.get(
+          `/${CURRENCY.KLAYTN}/tx/list?address=0x4a1a5db115C269453bF68446c77Dd14e3a90FBFe&pos=0&offset=200`,
+        );
+        const list = response.data;
+        resolve(list);
       } catch (err) {
         reject(err);
       }

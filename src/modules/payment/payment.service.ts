@@ -8,24 +8,31 @@ import moment from 'moment';
 import { SchedulerService } from '../../modules/scheduler/scheduler.service';
 import bigDecimal from 'js-big-decimal';
 import ShortUniqueId from 'short-unique-id';
-import { User } from '../user';
+import { User } from '../user/user.entity';
 import {
   paginate,
   Pagination,
   IPaginationOptions,
 } from 'nestjs-typeorm-paginate';
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
-import { OctetService } from '../../modules/octet/octet.service';
-import { Account } from '../../modules/octet/account.entity';
+import { OctetService } from '../octet/octet.service';
+import { Account } from '../octet/account.entity';
+import { Deposit } from './deposit.entity';
+import { DepositTransaction } from './deposit.transaction';
+import { DepositListInterface } from '../octet/commons/octet.types';
+import { DepositWebHook } from './commons/payment.dtos';
 
 @Injectable()
 export class PaymentService {
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
+    @InjectRepository(Deposit)
+    private readonly depositRepository: Repository<Deposit>,
     private readonly seedService: SeedService,
-    private readonly octectService: OctetService
-  ) { }
+    private readonly depositTransaction: DepositTransaction,
+    private readonly octetService: OctetService,
+  ) {}
 
   /**
    * Make payment
@@ -45,6 +52,95 @@ export class PaymentService {
       );
     }
     return { items: payment.items, meta: payment.meta };
+  }
+
+  /**
+   * Initialize the Deposit Recovery Process
+   */
+  public async initDepositRecoveryProcess() {
+    return new Promise<void>(async (resolve, reject) => {
+      const haltAccounts = await this.octetService.getHaltedAcocounts();
+      if (!haltAccounts.length) return resolve();
+      haltAccounts.map(async (account) => {
+        const deposits = await this.getAccountDeposits(account.address);
+        const octetDeposits = await this.getAccountDepositsFromOctet(
+          account.address,
+        );
+        const newDeposits = this.getNewDeposits(deposits, octetDeposits);
+        if (newDeposits.length > 0) {
+          newDeposits.map(async (deposit) => {
+            if (
+              deposit.to_address !== process.env.OCTET_REPRESENTATIVE_ADDRESS
+            ) {
+              await this.depositTransaction
+                .initDepositRecoveryTransaction(deposit)
+                .catch((err) => {
+                  return reject(
+                    `${ResponseMessage.DEPOSIT_RECOVERY_PROCESS_ERROR} for address ${deposit.to_address}`,
+                  );
+                });
+            }
+            return resolve();
+          });
+        }
+      });
+    });
+  }
+
+  /**
+   * Initialize the Deposit Recovery Process
+   */
+  public async initDepositTransaction(body: DepositWebHook) {
+    await this.depositTransaction.initDepositTransaction(body).catch((err) => {
+      throw new HttpException(
+        ResponseMessage.ERROR_WHILE_DEPOSIT,
+        ResponseCode.BAD_REQUEST,
+      );
+    });
+  }
+
+  /**
+   * Array Filter Opration
+   * @param list1
+   * @param list2
+   * @returns
+   */
+  public ArrayOperation(list1, list2, isUnion?) {
+    let result = [];
+
+    for (let i = 0; i < list1.length; i++) {
+      let item1 = list1[i],
+        found = false;
+      for (let j = 0; j < list2.length && !found; j++) {
+        found = item1.id === list2[j].id;
+      }
+      if (found === !!isUnion) {
+        result.push(item1);
+      }
+    }
+    return result;
+  }
+
+  public getNewDeposits(list1, list2): DepositListInterface[] {
+    return this.ArrayOperation(list2, list1);
+  }
+
+  /**
+   * Get Deposit List Of Account
+   */
+  public async getAccountDeposits(address: string) {
+    const deposits = await this.depositRepository.find({ toAddress: address });
+    return deposits;
+  }
+
+  /**
+   * Get Deposit List Of Account
+   */
+  public async getAccountDepositsFromOctet(address: string) {
+    const octetDeposits = await this.octetService.getAccountDepositList(
+      address,
+    );
+    return octetDeposits;
   }
 
   /**
@@ -113,7 +209,7 @@ export class PaymentService {
         // lets now open a new transaction:
         await queryRunner.startTransaction();
         try {
-          const account = await this.octectService.getAccount();
+          const account = await this.octetService.getAccount();
           await this.paymentRepository.update({ paymentId }, { account });
           await queryRunner.commitTransaction();
           await queryRunner.release();

@@ -24,9 +24,9 @@ export class CountryValidator implements ValidatorConstraintInterface {
     }
   }
 
-  defaultMessage(args: ValidationArguments) {
-    return ResponseMessage.INVALID_COUNTRY;
-  }
+  // defaultMessage(args: ValidationArguments) {
+  //   return ResponseMessage.INVALID_COUNTRY;
+  // }
 }
 
 export function IsValidCountry(validationOptions?: ValidationOptions) {

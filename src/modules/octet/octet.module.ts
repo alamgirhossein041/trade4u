@@ -8,6 +8,6 @@ import { Account } from './account.entity';
   imports: [TypeOrmModule.forFeature([Account])],
   controllers: [OctetController],
   providers: [OctetService],
-  exports: [OctetService]
+  exports: [OctetService],
 })
 export class OctetModule {}
