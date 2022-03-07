@@ -138,23 +138,6 @@ pipeline {
             }
         }
         
-        // stage('Test') {
-        //     steps {
-        //         echo 'Build ' + GLOBAL_ENVIRONMENT
-
-        //         script {
-        //             if (GLOBAL_ENVIRONMENT == 'NO_DEPLOYMENT') {
-        //                 echo 'This is not develop nor master branch and should not be build'
-        //             } else {
-        //                 test(GLOBAL_ENVIRONMENT)
-
-        //                 if (GLOBAL_ENVIRONMENT == 'production') {
-        //                     echo 'Additionally, build staging'
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
 
 
         stage('Deploy') {
@@ -181,19 +164,9 @@ def build(ENVIRONMENT) {
 
   echo 'started building image...'
   echo 'Build ENV ' + ENVIRONMENT
-  sh 'chmod +x ./jenkins/scripts/docker-build.sh'
-  sh 'chmod +x ./jenkins/scripts/docker-push.sh'
   sh './jenkins/scripts/docker-build.sh'
-  sh './jenkins/scripts/docker-push.sh'
 
 }
-// def test(ENVIRONMENT) {
-//   echo 'started testing image...'
-//   sh 'npm  i -g yarn'
-//   sh 'yarn install'
-//   sh 'npm i jest'
-//   sh 'npm run test'
-// }
 def deploy(ENVIRONMENT) {
     echo 'started deploying'
     sh 'chmod +x ./jenkins/scripts/remote-deploy.sh'
