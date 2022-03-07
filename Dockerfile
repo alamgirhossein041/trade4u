@@ -1,4 +1,4 @@
-FROM node:lts-alpine
+FROM node:14.15.1-alpine3.12
 
 WORKDIR /app
 
@@ -8,6 +8,8 @@ RUN yarn
 
 COPY . .
 
+COPY .env ./
+
 EXPOSE 3836
 
-CMD [ "yarn", "start:dev" ]
+CMD [ "npm", "run", "start:dev" ]
