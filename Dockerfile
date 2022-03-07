@@ -1,4 +1,4 @@
-FROM node:14.15.1-alpine3.12
+FROM node:lts-alpine
 
 WORKDIR /app
 
@@ -7,8 +7,6 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-
-COPY .env ./
 
 EXPOSE 3836
 

@@ -14,7 +14,9 @@ services:
       - binance_plus
 
   binance_plus-backend:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     image: binance_plus-backend:latest
     container_name: binance_plus-backend
     depends_on:
@@ -22,6 +24,8 @@ services:
     volumes:
       - ./src:/app/src
       - .env:/app/.env
+    ports:
+      - '3836:3836'
     networks:
       - binance_plus
       
