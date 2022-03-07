@@ -19,7 +19,7 @@ def DOCKER_HUB_USER="rnssolutions"
 
 
 pipeline {
-    agent any
+    agent {label params.node}
 
     tools {nodejs "NodeJS16.6.0"}
 
@@ -40,7 +40,7 @@ pipeline {
     post {
         always {
 
-          discordSend description: 'Jenkins Pipeline Build', footer:  '' , link: env.BUILD_URL, result: currentBuild.currentResult, unstable: false, title: JOB_NAME, webhookURL: 'https://discordapp.com/api/webhooks/860092485380603924/A19k0Ir_GKw2AVlL9udjja4VG9VpTVqKbY_Eb-5FSnC-wiXguJP9wLBKTCospodUZDdB'
+          discordSend description: 'Jenkins Pipeline Build', footer:  '' , link: env.BUILD_URL, result: currentBuild.currentResult, unstable: false, title: JOB_NAME, webhookURL: 'https://discordapp.com/api/webhooks/950283587037589545/FkP1t7ciO_oddqUVjQkE061_yiozYQ3oijgy_de3lxm4PD41trS1eLF5c-128vWku-76'
         }
     }
 
