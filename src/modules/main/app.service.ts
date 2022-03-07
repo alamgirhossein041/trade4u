@@ -72,7 +72,7 @@ export class AppService {
     return await SeedService.InsertSeed();
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES, {
+  @Cron(CronExpression.EVERY_10_HOURS, {
     name: JOB.RECOVER_DEPOSIT,
   })
   public async recoverUnProcessedDeposits(): Promise<void> {

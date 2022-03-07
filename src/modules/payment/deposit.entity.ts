@@ -5,7 +5,7 @@ import bigDecimal from 'js-big-decimal';
 import { DepositWebHook } from './commons/payment.dtos';
 
 @Entity({
-  name: 'deposit',
+  name: 'deposits',
 })
 export class Deposit {
   @PrimaryColumn()

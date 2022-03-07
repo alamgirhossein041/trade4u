@@ -64,7 +64,7 @@ export class PaymentService {
       haltAccounts.map(async (account) => {
         const deposits = await this.getAccountDeposits(account.address);
         const octetDeposits = await this.getAccountDepositsFromOctet(
-          account.address,
+          account.address
         );
         const newDeposits = this.getNewDeposits(deposits, octetDeposits);
         if (newDeposits.length > 0) {

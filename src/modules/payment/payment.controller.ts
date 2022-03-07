@@ -91,7 +91,29 @@ export class PaymentController {
       `POST payment/deposit_webhook ${LoggerMessages.API_CALLED}`,
     );
     try {
-      await this.paymentService.initDepositTransaction(body);
+      await this.paymentService.initDepositTransaction(body).then(() => {
+        return res.status(ResponseCode.SUCCESS).send({message: ResponseMessage.SUCCESS,statusCode: ResponseCode.SUCCESS})
+      }).catch((err) => {
+        throw err;
+      });
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  @Get('deposit_recovery')
+  public async initDepositRecovery(
+    @Res() res: Response,
+  ): Promise<void> {
+    this.loggerService.log(
+      `Get payment/deposit_recovery ${LoggerMessages.API_CALLED}`,
+    );
+    try {
+      await this.paymentService.initDepositRecoveryProcess().then(() => {
+        return res.status(ResponseCode.SUCCESS).send({message: ResponseMessage.SUCCESS,statusCode: ResponseCode.SUCCESS})
+      }).catch((err) => {
+        throw err;
+      });
     } catch (err) {
       throw err;
     }

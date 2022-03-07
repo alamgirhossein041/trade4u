@@ -62,7 +62,7 @@ export class DepositTransaction {
         // since we have errors let's rollback changes we made
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
-        return reject();
+        return reject(err);
       } finally {
         // you need to release query runner which is manually created:
         await queryRunner.release();
@@ -129,7 +129,7 @@ export class DepositTransaction {
         }
         return resolve();
       } catch (err) {
-        reject(err);
+        return reject(err);
       }
     });
   }
@@ -143,14 +143,14 @@ export class DepositTransaction {
     return new Promise<{ paymentId: string }>(async (resolve, reject) => {
       try {
         const sql = `Select p."paymentId" AS payment_Id
-                       From account a
-                       INNER JOIN payment p ON a."position" = p."recieverPosition"
+                       From accounts a
+                       INNER JOIN payments p ON a."position" = p."recieverPosition"
                        WHERE
                               a."address" = $1`;
         const result = await this.accountRepository.query(sql, [address]);
         return resolve({
-          paymentId: result[0].payment_Id,
-        });
+          paymentId: result[0].payment_id
+        })
       } catch (err) {
         return reject(err);
       }
@@ -239,6 +239,7 @@ export class DepositTransaction {
     return new Promise<void>(async (resolve, reject) => {
       try {
         payment.account = null;
+        payment.status = `completed`;
         await this.paymentRepository.save(payment);
         return resolve();
       } catch (err) {

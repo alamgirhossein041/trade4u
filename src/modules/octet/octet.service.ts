@@ -76,7 +76,7 @@ export class OctetService {
   public async getHaltedAcocounts(): Promise<Account[]> {
     return new Promise<Account[]>(async (resolve, reject) => {
       try {
-        const accounts = await this.addressRepository.find({ isHalt: true });
+        const accounts = await this.accountRepository.find({ isHalt: true });
         resolve(accounts);
       } catch (err) {
         reject(err);
@@ -94,12 +94,13 @@ export class OctetService {
     return new Promise<DepositListInterface[]>(async (resolve, reject) => {
       try {
         const response = await this.octectClient.get(
-          `/${CURRENCY.KLAYTN}/tx/list?address=0x4a1a5db115C269453bF68446c77Dd14e3a90FBFe&pos=0&offset=200`,
+          `/${CURRENCY.KLAYTN}/tx/list?address=${address}&pos=0&offset=200`,
         );
         const list = response.data;
         resolve(list);
       } catch (err) {
         reject(err);
+        console.log(err);
       }
     });
   }
