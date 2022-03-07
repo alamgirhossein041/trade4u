@@ -13,11 +13,6 @@ LABEL=$(git log -1 --format=%h)
 CONTAINER_NAME=binance_plus-backend
 CONTAINER_CURRENT=rnssolutions/$CONTAINER_NAME:$LABEL
 
-ssh $HOST_USER@$HOST_IP<<EOF
-    docker-compose down
-    docker-compose up -d
-    docker stop $CONTAINER_NAME-$BRANCH_NAME
-    docker rm -f $CONTAINER_NAME-$BRANCH_NAME
-    docker run -v /var/binance+/.env:/app/.env -d -p $PORT:3836 --name $CONTAINER_NAME-$BRANCH_NAME $CONTAINER_CURRENT
-    exit
-EOF
+docker stop $CONTAINER_NAME-$BRANCH_NAME
+docker rm -f $CONTAINER_NAME-$BRANCH_NAME
+docker run -v /var/binance-plus/.env:/app/.env -d -p $PORT:3836 --name $CONTAINER_NAME-$BRANCH_NAME $CONTAINER_CURRENT
