@@ -69,7 +69,7 @@ describe('BinancePlus payment test', () => {
             isHalt: true
         }
         await request(server)
-            .get('/api/payment/address')
+            .post('/api/payment/address')
             .query({ paymentId: payment_Id })
             .set('Authorization', helper.getAccessToken())
             .expect(201)
