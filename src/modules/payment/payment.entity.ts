@@ -44,8 +44,8 @@ export class Payment {
   paidAt: number;
 
   @OneToOne(() => Account)
-  @JoinColumn()
-  reciever: Account;
+  @JoinColumn({ name: 'account' })
+  account: Account;
 
   @ManyToOne(() => Plan)
   @JoinColumn({ name: 'plan' })

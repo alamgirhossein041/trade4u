@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SeedService } from '../../modules/seed/seed.service';
-import { Repository } from 'typeorm';
+import { getConnection, Repository } from 'typeorm';
 import { PaymentStatus } from './commons/payment.enum';
 import { Payment } from './payment.entity';
 import moment from 'moment';
@@ -13,9 +13,10 @@ import {
   paginate,
   Pagination,
   IPaginationOptions,
-  PaginationTypeEnum,
 } from 'nestjs-typeorm-paginate';
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
+import { OctetService } from '../../modules/octet/octet.service';
+import { Account } from '../../modules/octet/account.entity';
 
 @Injectable()
 export class PaymentService {
@@ -23,12 +24,13 @@ export class PaymentService {
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
     private readonly seedService: SeedService,
-  ) {}
+    private readonly octectService: OctetService
+  ) { }
 
   /**
    * Make payment
    */
-  public async makePayment() {}
+  public async makePayment() { }
 
   /**
    * Get user payments
@@ -82,6 +84,48 @@ export class PaymentService {
     payment.plan = plan;
     payment.user = user;
     return payment;
+  }
+
+  /**
+   * Get new address and bind it to payment
+   * @param options 
+   * @param condition 
+   * @param relations 
+   * @returns 
+   */
+  public async getAddress(paymentId: string): Promise<Account> {
+    return new Promise<Account>(async (resolve, reject) => {
+      const payment = await this.paymentRepository.findOne({ paymentId }, {
+        relations: ['account']
+      });
+      if (!payment)
+        throw new HttpException(ResponseMessage.INVALID_PAYMENT_ID, ResponseCode.BAD_REQUEST);
+
+      if (payment.account) {
+        return resolve(payment.account);
+      }
+      else {
+        // get a connection and create a new query runner
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        // establish real database connection using our new query runner
+        await queryRunner.connect();
+        // lets now open a new transaction:
+        await queryRunner.startTransaction();
+        try {
+          const account = await this.octectService.getAccount();
+          await this.paymentRepository.update({ paymentId }, { account });
+          await queryRunner.commitTransaction();
+          await queryRunner.release();
+          return resolve(account);
+        }
+        catch (err) {
+          await queryRunner.rollbackTransaction();
+          await queryRunner.release();
+          reject(err);
+        }
+     }
+    });
   }
 
   /**
