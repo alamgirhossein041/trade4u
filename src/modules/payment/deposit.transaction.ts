@@ -144,7 +144,7 @@ export class DepositTransaction {
       try {
         const sql = `Select p."paymentId" AS payment_Id
                        From accounts a
-                       INNER JOIN payments p ON a."position" = p."recieverPosition"
+                       INNER JOIN payments p ON a."position" = p."account"
                        WHERE
                               a."address" = $1`;
         const result = await this.accountRepository.query(sql, [address]);
@@ -184,7 +184,7 @@ export class DepositTransaction {
   private async saveDeposit(webhookObject: DepositWebHook) {
     return new Promise<Deposit>(async (resolve, reject) => {
       try {
-        const deposit = new Deposit().fromWebhookDto(webhookObject);
+        const deposit = new Deposit().fromWebhook(webhookObject);
         const newDeposit = await this.depositRepository.save(deposit);
         return resolve(newDeposit);
       } catch (err) {
@@ -203,7 +203,7 @@ export class DepositTransaction {
   ) {
     return new Promise<Deposit>(async (resolve, reject) => {
       try {
-        const deposit = new Deposit().fromDepositListDto(
+        const deposit = new Deposit().fromDepositList(
           depositListInterfaceObj,
         );
         const newDeposit = await this.depositRepository.save(deposit);

@@ -41,7 +41,7 @@ export class Deposit {
   @JoinColumn({ name: 'account' })
   account: Account;
 
-  fromDepositListDto(body: DepositListInterface) {
+  fromDepositList(body: DepositListInterface) {
     this.id = body.id;
     this.amount = Number(bigDecimal.round(body.amount, 4));
     this.blockHeight = body.block_height;
@@ -55,7 +55,7 @@ export class Deposit {
     return this;
   }
 
-  fromWebhookDto(body: DepositWebHook) {
+  fromWebhook(body: DepositWebHook) {
     this.id = body.id;
     this.amount = Number(bigDecimal.round(body.amount, 4));
     this.blockHeight = body.blockHeight;

@@ -69,6 +69,28 @@ export class OctetService {
     });
   }
 
+
+  /**
+* Get Account Deposits Count
+* @returns
+*/
+  public async getAccountDepositCount(
+    address: string,
+  ): Promise<DepositListInterface[]> {
+    return new Promise<DepositListInterface[]>(async (resolve, reject) => {
+      try {
+        const response = await this.octectClient.get(
+          `/${CURRENCY.KLAYTN}/tx/count?address=${address}`,
+        );
+        const count = response.data;
+        resolve(count);
+      } catch (err) {
+        reject(err);
+        console.log(err);
+      }
+    });
+  }
+
   /**
    * Get Halted Account List
    * @returns Accounts[]

@@ -32,7 +32,7 @@ export class PaymentService {
     private readonly seedService: SeedService,
     private readonly depositTransaction: DepositTransaction,
     private readonly octetService: OctetService,
-  ) {}
+  ) { }
 
   /**
    * Make payment
@@ -100,29 +100,21 @@ export class PaymentService {
   }
 
   /**
-   * Array Filter Opration
-   * @param list1
-   * @param list2
-   * @returns
-   */
-  public ArrayOperation(list1, list2, isUnion?) {
-    let result = [];
-
-    for (let i = 0; i < list1.length; i++) {
-      let item1 = list1[i],
-        found = false;
-      for (let j = 0; j < list2.length && !found; j++) {
-        found = item1.id === list2[j].id;
-      }
-      if (found === !!isUnion) {
-        result.push(item1);
-      }
-    }
-    return result;
+* Array Filter Opration
+* @param list1
+* @param list2
+* @returns
+*/
+  public getDifference(list1, list2) {
+    return list1.filter(object1 => {
+      return !list2.some(object2 => {
+        return object1.id === object2.id;
+      });
+    });
   }
 
   public getNewDeposits(list1, list2): DepositListInterface[] {
-    return this.ArrayOperation(list2, list1);
+    return this.getDifference(list2, list1);
   }
 
   /**

@@ -23,7 +23,7 @@ describe('BinancePlus payment test', () => {
         coinSymbol: 'KLAY',
         fromAddress: '0x161f205b4e90b3894e296b4c85093e30951d7bb6',
         toAddress: '0x141f205b4e89b3894d296b4b85083e30951d7bb6',
-        amount: '89.2857',
+        amount: '123.9669',
         txid: '0x08fb42bfb7dd3ca08d373151c46f465c235b81444a75137eb98bab4f15aca091',
         outputIndex: -1,
         blockHeight: 84635086,
@@ -93,21 +93,6 @@ describe('BinancePlus payment test', () => {
     })
 
     it(`Test /deposit_webhook API`, async () => {
-        const expectedAccount = {
-            position: 1,
-            address: '0x141f205b4e89b3894d296b4b85083e30951d7bb6',
-            isHalt: false
-        }
-        await request(server)
-            .get('/api/octet/account')
-            .set('Authorization', helper.getAccessToken())
-            .expect(201)
-            .expect(({ body }) => {
-                expect(body.data).toEqual(expectedAccount);
-            });
-
-        await helper.updateAccountHaltState(1, true);
-        await helper.attachAccountToPayment(1,`1`);
 
         const accountBefore = await helper.getAccountByPosition(1);
         expect(accountBefore.isHalt).toBe(true);

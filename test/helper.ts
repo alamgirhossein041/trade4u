@@ -107,7 +107,7 @@ export class Helper {
         const account =await this.getAccountByPosition(position);
         const user = await this.getUserByEmail('testuser@yopmail.com');
         const payment = new Payment();
-        payment.amountKLAY = 89.2857;
+        payment.amountKLAY = 123.9669;
         payment.amountUSD = 100;
         payment.status = `pending`;
         payment.createdAt = Math.floor(Date.now() / 1000);
@@ -115,7 +115,7 @@ export class Helper {
         payment.paymentId = payId;
         payment.plan = plan;
         payment.user = user;
-        payment.reciever = account;
+        payment.account = account;
         await paymentRepo.save(payment);
         return;
     }
