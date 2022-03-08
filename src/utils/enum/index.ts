@@ -15,6 +15,7 @@ export enum ResponseMessage {
   USER_DOES_NOT_EXIST = `User with specified email does not exists`,
   USERNAME_ALREADY_TAKEN = `User with the same username already exists, please try another one.`,
   EMAIL_NOT_REGISTERED = `Email not registered`,
+  EMAIL_QUERY_PARAM_MISSING = `non optional param 'email' missing`,
   CONFIRM_EMAIL_FIRST = `Please confirm your email first`,
   INVALID_EMAIL = `Invalid email address`,
   INVALID_PASSWORD = `Use 8-15 characters with a mix of letters, numbers & symbols`,
