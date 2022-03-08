@@ -11,6 +11,7 @@ import { Plan } from '../seed/plan.entity';
 import { Deposit } from './deposit.entity';
 import { DepositWebHook } from './commons/payment.dtos';
 import { DepositListInterface } from '../octet/commons/octet.types';
+import moment from 'moment';
 
 @Injectable()
 export class DepositTransaction {
@@ -240,6 +241,7 @@ export class DepositTransaction {
       try {
         payment.account = null;
         payment.status = `completed`;
+        payment.paidAt = moment().unix();
         await this.paymentRepository.save(payment);
         return resolve();
       } catch (err) {

@@ -62,27 +62,23 @@ export class PaymentService {
       const haltAccounts = await this.octetService.getHaltedAcocounts();
       if (!haltAccounts.length) return resolve();
       haltAccounts.map(async (account) => {
-        const deposits = await this.getAccountDeposits(account.address);
-        const octetDeposits = await this.getAccountDepositsFromOctet(
+        const depositsCount = await this.getAccountDepositsCount(account.address);
+        const octetDepositsCount = await this.getAccountDepositsCountFromOctet(
           account.address
         );
-        const newDeposits = this.getNewDeposits(deposits, octetDeposits);
-        if (newDeposits.length > 0) {
-          newDeposits.map(async (deposit) => {
-            if (
-              deposit.to_address !== process.env.OCTET_REPRESENTATIVE_ADDRESS
-            ) {
-              await this.depositTransaction
-                .initDepositRecoveryTransaction(deposit)
-                .catch((err) => {
-                  return reject(
-                    `${ResponseMessage.DEPOSIT_RECOVERY_PROCESS_ERROR} for address ${deposit.to_address}`,
-                  );
-                });
-            }
-            return resolve();
-          });
+        if (octetDepositsCount > depositsCount) {
+          const lastDeposit: Deposit = await this.getAccountLastDeposit(account.address);
+          const startDate = moment.unix(lastDeposit.dwDate + 1).format('YYYY-MM-DDTHH:mm:ss');
+          const newDeposit = await this.getNewDepositFromOctet(account.address, startDate);
+          await this.depositTransaction
+            .initDepositRecoveryTransaction(newDeposit)
+            .catch((err) => {
+              return reject(
+                `${ResponseMessage.DEPOSIT_RECOVERY_PROCESS_ERROR} for address ${newDeposit.to_address}`,
+              );
+            });
         }
+        return resolve();
       });
     });
   }
@@ -125,14 +121,54 @@ export class PaymentService {
     return deposits;
   }
 
+
   /**
-   * Get Deposit List Of Account
+   * Get Deposits Count Of Account
+   */
+  public async getAccountDepositsCount(address: string) {
+    const sql = `SELECT COUNT(DISTINCT(id)) as total_deposits FROM deposits WHERE "toAddress"=$1`;
+    const result = await this.depositRepository.query(sql, [address]);
+    return Number(result[0].total_deposits);
+  }
+
+  /**
+   * Get Last Deposit Of Account
+   */
+  public async getAccountLastDeposit(address: string) {
+    const sql = `SELECT * FROM deposits WHERE "toAddress"=$1 ORDER BY id DESC LIMIT 1`;
+    const result = await this.depositRepository.query(sql, [address]);
+    return result[0];
+  }
+
+  /**
+   * Get Deposit List Of Account From Octet
    */
   public async getAccountDepositsFromOctet(address: string) {
     const octetDeposits = await this.octetService.getAccountDepositList(
       address,
     );
     return octetDeposits;
+  }
+
+  /**
+   * Get Deposit List Of Account From Octet
+   */
+  public async getNewDepositFromOctet(address: string, startDate: string) {
+    const octetDeposit = await this.octetService.getnewDeposit(
+      address,
+      startDate
+    );
+    return octetDeposit;
+  }
+
+  /**
+   * Get Deposits Count Of Account From Octet
+   */
+  public async getAccountDepositsCountFromOctet(address: string) {
+    const octetDepositsCount = await this.octetService.getAccountDepositsCount(
+      address,
+    );
+    return octetDepositsCount;
   }
 
   /**

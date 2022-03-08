@@ -69,28 +69,6 @@ export class OctetService {
     });
   }
 
-
-  /**
-* Get Account Deposits Count
-* @returns
-*/
-  public async getAccountDepositCount(
-    address: string,
-  ): Promise<DepositListInterface[]> {
-    return new Promise<DepositListInterface[]>(async (resolve, reject) => {
-      try {
-        const response = await this.octectClient.get(
-          `/${CURRENCY.KLAYTN}/tx/count?address=${address}`,
-        );
-        const count = response.data;
-        resolve(count);
-      } catch (err) {
-        reject(err);
-        console.log(err);
-      }
-    });
-  }
-
   /**
    * Get Halted Account List
    * @returns Accounts[]
@@ -102,6 +80,28 @@ export class OctetService {
         resolve(accounts);
       } catch (err) {
         reject(err);
+      }
+    });
+  }
+
+
+  /**
+* Get Account Deposits Count
+* @returns
+*/
+  public async getAccountDepositsCount(
+    address: string,
+  ): Promise<number> {
+    return new Promise<number>(async (resolve, reject) => {
+      try {
+        const response = await this.octectClient.get(
+          `/${CURRENCY.KLAYTN}/tx/count?address=${address}`,
+        );
+        const count: number = response.data.count;
+        resolve(count);
+      } catch (err) {
+        reject(err);
+        console.log(err);
       }
     });
   }
@@ -119,6 +119,28 @@ export class OctetService {
           `/${CURRENCY.KLAYTN}/tx/list?address=${address}&pos=0&offset=200`,
         );
         const list = response.data;
+        resolve(list);
+      } catch (err) {
+        reject(err);
+        console.log(err);
+      }
+    });
+  }
+
+  /**
+   * Get Account Deposit List
+   * @returns
+   */
+  public async getnewDeposit(
+    address: string,
+    startDate: string
+  ): Promise<DepositListInterface> {
+    return new Promise<DepositListInterface>(async (resolve, reject) => {
+      try {
+        const response = await this.octectClient.get(
+          `/${CURRENCY.KLAYTN}/tx/list?address=${address}&startDate=${startDate}`,
+        );
+        const list = response.data[0];
         resolve(list);
       } catch (err) {
         reject(err);

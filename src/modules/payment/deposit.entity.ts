@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, PrimaryColumn, ManyToOne } from 'typeorm';
 import { DepositListInterface } from 'modules/octet/commons/octet.types';
 import bigDecimal from 'js-big-decimal';
 import { DepositWebHook } from './commons/payment.dtos';
+import moment from 'moment';
 
 @Entity({
   name: 'deposits',
@@ -32,10 +33,10 @@ export class Deposit {
   blockHeight: number;
 
   @Column()
-  dwDate: string;
+  dwDate: number;
 
   @Column()
-  dwModifiedDate: string;
+  dwModifiedDate: number;
 
   @ManyToOne(() => Account)
   @JoinColumn({ name: 'account' })
@@ -49,8 +50,8 @@ export class Deposit {
     this.fromAddress = body.from_address;
     this.toAddress = body.to_address;
     this.txid = body.txid;
-    this.dwDate = body.dw_date;
-    this.dwModifiedDate = body.dw_modified_date;
+    this.dwDate = moment(body.dw_date).unix();
+    this.dwModifiedDate = moment(body.dw_modified_date).unix();
 
     return this;
   }
@@ -63,8 +64,8 @@ export class Deposit {
     this.fromAddress = body.fromAddress;
     this.toAddress = body.toAddress;
     this.txid = body.txid;
-    this.dwDate = body.dwDate;
-    this.dwModifiedDate = body.dwModifiedDate;
+    this.dwDate = moment(body.dwDate).unix();
+    this.dwModifiedDate = moment(body.dwModifiedDate).unix();
 
     return this;
   }
