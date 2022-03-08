@@ -13,7 +13,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
     private readonly mailerservice: MailService,
-  ) {}
+  ) { }
 
   /**
    * Create new jwt token
@@ -97,6 +97,31 @@ export class AuthService {
         });
     });
   }
+
+  /**
+   * Resend a email to user
+   * @param email 
+   * @returns 
+   */
+  public async resendEmail(email: string) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        const user = await this.userService.getByEmail(email);
+        if (!user)
+          reject(new HttpException(ResponseMessage.USER_DOES_NOT_EXIST, ResponseCode.BAD_REQUEST))
+        const token = await this.createToken(user);
+        await this.mailerservice.sendEmailConfirmation(
+          user,
+          token.accessToken,
+        );
+        resolve();
+      }
+      catch (err) {
+        reject(err);
+      }
+    });
+  }
+
 
   /**
    * Send Password Recovery Link To User Email

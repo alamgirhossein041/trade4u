@@ -112,6 +112,17 @@ export class AuthController {
     });
   }
 
+  @Post('resend_email')
+  async resendEmail(@Res() res: Response, @Query('email') email: string) {
+    if(!email)
+      throw new HttpException(ResponseMessage.EMAIL_QUERY_PARAM_MISSING, ResponseCode.BAD_REQUEST)
+    await this.authService.resendEmail(email);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
   async getLoggedInUser(@CurrentUser() user: User): Promise<User> {
