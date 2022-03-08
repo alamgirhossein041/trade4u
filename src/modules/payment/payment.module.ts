@@ -8,12 +8,14 @@ import { DepositTransaction } from './deposit.transaction';
 import { Account } from '../octet/account.entity';
 import { User } from '../user/user.entity';
 import { LoggerModule } from '../../utils/logger/logger.module';
+import { OctetModule } from '../../modules/octet/octet.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Payment, Account, User]),
     SeedModule,
     LoggerModule,
+    OctetModule
   ],
   controllers: [PaymentController],
   providers: [PaymentService, DepositTransaction],

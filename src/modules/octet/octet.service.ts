@@ -1,7 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios, { AxiosInstance } from 'axios';
-import console from 'console';
 import { Repository } from 'typeorm';
 import { Account } from './account.entity';
 import { CURRENCY } from './commons/octet.enum';
@@ -15,7 +14,7 @@ export class OctetService {
 
   constructor(
     @InjectRepository(Account)
-    private readonly addressRepository: Repository<Account>,
+    private readonly accountRepository: Repository<Account>,
   ) {
     this.octectClient = axios.create({
       baseURL: process.env.OCTET_SERVER_URL,
@@ -32,13 +31,23 @@ export class OctetService {
   public async getAccount(): Promise<Account> {
     return new Promise<Account>(async (resolve, reject) => {
       try {
-        let account = await this.addressRepository.findOne({ isHalt: false });
+        let account = await this.accountRepository.findOne({ isHalt: false });
         if (!account) account = await this.generateAccount();
+        account = await this.haltAccount(account)
         return resolve(account);
       } catch (err) {
         reject(err);
       }
     });
+  }
+
+  /**
+   * Halt a account
+   * @returns 
+   */
+  public async haltAccount(account: Account) {
+    account.isHalt = true;
+    return await this.accountRepository.save(account, { transaction: false });
   }
 
   /**
@@ -68,6 +77,6 @@ export class OctetService {
     account.address = data.address;
     account.isHalt = false;
 
-    return await this.addressRepository.save(account);
+    return await this.accountRepository.save(account, { transaction: false });
   }
 }

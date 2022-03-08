@@ -8,6 +8,8 @@ import {
   Body,
   UseGuards,
   HttpException,
+  Query,
+  Injectable,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { Request, response, Response } from 'express';
@@ -60,6 +62,22 @@ export class PaymentController {
       data: payment,
       message: ResponseMessage.SUCCESS,
     });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('address')
+  public async getAccount(@Res() res: Response, @Query('paymentId') paymentId: string) {
+    if (!paymentId) {
+      throw new HttpException(ResponseMessage.INVALID_QUERY_PARAM, ResponseCode.BAD_REQUEST)
+    }
+    await this.paymentService.getAddress(paymentId)
+      .then((data) => {
+        return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
+          statusCode: ResponseCode.CREATED_SUCCESSFULLY,
+          data: data,
+          message: ResponseMessage.CREATED_SUCCESSFULLY,
+        });
+      });
   }
 
   @Post(`make_payment`)

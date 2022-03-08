@@ -149,7 +149,7 @@ export class DepositTransaction {
   private async detachAccountFromPayment(payment: Payment) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        payment.reciever = null;
+        payment.account = null;
         await this.paymentRepository.save(payment);
         return resolve();
       } catch (err) {

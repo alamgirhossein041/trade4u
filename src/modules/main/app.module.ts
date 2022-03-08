@@ -27,7 +27,6 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthModule,
     CommonModule,
     UserModule,
-    OctetModule,
     SeedModule,
     PaymentModule,
     SchedulerModule,
