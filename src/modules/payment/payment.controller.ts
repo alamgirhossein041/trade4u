@@ -30,7 +30,7 @@ export class PaymentController {
     private readonly paymentService: PaymentService,
     private readonly depositTransaction: DepositTransaction,
     private readonly loggerService: LoggerService,
-  ) {}
+  ) { }
 
   @Post(`order_plan/:planId`)
   @UseGuards(AuthGuard('jwt'))
@@ -65,7 +65,7 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('address')
+  @Post('address')
   public async getAccount(@Res() res: Response, @Query('paymentId') paymentId: string) {
     if (!paymentId) {
       throw new HttpException(ResponseMessage.INVALID_QUERY_PARAM, ResponseCode.BAD_REQUEST)
@@ -81,7 +81,7 @@ export class PaymentController {
   }
 
   @Post(`make_payment`)
-  public async makePayment() {}
+  public async makePayment() { }
 
   @Post('deposit_webhook')
   public async initDepositTransaction(

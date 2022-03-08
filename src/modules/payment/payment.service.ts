@@ -99,7 +99,7 @@ export class PaymentService {
         relations: ['account']
       });
       if (!payment)
-        throw new HttpException(ResponseMessage.INVALID_PAYMENT_ID, ResponseCode.BAD_REQUEST);
+       return reject(new HttpException(ResponseMessage.INVALID_PAYMENT_ID, ResponseCode.BAD_REQUEST));
 
       if (payment.account) {
         return resolve(payment.account);
@@ -124,7 +124,7 @@ export class PaymentService {
           await queryRunner.release();
           reject(err);
         }
-     }
+      }
     });
   }
 
