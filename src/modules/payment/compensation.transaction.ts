@@ -1,8 +1,8 @@
 import { getConnection, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
-import { User } from './../user/user.entity';
-import { UsersService } from './../user/user.service';
+import { User } from '../user/user.entity';
+import { UsersService } from '../user/user.service';
 import { LicenseFee } from '../seed/licensefee.entity';
 import { PlanNameEnum } from '../seed/seed.enums';
 

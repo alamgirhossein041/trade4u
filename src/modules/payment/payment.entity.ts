@@ -1,6 +1,6 @@
-import { Account } from '../../modules/octet/account.entity';
-import { Plan } from '../../modules/seed/plan.entity';
-import { User } from '../../modules/user';
+import { Account } from '../octet/account.entity';
+import { Plan } from '../seed/plan.entity';
+import { User } from '../user/user.entity';
 import {
   Column,
   Entity,

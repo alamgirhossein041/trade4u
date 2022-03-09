@@ -5,6 +5,7 @@ import {
   HttpException,
   Post,
   Query,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -18,7 +19,7 @@ import {
 } from './';
 import { CurrentUser } from './../common/decorator/current-user.decorator';
 import { User } from '../user/user.entity';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import {
   ResponseCode,
   ResponseMessage,
@@ -30,7 +31,7 @@ import { LoggerService } from '../../utils/logger/logger.service';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly loggerService: LoggerService,
+    private readonly loggerService: LoggerService
   ) {
     this.loggerService.setContext('AuthController');
   }
@@ -99,6 +100,22 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('verify_token')
+  async checkPasswordLinkExpiry(
+    @CurrentUser() user: User,
+    @Req() req: Request,
+    @Res() res: Response
+  ): Promise<Response> {
+    const token = req.headers.authorization.split(' ')[1];
+    await this.authService.checkPasswordLinkExpiry(user.email, token);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
   @Post('confirm_forgot_password')
   async forgotConfirmPassword(
     @CurrentUser() user: User,
@@ -117,6 +134,7 @@ export class AuthController {
     if(!email)
       throw new HttpException(ResponseMessage.EMAIL_QUERY_PARAM_MISSING, ResponseCode.BAD_REQUEST)
     await this.authService.resendEmail(email);
+    console.log('Object')
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       message: ResponseMessage.SUCCESS,

@@ -20,17 +20,32 @@ export class AuthService {
    * @param user
    * @returns
    */
-  async createToken(user: User, expiryTime?: number | string) {
+  async createToken(user: User, expiryTime?: number | string, subject?: string) {
     return {
       expiresIn: process.env.JWT_EXPIRATION_TIME,
       accessToken: this.jwtService.sign(
         { uuid: user.uuid },
         {
+          subject: subject ? process.env.JWT_SECRET_KEY + user.password : '',
           expiresIn: expiryTime ? expiryTime : process.env.JWT_EXPIRATION_TIME,
         },
       ),
       user,
     };
+  }
+
+  async checkPasswordLinkExpiry(email: string, token: string) {
+    try {
+      const user = await this.userService.getByEmail(email);
+      const subject = process.env.JWT_SECRET_KEY + user.password;
+      this.jwtService.verify(token, { subject });
+      return;
+    } catch (err) {
+      throw new HttpException(
+        ResponseMessage.RESET_PASSWORD_LINK_EXPIRED,
+        ResponseCode.NOT_FOUND,
+      );
+    }
   }
 
   /**
@@ -134,6 +149,7 @@ export class AuthService {
       const token = await this.createToken(
         user,
         process.env.JWT_TIME_FORGOT_PASSWORD,
+        user.password
       );
       await this.mailerservice.sendForgotPasswordMail(
         user.email,
@@ -194,7 +210,7 @@ export class AuthService {
     }
     if (!user || !Hash.compare(payload.password, user.password)) {
       throw new HttpException(
-        ResponseMessage.INVALID_CREDENTIALS,
+        ResponseMessage.WRONG_PASSWORD,
         ResponseCode.BAD_REQUEST,
       );
     }

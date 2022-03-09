@@ -11,6 +11,7 @@ import { OctetModule } from '../../modules/octet/octet.module';
 import { PaymentModule } from '../../modules/payment/payment.module';
 import { SchedulerModule } from '../../modules/scheduler/scheduler.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { LoggerModule } from '../../utils/logger/logger.module';
 
 @Module({
   imports: [
@@ -27,6 +28,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthModule,
     CommonModule,
     UserModule,
+    OctetModule,
+    LoggerModule,
     SeedModule,
     PaymentModule,
     SchedulerModule,

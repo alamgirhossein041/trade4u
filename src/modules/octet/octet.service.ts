@@ -4,6 +4,7 @@ import axios, { AxiosInstance } from 'axios';
 import { Repository } from 'typeorm';
 import { Account } from './account.entity';
 import { CURRENCY } from './commons/octet.enum';
+import { DepositListInterface } from './commons/octet.types';
 
 @Injectable()
 export class OctetService {
@@ -64,6 +65,86 @@ export class OctetService {
         resolve(account);
       } catch (err) {
         reject(err);
+      }
+    });
+  }
+
+  /**
+   * Get Halted Account List
+   * @returns Accounts[]
+   */
+  public async getHaltedAcocounts(): Promise<Account[]> {
+    return new Promise<Account[]>(async (resolve, reject) => {
+      try {
+        const accounts = await this.accountRepository.find({ isHalt: true });
+        resolve(accounts);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+
+  /**
+* Get Account Deposits Count
+* @returns
+*/
+  public async getAccountDepositsCount(
+    address: string,
+  ): Promise<number> {
+    return new Promise<number>(async (resolve, reject) => {
+      try {
+        const response = await this.octectClient.get(
+          `/${CURRENCY.KLAYTN}/tx/count?address=${address}`,
+        );
+        const count: number = response.data.count;
+        resolve(count);
+      } catch (err) {
+        reject(err);
+        console.log(err);
+      }
+    });
+  }
+
+  /**
+   * Get Account Deposit List
+   * @returns
+   */
+  public async getAccountDepositList(
+    address: string,
+  ): Promise<DepositListInterface[]> {
+    return new Promise<DepositListInterface[]>(async (resolve, reject) => {
+      try {
+        const response = await this.octectClient.get(
+          `/${CURRENCY.KLAYTN}/tx/list?address=${address}&pos=0&offset=200`,
+        );
+        const list = response.data;
+        resolve(list);
+      } catch (err) {
+        reject(err);
+        console.log(err);
+      }
+    });
+  }
+
+  /**
+   * Get Account Deposit List
+   * @returns
+   */
+  public async getnewDeposit(
+    address: string,
+    startDate: string
+  ): Promise<DepositListInterface> {
+    return new Promise<DepositListInterface>(async (resolve, reject) => {
+      try {
+        const response = await this.octectClient.get(
+          `/${CURRENCY.KLAYTN}/tx/list?address=${address}&startDate=${startDate}`,
+        );
+        const list = response.data[0];
+        resolve(list);
+      } catch (err) {
+        reject(err);
+        console.log(err);
       }
     });
   }

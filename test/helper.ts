@@ -2,7 +2,9 @@ import { INestApplication } from "@nestjs/common";
 import request from 'supertest';
 import { getConnection } from 'typeorm';
 import { Plan } from "../src/modules/seed/plan.entity";
-import { User } from "../src/modules/user";
+import { User } from "../src/modules/user/user.entity";
+import { Payment } from "../src/modules/payment/payment.entity";
+import { Account } from "../src/modules/octet/account.entity";
 
 export class Helper {
     private app: INestApplication;
@@ -84,6 +86,69 @@ export class Helper {
         const plan = await this.getPlan();
         const repository = getConnection().getRepository(User);
         return await repository.update({ email }, {plan: plan,planIsActive: true});
+    }
+
+    /**
+    * Update Halt State of Account
+    * @returns 
+    */
+    public async updateAccountHaltState(position: number,state: boolean) {
+        const repository = getConnection().getRepository(Account);
+        return await repository.update({ position }, {isHalt: state});
+    }
+
+    /**
+    * Update Plan of user
+    * @returns 
+    */
+    public async attachAccountToPayment(position: number,payId: string) {
+        const paymentRepo = getConnection().getRepository(Payment);
+        const plan = await this.getPlan();
+        const account =await this.getAccountByPosition(position);
+        const user = await this.getUserByEmail('testuser@yopmail.com');
+        const payment = new Payment();
+        payment.amountKLAY = 123.9669;
+        payment.amountUSD = 100;
+        payment.status = `pending`;
+        payment.createdAt = Math.floor(Date.now() / 1000);
+        payment.expireAt = payment.createdAt + 3600;
+        payment.paymentId = payId;
+        payment.plan = plan;
+        payment.user = user;
+        payment.account = account;
+        await paymentRepo.save(payment);
+        return;
+    }
+
+    /**
+    * Create Account
+    * @returns 
+    */
+    public async createAccount(position: number) {
+        const account = new Account();
+        account.position = position;
+        account.address=`0x141f205b4e89b3894d296b4b85083e30951d7bb6`;
+        account.isHalt=false;
+        const repository = getConnection().getRepository(Account);
+        return await repository.save(account);
+    }
+
+    /**
+    * Get Account By Position
+    * @returns 
+    */
+    public async getAccountByPosition(position: number) {
+        const repository = getConnection().getRepository(Account);
+        return await repository.findOne({position});
+    }
+
+    /**
+    * Get Plan By Id
+    * @returns 
+    */
+    public async getUserByEmail(email: string) {
+        const repository = getConnection().getRepository(User);
+        return await repository.findOne({email});
     }
 
     /**

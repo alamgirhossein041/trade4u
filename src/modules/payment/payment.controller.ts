@@ -22,13 +22,11 @@ import { Pagination } from '../../utils/paginate';
 import { DepositWebHook } from './commons/payment.dtos';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { LoggerMessages } from '../../utils/enum';
-import { DepositTransaction } from './deposit.transaction';
 
 @Controller('api/payment')
 export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
-    private readonly depositTransaction: DepositTransaction,
     private readonly loggerService: LoggerService,
   ) { }
 
@@ -92,19 +90,32 @@ export class PaymentController {
     this.loggerService.log(
       `POST payment/deposit_webhook ${LoggerMessages.API_CALLED}`,
     );
-    await this.depositTransaction
-      .initDepositTransaction(body.toAddress, body.amount)
-      .then(() => {
-        return res.status(ResponseCode.SUCCESS).send({
-          statusCode: ResponseCode.SUCCESS,
-          message: ResponseMessage.SUCCESS,
-        });
-      })
-      .catch((err) => {
-        throw new HttpException(
-          ResponseMessage.ERROR_WHILE_DEPOSIT,
-          ResponseCode.BAD_REQUEST,
-        );
+    try {
+      await this.paymentService.initDepositTransaction(body).then(() => {
+        return res.status(ResponseCode.SUCCESS).send({message: ResponseMessage.SUCCESS,statusCode: ResponseCode.SUCCESS})
+      }).catch((err) => {
+        throw err;
       });
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  @Get('deposit_recovery')
+  public async initDepositRecovery(
+    @Res() res: Response,
+  ): Promise<void> {
+    this.loggerService.log(
+      `Get payment/deposit_recovery ${LoggerMessages.API_CALLED}`,
+    );
+    try {
+      await this.paymentService.initDepositRecoveryProcess().then(() => {
+        return res.status(ResponseCode.SUCCESS).send({message: ResponseMessage.SUCCESS,statusCode: ResponseCode.SUCCESS})
+      }).catch((err) => {
+        throw err;
+      });
+    } catch (err) {
+      throw err;
+    }
   }
 }

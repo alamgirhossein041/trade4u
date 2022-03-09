@@ -8,7 +8,7 @@ import { HttpExceptionFilter } from './modules/common/filters/http-exception.fil
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    bufferLogs: true,
+    bufferLogs: true
   });
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useLogger(new LoggerService());
