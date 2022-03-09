@@ -21,6 +21,9 @@ export class Plan {
   levels: number;
 
   @Column()
+  limit: string;
+
+  @Column()
   preformanceFeePercentage: number;
 
   @Column()
