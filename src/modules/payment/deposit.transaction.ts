@@ -125,7 +125,7 @@ export class DepositTransaction {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const floatReceived = Number(bigDecimal.round(received, 4));
-        if (required < floatReceived) {
+        if (floatReceived < required) {
           return reject();
         }
         return resolve();

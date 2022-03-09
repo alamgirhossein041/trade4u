@@ -64,7 +64,7 @@ describe('BinancePlus payment test', () => {
     });
 
     it(`Test /payment_list API`, async () => {
-        const expected = { amountUSD: 150, amountKLAY: 123.9669, status: 'pending' };
+        const expected = { amountUSD: 100, amountKLAY: 82.6446, status: 'pending' };
         await request(server)
             .get('/api/payment/payment_list')
             .set('Authorization', helper.getAccessToken())
