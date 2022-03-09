@@ -196,7 +196,7 @@ export class PaymentService {
     const uid = new ShortUniqueId({ length: 10 });
     const payment = new Payment();
     payment.paymentId = uid();
-    payment.amountUSD = plan.minUSDT;
+    payment.amountUSD = plan.price;
     payment.status = PaymentStatus.PENDING;
     payment.createdAt = moment().unix();
     payment.expireAt = payment.createdAt + 3600; // one hour after creation
