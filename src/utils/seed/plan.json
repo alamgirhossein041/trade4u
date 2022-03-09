@@ -39,7 +39,7 @@
         "planId": 4,
         "planName": "Premium",
         "price": 1000,
-        "minBTC": 0.25,
+        "minBTC": 0.50,
         "minUSDT": 50000,
         "levels": 12,
         "limit": "5X",
