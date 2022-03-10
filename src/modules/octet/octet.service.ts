@@ -52,6 +52,15 @@ export class OctetService {
   }
 
   /**
+   * Free a account
+   * @returns 
+   */
+   public async freeAccount(account: Account) {
+    account.isHalt = false;
+    return await this.accountRepository.save(account, { transaction: false });
+  }
+
+  /**
    * Generate new account
    * @returns
    */

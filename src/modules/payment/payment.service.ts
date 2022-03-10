@@ -233,9 +233,7 @@ export class PaymentService {
 
   /**
    * Get new address and bind it to payment
-   * @param options 
-   * @param condition 
-   * @param relations 
+   * @param paymentId
    * @returns 
    */
   public async getAddress(paymentId: string): Promise<Account> {
@@ -243,9 +241,40 @@ export class PaymentService {
       const payment = await this.paymentRepository.findOne({ paymentId }, {
         relations: ['account']
       });
+
       if (!payment)
         return reject(new HttpException(ResponseMessage.INVALID_PAYMENT_ID, ResponseCode.BAD_REQUEST));
 
+      switch (payment.status) {
+        case PaymentStatus.CANCELLED:
+          reject(new HttpException(ResponseMessage.PAYMENT_ALREADY_CANCELLED, ResponseCode.BAD_REQUEST));
+          break;
+
+        case PaymentStatus.COMPLETED:
+          reject(new HttpException(ResponseMessage.PAYMENT_ALREADY_PAID, ResponseCode.BAD_REQUEST));
+          break;
+
+        case PaymentStatus.PENDING:
+          try {
+            const account = await this.generateAddressAndBindToPayment(payment);
+            resolve(account)
+          }
+          catch (err) {
+            reject();
+          }
+          break;
+      }
+      return;
+    });
+  }
+
+  /**
+   * Genereate a new address and bind to payment
+   * @param payment 
+   * @returns 
+   */
+  public async generateAddressAndBindToPayment(payment: Payment): Promise<Account> {
+    return new Promise<Account>(async (resolve, reject) => {
       if (payment.account) {
         return resolve(payment.account);
       }
@@ -259,7 +288,7 @@ export class PaymentService {
         await queryRunner.startTransaction();
         try {
           const account = await this.octetService.getAccount();
-          await this.paymentRepository.update({ paymentId }, { account });
+          await this.paymentRepository.update({ paymentId: payment.paymentId }, { account });
           await queryRunner.commitTransaction();
           await queryRunner.release();
           return resolve(account);
@@ -284,18 +313,22 @@ export class PaymentService {
         where: {
           status: PaymentStatus.PENDING,
           expireAt: LessThanOrEqual(now)
-        }
+        },
+        relations: ['account']
       });
 
       await Promise.all(records.map(async m => {
+        await this.octetService.freeAccount(m.account);
         m.status = PaymentStatus.CANCELLED;
+        m.account = null;
         await this.paymentRepository.save(m);
-      })).then(() => {
-        this.loggerServce.log(`Payment Expiry Job Completed at: ${moment().unix()}`);
-      });
+      }))
+        .then(() => {
+          this.loggerServce.log(`Payment Expiry Job Completed at: ${moment().unix()}`);
+        });
       return;
     }
-    catch {
+    catch (err) {
       this.loggerServce.log(`Payment Expiry Job Failed`);
       return;
     }

@@ -36,7 +36,8 @@ export enum ResponseMessage {
   CHECK_INTERNET_CONNECTION = `Error while sending email please check internet connection`,
   UNABLE_TO_PING_COINMARKET = `Unable to ping coin-gecko market`,
   CONTENT_NOT_FOUND = `Content not found`,
-  
+  PAYMENT_ALREADY_CANCELLED = `Requested Payment is already cancelled`,
+  PAYMENT_ALREADY_PAID = `Requested Payment is already Paid`,
 }
 
 // some code enums for sending response code in api response
