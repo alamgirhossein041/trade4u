@@ -80,6 +80,7 @@ export class AuthController {
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
+    this.loggerService.log(`GET auth/confirm_email ${LoggerMessages.API_CALLED}`);
     await this.authService.confirmEmail(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -92,6 +93,7 @@ export class AuthController {
     @Body() body: EmailDto,
     @Res() res: Response,
   ): Promise<Response> {
+    this.loggerService.log(`GET auth/forgot_password ${LoggerMessages.API_CALLED}`);
     await this.authService.forgotPassword(body.email);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -106,6 +108,7 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response
   ): Promise<Response> {
+    this.loggerService.log(`GET auth/verify_token ${LoggerMessages.API_CALLED}`);
     const token = req.headers.authorization.split(' ')[1];
     await this.authService.checkPasswordLinkExpiry(user.email, token);
     return res.status(ResponseCode.SUCCESS).send({
@@ -122,6 +125,7 @@ export class AuthController {
     @Res() res: Response,
     @Body() payload: ForgotPasswordDto,
   ): Promise<Response> {
+    this.loggerService.log(`GET auth/confirm_forgot_password ${LoggerMessages.API_CALLED}`);
     await this.authService.confirmForgotPassword(user.email, payload.password);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -133,8 +137,8 @@ export class AuthController {
   async resendEmail(@Res() res: Response, @Query('email') email: string) {
     if(!email)
       throw new HttpException(ResponseMessage.EMAIL_QUERY_PARAM_MISSING, ResponseCode.BAD_REQUEST)
+    this.loggerService.log(`GET auth/resend_email ${LoggerMessages.API_CALLED}`);
     await this.authService.resendEmail(email);
-    console.log('Object')
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       message: ResponseMessage.SUCCESS,

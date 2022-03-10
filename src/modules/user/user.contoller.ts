@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Res, UseGuards, HttpException } from '@nestjs/common';
 import { UsersService } from './user.service';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import {
   ResponseCode,
   ResponseMessage,
@@ -28,6 +28,9 @@ export class UserContoller {
   @Get('business_plan')
   @UseGuards(AuthGuard('jwt'))
   public async getBussniessPlan(@Res() res: Response): Promise<Response> {
+    this.loggerService.log(
+      `Get user/business_plan ${LoggerMessages.API_CALLED}`,
+    );
     const plans = await this.seedService.getBusinessPlans();
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -59,6 +62,9 @@ export class UserContoller {
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
+    this.loggerService.log(
+      `Get user/affiliates ${LoggerMessages.API_CALLED}`,
+    );
     const affiliates = await this.userService.getUserAffiliates(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -73,6 +79,9 @@ export class UserContoller {
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
+    this.loggerService.log(
+      `Get user/parents ${LoggerMessages.API_CALLED}`,
+    );
     const parents = await this.userService.getUserParentsTree(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -88,6 +97,9 @@ export class UserContoller {
     @Body() body: { planId: number },
     @Res() res: Response,
   ): Promise<any> {
+    this.loggerService.log(
+      `POST user/purchase_plan ${LoggerMessages.API_CALLED}`,
+    );
     await this.userService.updateUserPlanOnPurchase(user, body.planId);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -98,6 +110,9 @@ export class UserContoller {
   @UseGuards(AuthGuard('jwt'))
   @Get('license_fee')
   public async getlicenseFee(@Res() res: Response): Promise<Response> {
+    this.loggerService.log(
+      `GET user/license_fee ${LoggerMessages.API_CALLED}`,
+    );
     const licenseFee = await this.seedService.getlicenseFee();
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -109,6 +124,9 @@ export class UserContoller {
   @UseGuards(AuthGuard('jwt'))
   @Get('preformance_fee')
   public async getPreformanceFee(@Res() res: Response): Promise<Response> {
+    this.loggerService.log(
+      `GET user/preformance_fee ${LoggerMessages.API_CALLED}`,
+    );
     const preformanceFee = await this.seedService.getpreformanceFee();
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,

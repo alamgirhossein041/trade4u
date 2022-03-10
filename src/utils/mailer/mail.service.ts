@@ -74,8 +74,8 @@ export class MailService {
                     If you are having trouble completing your registration, please don’t
                     hesitate to contact our customer service (available 24/7).
                 </p>
-                <a href="${url}${subRoute}?token=${token}" target="_blank" and rel="noopener noreferrer" target="_blank" style="  background: #F6DE23;
-                color: black;
+                <a href="${url}${subRoute}?token=${token}" target="_blank" and rel="noopener noreferrer" target="_blank" style="background: #F2B80E;
+                color: #fff;
                 text-decoration: none;
                 border-radius: 0.375rem;
                 padding: 3% 5%;
@@ -200,14 +200,14 @@ export class MailService {
             margin-bottom: 2rem;">
                 Click on the button below to change your password
             </p>
-            <a href="${url}${subRoute}?token=${token}" target="_blank" and rel="noopener noreferrer" style="  background: #F6DE23;
-                color: black;
+            <a href="${url}${subRoute}?token=${token}" target="_blank" and rel="noopener noreferrer" style="  background: #F2B80E;
+                color: #fff;
                 text-decoration: none;
                 border-radius: 0.375rem;
                 padding: 3% 5%;
                 font-weight: bolder;
                 border-width: 0rem;">
-                Activate Account
+                Change Password
             </a>
         </div>
         <div style="  background: #1F1F20;
