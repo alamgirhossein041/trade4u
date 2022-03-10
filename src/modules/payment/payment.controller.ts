@@ -38,6 +38,9 @@ export class PaymentController {
     @Res() res: Response,
     @Param() params,
   ) {
+    this.loggerService.log(
+      `POST payment/order_plan ${LoggerMessages.API_CALLED}`,
+    );
     const order = await this.paymentService.orderPlan(user, params.planId);
     return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
       statusCode: ResponseCode.CREATED_SUCCESSFULLY,
@@ -53,6 +56,9 @@ export class PaymentController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
+    this.loggerService.log(
+      `GET payment/payment_list ${LoggerMessages.API_CALLED}`,
+    );
     const pagination: IPaginationOptions = await Pagination.paginate(req, res);
     const payment = await this.paymentService.getPayments(user, pagination);
     return res.status(ResponseCode.SUCCESS).send({
@@ -65,6 +71,9 @@ export class PaymentController {
   @UseGuards(AuthGuard('jwt'))
   @Post('address')
   public async getAccount(@Res() res: Response, @Query('paymentId') paymentId: string) {
+    this.loggerService.log(
+      `POST payment/address ${LoggerMessages.API_CALLED}`,
+    );
     if (!paymentId) {
       throw new HttpException(ResponseMessage.INVALID_QUERY_PARAM, ResponseCode.BAD_REQUEST)
     }

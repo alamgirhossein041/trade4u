@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SeedService } from '../../modules/seed/seed.service';
-import { getConnection, Repository } from 'typeorm';
+import { getConnection, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { PaymentStatus } from './commons/payment.enum';
 import { Payment } from './payment.entity';
 import moment from 'moment';
@@ -21,6 +21,9 @@ import { Deposit } from './deposit.entity';
 import { DepositTransaction } from './deposit.transaction';
 import { DepositListInterface } from '../octet/commons/octet.types';
 import { DepositWebHook } from './commons/payment.dtos';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { JOB } from '../../modules/scheduler/commons/scheduler.enum';
+import { LoggerService } from '../../utils/logger/logger.service';
 
 @Injectable()
 export class PaymentService {
@@ -32,6 +35,7 @@ export class PaymentService {
     private readonly seedService: SeedService,
     private readonly depositTransaction: DepositTransaction,
     private readonly octetService: OctetService,
+    private readonly loggerServce: LoggerService,
   ) { }
 
   /**
@@ -223,7 +227,7 @@ export class PaymentService {
         relations: ['account']
       });
       if (!payment)
-       return reject(new HttpException(ResponseMessage.INVALID_PAYMENT_ID, ResponseCode.BAD_REQUEST));
+        return reject(new HttpException(ResponseMessage.INVALID_PAYMENT_ID, ResponseCode.BAD_REQUEST));
 
       if (payment.account) {
         return resolve(payment.account);
@@ -250,6 +254,34 @@ export class PaymentService {
         }
       }
     });
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: JOB.EXPIRE_PAYMENT,
+  })
+  public async expirePayment(): Promise<number> {
+    try {
+      this.loggerServce.log(`Payment Expiry Job started at: ${moment().unix()}`);
+      const now = moment().unix();
+      const records = await this.paymentRepository.find({
+        where: {
+          status: PaymentStatus.PENDING,
+          expireAt: LessThanOrEqual(now)
+        }
+      });
+
+      await Promise.all(records.map(async m => {
+        m.status = PaymentStatus.CANCELLED;
+        await this.paymentRepository.save(m);
+      })).then(() => {
+        this.loggerServce.log(`Payment Expiry Job Completed at: ${moment().unix()}`);
+      });
+      return;
+    }
+    catch {
+      this.loggerServce.log(`Payment Expiry Job Failed`);
+      return;
+    }
   }
 
   /**
