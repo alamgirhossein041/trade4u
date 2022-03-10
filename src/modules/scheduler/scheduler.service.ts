@@ -8,8 +8,7 @@ import { Price } from './price.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import moment from 'moment';
-import { PaymentService } from '../payment/payment.service';
-import { AuthService } from '../auth/auth.service';
+
 
 @Injectable()
 export class SchedulerService {
