@@ -135,8 +135,8 @@ export class SeedService {
     const plan = await this.planRepository.findOne({ planId });
     if (!plan) {
       throw new HttpException(
-        ResponseMessage.DOES_NOT_EXIST,
-        ResponseCode.CONTENT_NOT_FOUND,
+        `Plan ${ResponseMessage.DOES_NOT_EXIST}`,
+        ResponseCode.NOT_FOUND,
       );
     }
 

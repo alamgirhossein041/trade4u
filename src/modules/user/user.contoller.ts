@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res, UseGuards, HttpException } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Request, Response } from 'express';
 import {
@@ -11,6 +11,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 import { User } from './user.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
+import { EarningLimit } from './commons/user.constants';
+import { isPositiveInteger } from '../../utils/methods';
 
 @Controller('api/user')
 export class UserContoller {
@@ -30,6 +32,23 @@ export class UserContoller {
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: plans,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('plan_by_id/:id')
+  public async getPlanById(
+    @Param('id') id: number,
+    @Res() res: Response,
+  ): Promise<any> {
+    const isPosInt = isPositiveInteger(id.toString());
+    if (!isPosInt) throw new HttpException(`Parameter id ${ResponseMessage.IS_INVALID}`, ResponseCode.BAD_REQUEST);
+    const plan = await this.seedService.getPlanById(Number(id));
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: { planId: plan.planId, planName: plan.planName, price: plan.price, levels: plan.levels, earningLimit: plan.price * EarningLimit },
       message: ResponseMessage.SUCCESS,
     });
   }
