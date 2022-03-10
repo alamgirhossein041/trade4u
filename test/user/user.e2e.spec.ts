@@ -11,11 +11,11 @@ import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
 import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
 
-describe('BinancePlus auth test', () => {
+describe('BinancePlus User test', () => {
     let app: INestApplication;
     let helper: Helper;
     let token: string;
-    let  server: any;
+    let server: any;
     const regDto = {
         userName: "bnptestuser32",
         fullName: "bnp user",
@@ -139,6 +139,17 @@ describe('BinancePlus auth test', () => {
                 .expect(200)
                 .expect(({ body }) => {
                     expect(body.data).toEqual(expectedParents);
+                });
+        });
+
+        it(`Test get user/plan_by_id API`, async () => {
+            const expectedObj = { planId: 1, planName: 'Silver', price: 100, levels: 7, earningLimit: 500 };
+            await request(server)
+                .get('/api/user/plan_by_id/1')
+                .set('Authorization', helper.getAccessToken())
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.data).toEqual(expectedObj);
                 });
         });
     });
