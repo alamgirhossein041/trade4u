@@ -91,23 +91,6 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('purchase_plan')
-  public async updateUserPlanOnPurchase(
-    @CurrentUser() user: User,
-    @Body() body: { planId: number },
-    @Res() res: Response,
-  ): Promise<any> {
-    this.loggerService.log(
-      `POST user/purchase_plan ${LoggerMessages.API_CALLED}`,
-    );
-    await this.userService.updateUserPlanOnPurchase(user, body.planId);
-    return res.status(ResponseCode.SUCCESS).send({
-      statusCode: ResponseCode.SUCCESS,
-      message: ResponseMessage.SUCCESS,
-    });
-  }
-
-  @UseGuards(AuthGuard('jwt'))
   @Get('license_fee')
   public async getlicenseFee(@Res() res: Response): Promise<Response> {
     this.loggerService.log(

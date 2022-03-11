@@ -1,33 +1,37 @@
-import { getConnection, Repository } from 'typeorm';
+import { getConnection, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { UsersService } from '../user/user.service';
 import { LicenseFee } from '../seed/licensefee.entity';
 import { PlanNameEnum } from '../seed/seed.enums';
+import bigDecimal from 'js-big-decimal';
+import { PerformanceFee } from '../seed/preformaceFee.entity';
+import { BonusType } from './commons/payment.enum';
 
 @Injectable()
 export class CompensationTransaction {
   /**
    *
    * @param licenseRepository
+   * @param performanceRepository
    * @param userRepository
    * @param userService
    */
   constructor(
     @InjectRepository(LicenseFee)
     private readonly licenseRepository: Repository<LicenseFee>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(PerformanceFee)
+    private readonly performanceRepository: Repository<PerformanceFee>,
     private readonly userService: UsersService,
-  ) {}
+  ) { }
 
   /**
    * Distribute License Bonus Among Parents Of User
    * @param user
    * @returns
    */
-  public async initCompensationPlan(user: User) {
+  public async initCompensationTransaction(user: User, bonusType: string) {
     return new Promise<void>(async (resolve, reject) => {
       // get a connection and create a new query runner
       const connection = getConnection();
@@ -42,17 +46,17 @@ export class CompensationTransaction {
         const userParentTree = await this.userService.getUserParentsTree(
           userWithPlan,
         );
-        await this.distBonusInParents(userParentTree, planAmount);
+        await this.distBonusInParents(userParentTree, planAmount, bonusType, queryRunner);
         await queryRunner.commitTransaction();
       } catch (err) {
         // since we have errors let's rollback changes we made
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
-        return reject();
+        reject(err);
       } finally {
         // you need to release query runner which is manually created:
         await queryRunner.release();
-        return resolve();
+        resolve();
       }
     });
   }
@@ -63,25 +67,25 @@ export class CompensationTransaction {
    * @param planAmount
    * @returns
    */
-  private async distBonusInParents(parenTree: any, planAmount: number) {
+  private async distBonusInParents(parenTree: any, planAmount: number, bonusType: string, queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         parenTree.map(async (parent: any) => {
           const bonusPercentage = await this.getBonusPercentage(
+            bonusType,
             parent.plan_name,
-            parent.level,
+            parent.level
           );
           let amount = this.getBonusAmount(bonusPercentage, planAmount);
           amount += parent.balance;
-          await this.userRepository.update(
-            { userName: parent.userName },
-            { balance: amount },
-          );
+          const parentToUpdate = await this.userService.getByUserName(parent.userName);
+          parentToUpdate.balance = amount;
+          await queryRunner.manager.save(parentToUpdate);
+          resolve();
         });
       } catch (err) {
         reject(err);
       }
-      resolve();
     });
   }
 
@@ -90,24 +94,27 @@ export class CompensationTransaction {
    * @param planName
    * @param level
    */
-  private async getBonusPercentage(planName: string, level: number) {
+  private async getBonusPercentage(bonusType: string, planName: string, level: number) {
     let percentage: number;
-    let row: LicenseFee;
+    let repository: Repository<LicenseFee | PerformanceFee>;
+    if (bonusType === BonusType.PERFORMANCE) repository = this.performanceRepository;
+    else repository = this.licenseRepository;
+    let row: LicenseFee | PerformanceFee;
     switch (planName) {
       case PlanNameEnum.Silver:
-        row = await this.licenseRepository.findOne({ levelNo: level });
+        row = await repository.findOne({ levelNo: level });
         percentage = row.silverPercentage;
         break;
       case PlanNameEnum.Gold:
-        row = await this.licenseRepository.findOne({ levelNo: level });
+        row = await repository.findOne({ levelNo: level });
         percentage = row.goldPercentage;
         break;
       case PlanNameEnum.Platinum:
-        row = await this.licenseRepository.findOne({ levelNo: level });
+        row = await repository.findOne({ levelNo: level });
         percentage = row.platinumPercentage;
         break;
       case PlanNameEnum.Premium:
-        row = await this.licenseRepository.findOne({ levelNo: level });
+        row = await repository.findOne({ levelNo: level });
         percentage = row.premiumPercentage;
         break;
     }
@@ -120,8 +127,16 @@ export class CompensationTransaction {
    * @param amount
    */
   private getBonusAmount(percentage: number, amount: number) {
-    const amountToMultiplyWith = percentage / 100;
-    const originalAmount = amountToMultiplyWith * amount;
+    const amountToMultiplyWith = Number(
+      new bigDecimal(percentage)
+        .divide(new bigDecimal(100), 4)
+        .getValue()
+    );
+    const originalAmount = Number(
+      new bigDecimal(amountToMultiplyWith)
+        .multiply(new bigDecimal(amount))
+        .getValue()
+    );
     return originalAmount;
   }
 }

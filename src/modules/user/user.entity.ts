@@ -42,11 +42,14 @@ export class User {
   @Column({ length: 10, nullable: true })
   tradingSystem: string;
 
-  @Column({ length: 35, nullable: true })
+  @Column({ length: 50, nullable: true })
   apiKey: string;
 
-  @Column({ length: 35, nullable: true })
+  @Column({ length: 50, nullable: true })
   apiSecret: string;
+
+  @Column({ length: 150, nullable: true })
+  klayWallet: string;
 
   @Column({ default: 0 })
   balance: number;

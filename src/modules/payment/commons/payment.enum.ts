@@ -3,3 +3,8 @@ export enum PaymentStatus {
   COMPLETED = `completed`,
   CANCELLED = `cancelled`,
 }
+
+export enum BonusType {
+  LISENCE = `license`,
+  PERFORMANCE = `performance`
+}
