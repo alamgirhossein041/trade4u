@@ -287,8 +287,9 @@ export class PaymentService {
         // lets now open a new transaction:
         await queryRunner.startTransaction();
         try {
-          const account = await this.octetService.getAccount();
-          await this.paymentRepository.update({ paymentId: payment.paymentId }, { account });
+          const account = await this.octetService.getAccount(queryRunner);
+          payment.account = account;
+          await queryRunner.manager.save(payment);
           await queryRunner.commitTransaction();
           await queryRunner.release();
           return resolve(account);
@@ -318,9 +319,11 @@ export class PaymentService {
       });
 
       await Promise.all(records.map(async m => {
-        await this.octetService.freeAccount(m.account);
+        if (m.account) {
+          await this.octetService.freeAccount(m.account);
+          m.account = null;
+        }
         m.status = PaymentStatus.CANCELLED;
-        m.account = null;
         await this.paymentRepository.save(m);
       }))
         .then(() => {

@@ -79,7 +79,6 @@ export class MockOctetServer {
             let countObject = {count: 2};
             return res.status(200).send(countObject);
         });
-
     }
 
     stop() {

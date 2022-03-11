@@ -1,7 +1,7 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios, { AxiosInstance } from 'axios';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { Account } from './account.entity';
 import { CURRENCY } from './commons/octet.enum';
 import { DepositListInterface } from './commons/octet.types';
@@ -29,12 +29,12 @@ export class OctetService {
   /**
    * Get account
    */
-  public async getAccount(): Promise<Account> {
+  public async getAccount(queryRunner: QueryRunner): Promise<Account> {
     return new Promise<Account>(async (resolve, reject) => {
       try {
         let account = await this.accountRepository.findOne({ isHalt: false });
-        if (!account) account = await this.generateAccount();
-        account = await this.haltAccount(account)
+        if (!account) account = await this.generateAccount(queryRunner);
+        account = await this.haltAccount(account, queryRunner)
         return resolve(account);
       } catch (err) {
         reject(err);
@@ -46,31 +46,31 @@ export class OctetService {
    * Halt a account
    * @returns 
    */
-  public async haltAccount(account: Account) {
+  public async haltAccount(account: Account, queryRunner: QueryRunner) {
     account.isHalt = true;
-    return await this.accountRepository.save(account, { transaction: false });
+    return await queryRunner.manager.save(account);
   }
 
   /**
    * Free a account
    * @returns 
    */
-   public async freeAccount(account: Account) {
+  public async freeAccount(account: Account) {
     account.isHalt = false;
-    return await this.accountRepository.save(account, { transaction: false });
+    return await this.accountRepository.save(account);
   }
 
   /**
    * Generate new account
    * @returns
    */
-  public async generateAccount(): Promise<Account> {
+  public async generateAccount(queryRunner: QueryRunner): Promise<Account> {
     return new Promise<Account>(async (resolve, reject) => {
       try {
         const response = await this.octectClient.post(
           `/${CURRENCY.KLAYTN}/address`,
         );
-        const account = await this.saveAccount(response.data.addresses[0]);
+        const account = await this.saveAccount(response.data.addresses[0], queryRunner);
         resolve(account);
       } catch (err) {
         reject(err);
@@ -164,12 +164,12 @@ export class OctetService {
   /**
    * Save address to database
    */
-  public async saveAccount(data: any) {
+  public async saveAccount(data: any, queryRunner: QueryRunner) {
     const account = new Account();
     account.position = data.keyIndex;
     account.address = data.address;
     account.isHalt = false;
 
-    return await this.accountRepository.save(account, { transaction: false });
+    return await queryRunner.manager.save(account);
   }
 }

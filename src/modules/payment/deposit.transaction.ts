@@ -2,16 +2,15 @@ import { getConnection, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { User } from '../user/user.entity';
-import { UsersService } from '../user/user.service';
 import { Account } from '../octet/account.entity';
 import { Payment } from '../payment/payment.entity';
-import { PlanNameEnum } from '../seed/seed.enums';
 import bigDecimal from 'js-big-decimal';
 import { Plan } from '../seed/plan.entity';
 import { Deposit } from './deposit.entity';
 import { DepositWebHook } from './commons/payment.dtos';
 import { DepositListInterface } from '../octet/commons/octet.types';
 import moment from 'moment';
+import { PaymentStatus } from './commons/payment.enum';
 
 @Injectable()
 export class DepositTransaction {
@@ -239,7 +238,7 @@ export class DepositTransaction {
     return new Promise<void>(async (resolve, reject) => {
       try {
         payment.account = null;
-        payment.status = `completed`;
+        payment.status = PaymentStatus.COMPLETED;
         payment.paidAt = moment().unix();
         await queryRunner.manager.save(payment);
         resolve();
