@@ -133,14 +133,17 @@ export class OctetService {
    */
   public async getnewDeposit(
     address: string,
-    startDate: string
+    startDate?: string
   ): Promise<DepositListInterface> {
     return new Promise<DepositListInterface>(async (resolve, reject) => {
       try {
+        const apiString = startDate ? `/${CURRENCY.KLAYTN}/tx/list?address=${address}&startDate=${startDate}` :
+          `/${CURRENCY.KLAYTN}/tx/list?address=${address}`;
         const response = await this.octectClient.get(
-          `/${CURRENCY.KLAYTN}/tx/list?address=${address}&startDate=${startDate}`,
+          apiString
         );
-        const list = response.data[0];
+        const newestDeposit = response.data.length - 1;
+        const list = response.data[newestDeposit];
         resolve(list);
       } catch (err) {
         reject(err);

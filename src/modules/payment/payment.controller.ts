@@ -99,15 +99,15 @@ export class PaymentController {
     this.loggerService.log(
       `POST payment/deposit_webhook ${LoggerMessages.API_CALLED}`,
     );
-    try {
-      await this.paymentService.initDepositTransaction(body).then(() => {
-        return res.status(ResponseCode.SUCCESS).send({message: ResponseMessage.SUCCESS,statusCode: ResponseCode.SUCCESS})
-      }).catch((err) => {
-        throw err;
-      });
-    } catch (err) {
-      throw err;
-    }
+    await this.paymentService.initDepositTransaction(body).then(() => {
+      return res.status(ResponseCode.SUCCESS).send({ message: ResponseMessage.SUCCESS, statusCode: ResponseCode.SUCCESS })
+    }).catch((err) => {
+      this.loggerService.error(err);
+      throw new HttpException(
+        ResponseMessage.ERROR_WHILE_DEPOSIT,
+        ResponseCode.BAD_REQUEST,
+      );
+    });
   }
 
   @Get('deposit_recovery')
@@ -119,7 +119,7 @@ export class PaymentController {
     );
     try {
       await this.paymentService.initDepositRecoveryProcess().then(() => {
-        return res.status(ResponseCode.SUCCESS).send({message: ResponseMessage.SUCCESS,statusCode: ResponseCode.SUCCESS})
+        return res.status(ResponseCode.SUCCESS).send({ message: ResponseMessage.SUCCESS, statusCode: ResponseCode.SUCCESS })
       }).catch((err) => {
         throw err;
       });

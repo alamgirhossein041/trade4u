@@ -1,8 +1,8 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SeedService } from '../../modules/seed/seed.service';
-import { getConnection, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
-import { PaymentStatus } from './commons/payment.enum';
+import { getConnection, Repository,LessThanOrEqual } from 'typeorm';
+import { BonusType, PaymentStatus } from './commons/payment.enum';
 import { Payment } from './payment.entity';
 import moment from 'moment';
 import { SchedulerService } from '../../modules/scheduler/scheduler.service';
@@ -71,9 +71,14 @@ export class PaymentService {
           account.address
         );
         if (octetDepositsCount > depositsCount) {
+          let newDeposit: DepositListInterface;
           const lastDeposit: Deposit = await this.getAccountLastDeposit(account.address);
-          const startDate = moment.unix(lastDeposit.dwDate + 1).format('YYYY-MM-DDTHH:mm:ss');
-          const newDeposit = await this.getNewDepositFromOctet(account.address, startDate);
+          if (lastDeposit) {
+            const startDate = moment.unix(lastDeposit.dwDate + 1).format('YYYY-MM-DDTHH:mm:ss');
+            newDeposit = await this.getNewDepositFromOctet(account.address, startDate);
+          } else {
+            newDeposit = await this.getNewDepositFromOctet(account.address);
+          }
           await this.depositTransaction
             .initDepositRecoveryTransaction(newDeposit)
             .catch((err) => {
@@ -91,11 +96,16 @@ export class PaymentService {
    * Initialize the Deposit Recovery Process
    */
   public async initDepositTransaction(body: DepositWebHook) {
-    await this.depositTransaction.initDepositTransaction(body).catch((err) => {
-      throw new HttpException(
-        ResponseMessage.ERROR_WHILE_DEPOSIT,
-        ResponseCode.BAD_REQUEST,
-      );
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        await this.depositTransaction.initDepositTransaction(body)
+          .catch((err) => {
+            throw err;
+          });
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
     });
   }
 
@@ -157,11 +167,18 @@ export class PaymentService {
   /**
    * Get Deposit List Of Account From Octet
    */
-  public async getNewDepositFromOctet(address: string, startDate: string) {
-    const octetDeposit = await this.octetService.getnewDeposit(
-      address,
-      startDate
-    );
+  public async getNewDepositFromOctet(address: string, startDate?: string) {
+    let octetDeposit: DepositListInterface;
+    if (startDate) {
+      octetDeposit = await this.octetService.getnewDeposit(
+        address,
+        startDate
+      );
+    } else {
+      octetDeposit = await this.octetService.getnewDeposit(
+        address
+      );
+    }
     return octetDeposit;
   }
 

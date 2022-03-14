@@ -1,4 +1,4 @@
-import { getConnection, Repository } from 'typeorm';
+import { getConnection, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { User } from '../user/user.entity';
@@ -27,19 +27,15 @@ export class DepositTransaction {
     private readonly accountRepository: Repository<Account>,
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
-    @InjectRepository(Deposit)
-    private readonly depositRepository: Repository<Deposit>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   /**
    * Deposit Transaction On Webhook Triggered
-   * @param user
+   * @param webhookObj
    * @returns
    */
   public async initDepositTransaction(webhookObj: DepositWebHook) {
-    return new Promise<void>(async (resolve, reject) => {
+    return new Promise<User>(async (resolve, reject) => {
       // get a connection and create a new query runner
       const connection = getConnection();
       const queryRunner = connection.createQueryRunner();
@@ -48,26 +44,26 @@ export class DepositTransaction {
       // lets now open a new transaction:
       await queryRunner.startTransaction();
       try {
-        await this.saveDeposit(webhookObj);
         const resultObj = await this.getPaymentByAddress(webhookObj.toAddress);
         this.payment = await this.getPaymentWithDetail(resultObj.paymentId);
+        await this.saveDeposit(webhookObj,queryRunner);
         await this.checkKlayRequired(
           this.payment.amountKLAY,
           webhookObj.amount,
         );
-        await this.updateStateOfAccount(webhookObj.toAddress);
-        await this.detachAccountFromPayment(this.payment);
-        await this.updateUserPlan(this.payment.user, this.payment.plan);
+        await this.updateStateOfAccount(webhookObj.toAddress,queryRunner);
+        await this.detachAccountFromPayment(this.payment,queryRunner);
+        await this.updateUserPlan(this.payment.user, this.payment.plan,queryRunner);
         await queryRunner.commitTransaction();
       } catch (err) {
         // since we have errors let's rollback changes we made
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
-        return reject(err);
+        reject(err);
       } finally {
         // you need to release query runner which is manually created:
         await queryRunner.release();
-        return resolve();
+        resolve(this.payment.user);
       }
     });
   }
@@ -80,7 +76,7 @@ export class DepositTransaction {
   public async initDepositRecoveryTransaction(
     depositListInterfaceObj: DepositListInterface,
   ) {
-    return new Promise<void>(async (resolve, reject) => {
+    return new Promise<User>(async (resolve, reject) => {
       // get a connection and create a new query runner
       const connection = getConnection();
       const queryRunner = connection.createQueryRunner();
@@ -89,18 +85,18 @@ export class DepositTransaction {
       // lets now open a new transaction:
       await queryRunner.startTransaction();
       try {
-        await this.saveRecoveryDeposit(depositListInterfaceObj);
         const resultObj = await this.getPaymentByAddress(
           depositListInterfaceObj.to_address,
         );
         this.payment = await this.getPaymentWithDetail(resultObj.paymentId);
+        await this.saveRecoveryDeposit(depositListInterfaceObj,queryRunner);
         await this.checkKlayRequired(
           this.payment.amountKLAY,
           depositListInterfaceObj.amount,
         );
-        await this.updateStateOfAccount(depositListInterfaceObj.to_address);
-        await this.detachAccountFromPayment(this.payment);
-        await this.updateUserPlan(this.payment.user, this.payment.plan);
+        await this.updateStateOfAccount(depositListInterfaceObj.to_address,queryRunner);
+        await this.detachAccountFromPayment(this.payment,queryRunner);
+        await this.updateUserPlan(this.payment.user, this.payment.plan,queryRunner);
         await queryRunner.commitTransaction();
       } catch (err) {
         // since we have errors let's rollback changes we made
@@ -110,7 +106,7 @@ export class DepositTransaction {
       } finally {
         // you need to release query runner which is manually created:
         await queryRunner.release();
-        return resolve();
+        return resolve(this.payment.user);
       }
     });
   }
@@ -126,11 +122,11 @@ export class DepositTransaction {
       try {
         const floatReceived = Number(bigDecimal.round(received, 4));
         if (floatReceived < required) {
-          return reject();
+          reject(`Klay Amount Less Than Required`);
         }
-        return resolve();
+        resolve();
       } catch (err) {
-        return reject(err);
+        reject(err);
       }
     });
   }
@@ -149,11 +145,11 @@ export class DepositTransaction {
                        WHERE
                               a."address" = $1`;
         const result = await this.accountRepository.query(sql, [address]);
-        return resolve({
+        resolve({
           paymentId: result[0].payment_id
         })
       } catch (err) {
-        return reject(err);
+        reject(err);
       }
     });
   }
@@ -170,26 +166,26 @@ export class DepositTransaction {
           { paymentId: id },
           { relations: ['plan', 'user'] },
         );
-        return resolve(payment);
+        resolve(payment);
       } catch (err) {
-        return reject(err);
+        reject(err);
       }
     });
   }
 
   /**
    * SAve Deposit Coming From Webhook
-   * @param id
+   * @param webhookObject
    * @returns
    */
-  private async saveDeposit(webhookObject: DepositWebHook) {
-    return new Promise<Deposit>(async (resolve, reject) => {
+  private async saveDeposit(webhookObject: DepositWebHook,queryRunner: QueryRunner) {
+    return new Promise<void>(async (resolve, reject) => {
       try {
         const deposit = new Deposit().fromWebhook(webhookObject);
-        const newDeposit = await this.depositRepository.save(deposit);
-        return resolve(newDeposit);
+        await queryRunner.manager.save(deposit);
+        resolve();
       } catch (err) {
-        return reject(err);
+        reject(err);
       }
     });
   }
@@ -201,16 +197,17 @@ export class DepositTransaction {
    */
   private async saveRecoveryDeposit(
     depositListInterfaceObj: DepositListInterface,
+    queryRunner: QueryRunner
   ) {
-    return new Promise<Deposit>(async (resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       try {
         const deposit = new Deposit().fromDepositList(
           depositListInterfaceObj,
         );
-        const newDeposit = await this.depositRepository.save(deposit);
-        return resolve(newDeposit);
+        await queryRunner.manager.save(deposit);
+        resolve();
       } catch (err) {
-        return reject(err);
+        reject(err);
       }
     });
   }
@@ -220,13 +217,15 @@ export class DepositTransaction {
    * @param address
    * @returns
    */
-  private async updateStateOfAccount(address: string) {
+  private async updateStateOfAccount(address: string,queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        await this.accountRepository.update({ address }, { isHalt: false });
-        return resolve();
+        const account = await this.accountRepository.findOne({address});
+        account.isHalt = false;
+        await queryRunner.manager.save(account);
+        resolve();
       } catch (err) {
-        return reject(err);
+        reject(err);
       }
     });
   }
@@ -236,16 +235,16 @@ export class DepositTransaction {
    * @param payment
    * @returns
    */
-  private async detachAccountFromPayment(payment: Payment) {
+  private async detachAccountFromPayment(payment: Payment,queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         payment.account = null;
         payment.status = `completed`;
         payment.paidAt = moment().unix();
-        await this.paymentRepository.save(payment);
-        return resolve();
+        await queryRunner.manager.save(payment);
+        resolve();
       } catch (err) {
-        return reject(err);
+        reject(err);
       }
     });
   }
@@ -256,13 +255,15 @@ export class DepositTransaction {
    * @param plan
    * @returns
    */
-  private async updateUserPlan(user: User, plan: Plan) {
+  private async updateUserPlan(user: User, plan: Plan,queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        await this.userRepository.update({ uuid: user.uuid }, { plan });
-        return resolve();
+        user.plan = plan;
+        user.planIsActive = true;
+        await queryRunner.manager.save(user);
+        resolve();
       } catch (err) {
-        return reject(err);
+        reject(err);
       }
     });
   }

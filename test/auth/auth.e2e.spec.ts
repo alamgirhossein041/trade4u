@@ -53,6 +53,7 @@ describe('BinancePlus auth test', () => {
             tradingSystem: null,
             balance: 0,
             phoneNumber: "+14842918831",
+            klayWallet: null,
             planIsActive: true,
             referralLink: process.env.APP_URL + `signup?referrer=john58`,
             refereeUuid: null

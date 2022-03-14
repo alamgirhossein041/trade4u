@@ -69,7 +69,9 @@ export class AppService {
    * @returns
    */
   public static async startup() {
-    return await SeedService.InsertSeed();
+    return await SeedService.InsertSeed().catch(err => {
+      console.log(err);
+    })
   }
 
   @Cron(CronExpression.EVERY_10_HOURS, {
