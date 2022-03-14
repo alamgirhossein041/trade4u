@@ -6,5 +6,5 @@ export enum PaymentStatus {
 
 export enum BonusType {
   LISENCE = `license`,
-  PERFORMANCE = `performance`
+  PERFORMANCE = `performance`,
 }

@@ -26,7 +26,7 @@ export class DepositTransaction {
     private readonly accountRepository: Repository<Account>,
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
-  ) { }
+  ) {}
 
   /**
    * Deposit Transaction On Webhook Triggered
@@ -45,14 +45,18 @@ export class DepositTransaction {
       try {
         const resultObj = await this.getPaymentByAddress(webhookObj.toAddress);
         this.payment = await this.getPaymentWithDetail(resultObj.paymentId);
-        await this.saveDeposit(webhookObj,queryRunner);
+        await this.saveDeposit(webhookObj, queryRunner);
         await this.checkKlayRequired(
           this.payment.amountKLAY,
           webhookObj.amount,
         );
-        await this.updateStateOfAccount(webhookObj.toAddress,queryRunner);
-        await this.detachAccountFromPayment(this.payment,queryRunner);
-        await this.updateUserPlan(this.payment.user, this.payment.plan,queryRunner);
+        await this.updateStateOfAccount(webhookObj.toAddress, queryRunner);
+        await this.detachAccountFromPayment(this.payment, queryRunner);
+        await this.updateUserPlan(
+          this.payment.user,
+          this.payment.plan,
+          queryRunner,
+        );
         await queryRunner.commitTransaction();
       } catch (err) {
         // since we have errors let's rollback changes we made
@@ -88,14 +92,21 @@ export class DepositTransaction {
           depositListInterfaceObj.to_address,
         );
         this.payment = await this.getPaymentWithDetail(resultObj.paymentId);
-        await this.saveRecoveryDeposit(depositListInterfaceObj,queryRunner);
+        await this.saveRecoveryDeposit(depositListInterfaceObj, queryRunner);
         await this.checkKlayRequired(
           this.payment.amountKLAY,
           depositListInterfaceObj.amount,
         );
-        await this.updateStateOfAccount(depositListInterfaceObj.to_address,queryRunner);
-        await this.detachAccountFromPayment(this.payment,queryRunner);
-        await this.updateUserPlan(this.payment.user, this.payment.plan,queryRunner);
+        await this.updateStateOfAccount(
+          depositListInterfaceObj.to_address,
+          queryRunner,
+        );
+        await this.detachAccountFromPayment(this.payment, queryRunner);
+        await this.updateUserPlan(
+          this.payment.user,
+          this.payment.plan,
+          queryRunner,
+        );
         await queryRunner.commitTransaction();
       } catch (err) {
         // since we have errors let's rollback changes we made
@@ -145,8 +156,8 @@ export class DepositTransaction {
                               a."address" = $1`;
         const result = await this.accountRepository.query(sql, [address]);
         resolve({
-          paymentId: result[0].payment_id
-        })
+          paymentId: result[0].payment_id,
+        });
       } catch (err) {
         reject(err);
       }
@@ -177,7 +188,10 @@ export class DepositTransaction {
    * @param webhookObject
    * @returns
    */
-  private async saveDeposit(webhookObject: DepositWebHook,queryRunner: QueryRunner) {
+  private async saveDeposit(
+    webhookObject: DepositWebHook,
+    queryRunner: QueryRunner,
+  ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const deposit = new Deposit().fromWebhook(webhookObject);
@@ -196,13 +210,11 @@ export class DepositTransaction {
    */
   private async saveRecoveryDeposit(
     depositListInterfaceObj: DepositListInterface,
-    queryRunner: QueryRunner
+    queryRunner: QueryRunner,
   ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        const deposit = new Deposit().fromDepositList(
-          depositListInterfaceObj,
-        );
+        const deposit = new Deposit().fromDepositList(depositListInterfaceObj);
         await queryRunner.manager.save(deposit);
         resolve();
       } catch (err) {
@@ -216,10 +228,13 @@ export class DepositTransaction {
    * @param address
    * @returns
    */
-  private async updateStateOfAccount(address: string,queryRunner: QueryRunner) {
+  private async updateStateOfAccount(
+    address: string,
+    queryRunner: QueryRunner,
+  ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        const account = await this.accountRepository.findOne({address});
+        const account = await this.accountRepository.findOne({ address });
         account.isHalt = false;
         await queryRunner.manager.save(account);
         resolve();
@@ -234,7 +249,10 @@ export class DepositTransaction {
    * @param payment
    * @returns
    */
-  private async detachAccountFromPayment(payment: Payment,queryRunner: QueryRunner) {
+  private async detachAccountFromPayment(
+    payment: Payment,
+    queryRunner: QueryRunner,
+  ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         payment.account = null;
@@ -254,7 +272,11 @@ export class DepositTransaction {
    * @param plan
    * @returns
    */
-  private async updateUserPlan(user: User, plan: Plan,queryRunner: QueryRunner) {
+  private async updateUserPlan(
+    user: User,
+    plan: Plan,
+    queryRunner: QueryRunner,
+  ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         user.plan = plan;

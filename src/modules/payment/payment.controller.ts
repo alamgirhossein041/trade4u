@@ -28,7 +28,7 @@ export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
     private readonly loggerService: LoggerService,
-  ) { }
+  ) {}
 
   @Post(`order_plan/:planId`)
   @UseGuards(AuthGuard('jwt'))
@@ -70,25 +70,28 @@ export class PaymentController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('address')
-  public async getAccount(@Res() res: Response, @Query('paymentId') paymentId: string) {
-    this.loggerService.log(
-      `POST payment/address ${LoggerMessages.API_CALLED}`,
-    );
+  public async getAccount(
+    @Res() res: Response,
+    @Query('paymentId') paymentId: string,
+  ) {
+    this.loggerService.log(`POST payment/address ${LoggerMessages.API_CALLED}`);
     if (!paymentId) {
-      throw new HttpException(ResponseMessage.INVALID_QUERY_PARAM, ResponseCode.BAD_REQUEST)
+      throw new HttpException(
+        ResponseMessage.INVALID_QUERY_PARAM,
+        ResponseCode.BAD_REQUEST,
+      );
     }
-    await this.paymentService.getAddress(paymentId)
-      .then((data) => {
-        return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
-          statusCode: ResponseCode.CREATED_SUCCESSFULLY,
-          data: data,
-          message: ResponseMessage.CREATED_SUCCESSFULLY,
-        });
+    await this.paymentService.getAddress(paymentId).then((data) => {
+      return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
+        statusCode: ResponseCode.CREATED_SUCCESSFULLY,
+        data: data,
+        message: ResponseMessage.CREATED_SUCCESSFULLY,
       });
+    });
   }
 
   @Post(`make_payment`)
-  public async makePayment() { }
+  public async makePayment() {}
 
   @Post('deposit_webhook')
   public async initDepositTransaction(
@@ -99,30 +102,44 @@ export class PaymentController {
     this.loggerService.log(
       `POST payment/deposit_webhook ${LoggerMessages.API_CALLED}`,
     );
-    await this.paymentService.initDepositTransaction(body).then(() => {
-      return res.status(ResponseCode.SUCCESS).send({ message: ResponseMessage.SUCCESS, statusCode: ResponseCode.SUCCESS })
-    }).catch((err) => {
-      this.loggerService.error(err);
-      throw new HttpException(
-        ResponseMessage.ERROR_WHILE_DEPOSIT,
-        ResponseCode.BAD_REQUEST,
-      );
-    });
+    await this.paymentService
+      .initDepositTransaction(body)
+      .then(() => {
+        return res
+          .status(ResponseCode.SUCCESS)
+          .send({
+            message: ResponseMessage.SUCCESS,
+            statusCode: ResponseCode.SUCCESS,
+          });
+      })
+      .catch((err) => {
+        this.loggerService.error(err);
+        throw new HttpException(
+          ResponseMessage.ERROR_WHILE_DEPOSIT,
+          ResponseCode.BAD_REQUEST,
+        );
+      });
   }
 
   @Get('deposit_recovery')
-  public async initDepositRecovery(
-    @Res() res: Response,
-  ): Promise<void> {
+  public async initDepositRecovery(@Res() res: Response): Promise<void> {
     this.loggerService.log(
       `Get payment/deposit_recovery ${LoggerMessages.API_CALLED}`,
     );
     try {
-      await this.paymentService.initDepositRecoveryProcess().then(() => {
-        return res.status(ResponseCode.SUCCESS).send({ message: ResponseMessage.SUCCESS, statusCode: ResponseCode.SUCCESS })
-      }).catch((err) => {
-        throw err;
-      });
+      await this.paymentService
+        .initDepositRecoveryProcess()
+        .then(() => {
+          return res
+            .status(ResponseCode.SUCCESS)
+            .send({
+              message: ResponseMessage.SUCCESS,
+              statusCode: ResponseCode.SUCCESS,
+            });
+        })
+        .catch((err) => {
+          throw err;
+        });
     } catch (err) {
       throw err;
     }

@@ -34,7 +34,7 @@ export class OctetService {
       try {
         let account = await this.accountRepository.findOne({ isHalt: false });
         if (!account) account = await this.generateAccount(queryRunner);
-        account = await this.haltAccount(account, queryRunner)
+        account = await this.haltAccount(account, queryRunner);
         return resolve(account);
       } catch (err) {
         reject(err);
@@ -44,7 +44,7 @@ export class OctetService {
 
   /**
    * Halt a account
-   * @returns 
+   * @returns
    */
   public async haltAccount(account: Account, queryRunner: QueryRunner) {
     account.isHalt = true;
@@ -53,7 +53,7 @@ export class OctetService {
 
   /**
    * Free a account
-   * @returns 
+   * @returns
    */
   public async freeAccount(account: Account) {
     account.isHalt = false;
@@ -70,7 +70,10 @@ export class OctetService {
         const response = await this.octectClient.post(
           `/${CURRENCY.KLAYTN}/address`,
         );
-        const account = await this.saveAccount(response.data.addresses[0], queryRunner);
+        const account = await this.saveAccount(
+          response.data.addresses[0],
+          queryRunner,
+        );
         resolve(account);
       } catch (err) {
         reject(err);
@@ -93,14 +96,11 @@ export class OctetService {
     });
   }
 
-
   /**
-* Get Account Deposits Count
-* @returns
-*/
-  public async getAccountDepositsCount(
-    address: string,
-  ): Promise<number> {
+   * Get Account Deposits Count
+   * @returns
+   */
+  public async getAccountDepositsCount(address: string): Promise<number> {
     return new Promise<number>(async (resolve, reject) => {
       try {
         const response = await this.octectClient.get(
@@ -142,15 +142,14 @@ export class OctetService {
    */
   public async getnewDeposit(
     address: string,
-    startDate?: string
+    startDate?: string,
   ): Promise<DepositListInterface> {
     return new Promise<DepositListInterface>(async (resolve, reject) => {
       try {
-        const apiString = startDate ? `/${CURRENCY.KLAYTN}/tx/list?address=${address}&startDate=${startDate}` :
-          `/${CURRENCY.KLAYTN}/tx/list?address=${address}`;
-        const response = await this.octectClient.get(
-          apiString
-        );
+        const apiString = startDate
+          ? `/${CURRENCY.KLAYTN}/tx/list?address=${address}&startDate=${startDate}`
+          : `/${CURRENCY.KLAYTN}/tx/list?address=${address}`;
+        const response = await this.octectClient.get(apiString);
         const newestDeposit = response.data.length - 1;
         const list = response.data[newestDeposit];
         resolve(list);

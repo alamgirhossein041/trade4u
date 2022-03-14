@@ -17,14 +17,21 @@ import { PerformanceFee } from '../seed/preformaceFee.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Payment, Account, User, Deposit,LicenseFee,PerformanceFee]),
+    TypeOrmModule.forFeature([
+      Payment,
+      Account,
+      User,
+      Deposit,
+      LicenseFee,
+      PerformanceFee,
+    ]),
     SeedModule,
     LoggerModule,
     OctetModule,
-    UserModule
+    UserModule,
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, DepositTransaction,CompensationTransaction],
-  exports: [PaymentService, DepositTransaction,CompensationTransaction],
+  providers: [PaymentService, DepositTransaction, CompensationTransaction],
+  exports: [PaymentService, DepositTransaction, CompensationTransaction],
 })
 export class PaymentModule {}

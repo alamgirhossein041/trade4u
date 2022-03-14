@@ -24,7 +24,7 @@ export class CompensationTransaction {
     @InjectRepository(PerformanceFee)
     private readonly performanceRepository: Repository<PerformanceFee>,
     private readonly userService: UsersService,
-  ) { }
+  ) {}
 
   /**
    * Distribute License Bonus Among Parents Of User
@@ -46,7 +46,12 @@ export class CompensationTransaction {
         const userParentTree = await this.userService.getUserParentsTree(
           userWithPlan,
         );
-        await this.distBonusInParents(userParentTree, planAmount, bonusType, queryRunner);
+        await this.distBonusInParents(
+          userParentTree,
+          planAmount,
+          bonusType,
+          queryRunner,
+        );
         await queryRunner.commitTransaction();
       } catch (err) {
         // since we have errors let's rollback changes we made
@@ -67,18 +72,25 @@ export class CompensationTransaction {
    * @param planAmount
    * @returns
    */
-  private async distBonusInParents(parenTree: any, planAmount: number, bonusType: string, queryRunner: QueryRunner) {
+  private async distBonusInParents(
+    parenTree: any,
+    planAmount: number,
+    bonusType: string,
+    queryRunner: QueryRunner,
+  ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         parenTree.map(async (parent: any) => {
           const bonusPercentage = await this.getBonusPercentage(
             bonusType,
             parent.plan_name,
-            parent.level
+            parent.level,
           );
           let amount = this.getBonusAmount(bonusPercentage, planAmount);
           amount += parent.balance;
-          const parentToUpdate = await this.userService.getByUserName(parent.userName);
+          const parentToUpdate = await this.userService.getByUserName(
+            parent.userName,
+          );
           parentToUpdate.balance = amount;
           await queryRunner.manager.save(parentToUpdate);
           resolve();
@@ -94,10 +106,15 @@ export class CompensationTransaction {
    * @param planName
    * @param level
    */
-  private async getBonusPercentage(bonusType: string, planName: string, level: number) {
+  private async getBonusPercentage(
+    bonusType: string,
+    planName: string,
+    level: number,
+  ) {
     let percentage: number;
     let repository: Repository<LicenseFee | PerformanceFee>;
-    if (bonusType === BonusType.PERFORMANCE) repository = this.performanceRepository;
+    if (bonusType === BonusType.PERFORMANCE)
+      repository = this.performanceRepository;
     else repository = this.licenseRepository;
     let row: LicenseFee | PerformanceFee;
     switch (planName) {
@@ -128,14 +145,12 @@ export class CompensationTransaction {
    */
   private getBonusAmount(percentage: number, amount: number) {
     const amountToMultiplyWith = Number(
-      new bigDecimal(percentage)
-        .divide(new bigDecimal(100), 4)
-        .getValue()
+      new bigDecimal(percentage).divide(new bigDecimal(100), 4).getValue(),
     );
     const originalAmount = Number(
       new bigDecimal(amountToMultiplyWith)
         .multiply(new bigDecimal(amount))
-        .getValue()
+        .getValue(),
     );
     return originalAmount;
   }

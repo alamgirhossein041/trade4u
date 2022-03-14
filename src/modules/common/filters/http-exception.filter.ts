@@ -12,10 +12,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
     const status = exception.getStatus();
     const res = exception.getResponse();
-    if ((typeof(res) === 'object')) {
+    if (typeof res === 'object') {
       return response.status(status).send(res);
-    }
-    else {
+    } else {
       return response.status(status).send({
         statusCode: status,
         message: res,
