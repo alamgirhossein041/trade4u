@@ -13,7 +13,7 @@ export enum ResponseMessage {
   ERROR_WHILE_DISTRIBUTING_BONUS = `Error While Distributing The Bonus`,
   ERROR_WHILE_DEPOSIT = `Error While Confirming Deposit Amount`,
   INVALID_QUERY_PARAM = `Invalid query parameter`,
-  IS_INVALID=`Is Invalid`,
+  IS_INVALID = `Is Invalid`,
   INVALID_PAYMENT_ID = `Invalid paymentId`,
   USER_ALREADY_EXISTS = `User with the same email already exists`,
   USER_DOES_NOT_EXIST = `User with specified email does not exists`,
@@ -36,7 +36,8 @@ export enum ResponseMessage {
   CHECK_INTERNET_CONNECTION = `Error while sending email please check internet connection`,
   UNABLE_TO_PING_COINMARKET = `Unable to ping coin-gecko market`,
   CONTENT_NOT_FOUND = `Content not found`,
-  
+  PAYMENT_ALREADY_CANCELLED = `Requested Payment is already cancelled`,
+  PAYMENT_ALREADY_PAID = `Requested Payment is already Paid`,
 }
 
 // some code enums for sending response code in api response

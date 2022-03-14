@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Res, UseGuards, HttpException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Res,
+  UseGuards,
+  HttpException,
+} from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Response } from 'express';
 import {
@@ -39,7 +48,6 @@ export class UserContoller {
     });
   }
 
-
   @UseGuards(AuthGuard('jwt'))
   @Get('plan_by_id/:id')
   public async getPlanById(
@@ -47,11 +55,21 @@ export class UserContoller {
     @Res() res: Response,
   ): Promise<any> {
     const isPosInt = isPositiveInteger(id.toString());
-    if (!isPosInt) throw new HttpException(`Parameter id ${ResponseMessage.IS_INVALID}`, ResponseCode.BAD_REQUEST);
+    if (!isPosInt)
+      throw new HttpException(
+        `Parameter id ${ResponseMessage.IS_INVALID}`,
+        ResponseCode.BAD_REQUEST,
+      );
     const plan = await this.seedService.getPlanById(Number(id));
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      data: { planId: plan.planId, planName: plan.planName, price: plan.price, levels: plan.levels, earningLimit: plan.price * EarningLimit },
+      data: {
+        planId: plan.planId,
+        planName: plan.planName,
+        price: plan.price,
+        levels: plan.levels,
+        earningLimit: plan.price * EarningLimit,
+      },
       message: ResponseMessage.SUCCESS,
     });
   }
@@ -62,9 +80,7 @@ export class UserContoller {
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
-    this.loggerService.log(
-      `Get user/affiliates ${LoggerMessages.API_CALLED}`,
-    );
+    this.loggerService.log(`Get user/affiliates ${LoggerMessages.API_CALLED}`);
     const affiliates = await this.userService.getUserAffiliates(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -79,9 +95,7 @@ export class UserContoller {
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
-    this.loggerService.log(
-      `Get user/parents ${LoggerMessages.API_CALLED}`,
-    );
+    this.loggerService.log(`Get user/parents ${LoggerMessages.API_CALLED}`);
     const parents = await this.userService.getUserParentsTree(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -93,9 +107,7 @@ export class UserContoller {
   @UseGuards(AuthGuard('jwt'))
   @Get('license_fee')
   public async getlicenseFee(@Res() res: Response): Promise<Response> {
-    this.loggerService.log(
-      `GET user/license_fee ${LoggerMessages.API_CALLED}`,
-    );
+    this.loggerService.log(`GET user/license_fee ${LoggerMessages.API_CALLED}`);
     const licenseFee = await this.seedService.getlicenseFee();
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,

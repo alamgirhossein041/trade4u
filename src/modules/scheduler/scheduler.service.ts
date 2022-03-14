@@ -9,7 +9,6 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import moment from 'moment';
 
-
 @Injectable()
 export class SchedulerService {
   static klayPrice: number;

@@ -13,14 +13,18 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
     private readonly mailerservice: MailService,
-  ) { }
+  ) {}
 
   /**
    * Create new jwt token
    * @param user
    * @returns
    */
-  async createToken(user: User, expiryTime?: number | string, subject?: string) {
+  async createToken(
+    user: User,
+    expiryTime?: number | string,
+    subject?: string,
+  ) {
     return {
       expiresIn: process.env.JWT_EXPIRATION_TIME,
       accessToken: this.jwtService.sign(
@@ -115,28 +119,28 @@ export class AuthService {
 
   /**
    * Resend a email to user
-   * @param email 
-   * @returns 
+   * @param email
+   * @returns
    */
   public async resendEmail(email: string) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const user = await this.userService.getByEmail(email);
         if (!user)
-          reject(new HttpException(ResponseMessage.USER_DOES_NOT_EXIST, ResponseCode.BAD_REQUEST))
+          reject(
+            new HttpException(
+              ResponseMessage.USER_DOES_NOT_EXIST,
+              ResponseCode.BAD_REQUEST,
+            ),
+          );
         const token = await this.createToken(user);
-        await this.mailerservice.sendEmailConfirmation(
-          user,
-          token.accessToken,
-        );
+        await this.mailerservice.sendEmailConfirmation(user, token.accessToken);
         resolve();
-      }
-      catch (err) {
+      } catch (err) {
         reject(err);
       }
     });
   }
-
 
   /**
    * Send Password Recovery Link To User Email
@@ -149,7 +153,7 @@ export class AuthService {
       const token = await this.createToken(
         user,
         process.env.JWT_TIME_FORGOT_PASSWORD,
-        user.password
+        user.password,
       );
       await this.mailerservice.sendForgotPasswordMail(
         user.email,
