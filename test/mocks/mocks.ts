@@ -29,3 +29,6 @@ export const CoinMarketMock = {
         return object;
     }),
 };
+
+export const KlaytnServiceMock = {
+};

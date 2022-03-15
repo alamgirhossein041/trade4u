@@ -66,8 +66,8 @@ describe('BinancePlus payment test', () => {
     });
 
     afterAll(async () => {
-        rimraf.sync(process.env.KEY_STORE_PATH);
         await helper.clearDB();
         await app.close();
+        rimraf.sync(process.env.KEY_STORE_PATH);
     })
 });

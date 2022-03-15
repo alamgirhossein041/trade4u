@@ -6,9 +6,10 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock, CoinMarketMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
+import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 
 describe('BinancePlus auth test', () => {
     let app: INestApplication;
@@ -24,6 +25,8 @@ describe('BinancePlus auth test', () => {
             .useValue(LoggerMock)
             .overrideProvider(CoinGeckoMarket)
             .useValue(CoinMarketMock)
+            .overrideProvider(KlaytnService)
+            .useValue(KlaytnServiceMock)
             .compile();
             
         app = moduleRef.createNestApplication();

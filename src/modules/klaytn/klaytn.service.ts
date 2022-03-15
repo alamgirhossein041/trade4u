@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Db, QueryRunner, Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { Account } from './account.entity';
-import level from 'level-ts';
-import Caver from 'caver-js';
+import Caver, { KeyringContainer } from 'caver-js';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { JOB } from '../../modules/scheduler/commons/scheduler.enum';
+import { LoggerService } from '../../utils/logger/logger.service';
+import Level from 'level-ts';
 
 @Injectable()
 export class KlaytnService {
@@ -13,17 +16,28 @@ export class KlaytnService {
   caver: Caver;
 
   /**
-   * @param
+   * level db keyStore
    */
-  keyStore: level;
+  static keyStore: Level;
+
+  /**
+   * Wallet
+   */
+  wallet: KeyringContainer;
 
   constructor(
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
+    private readonly loggerService: LoggerService,
   ) {
     this.caver = new Caver(
       process.env.KLAYTN_NODE_URL
     );
+    KlaytnService.keyStore = new Level(process.env.KEY_STORE_PATH);
+    this.wallet = this.caver.wallet;
+    (async () => {
+      await this.syncWallet();
+    })();
   }
 
   /**
@@ -67,13 +81,14 @@ export class KlaytnService {
   public async generateAccount(queryRunner: QueryRunner): Promise<Account> {
     return new Promise<Account>(async (resolve, reject) => {
       try {
-        this.keyStore = new level(process.env.KEY_STORE_PATH);
         const keyring = this.caver.wallet.keyring.generate();
-        await this.keyStore.put(keyring.address, keyring.key);
+        await KlaytnService.keyStore.put(keyring.address, keyring.key.privateKey);
         const account = await this.saveAccount(
           keyring.address,
           queryRunner,
         );
+        this.wallet.add(keyring);
+
         resolve(account);
       } catch (err) {
         reject(err);
@@ -85,7 +100,7 @@ export class KlaytnService {
    * Get Halted Account List
    * @returns Accounts[]
    */
-  public async getHaltedAcocounts(): Promise<Account[]> {
+  public async getHaltedAccounts(): Promise<Account[]> {
     return new Promise<Account[]>(async (resolve, reject) => {
       try {
         const accounts = await this.accountRepository.find({ isHalt: true });
@@ -105,5 +120,37 @@ export class KlaytnService {
     account.isHalt = false;
 
     return await queryRunner.manager.save(account);
+  }
+
+  /**
+   * Sync wallet (inmemory ~ db) 
+   */
+  @Cron(CronExpression.EVERY_5_MINUTES, {
+    name: JOB.WALLET_SYNC,
+  })
+  public async syncWallet() {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        const accounts = await this.getHaltedAccounts();
+        await Promise.all(accounts.map(async m => {
+          const exist = this.wallet.isExisted(m.address);
+          if (!exist) {
+            const sk = await KlaytnService.keyStore.get(m.address);
+            this.wallet.newKeyring(m.address, sk);
+          }
+          this.loggerService.log(
+            `Listening at: ${m.address}`
+          );
+        }));
+        resolve();
+      }
+      catch (err) {
+        this.loggerService.error(
+          `Errow while wallet sync job`
+        );
+        reject(err);
+      }
+    });
+
   }
 }
