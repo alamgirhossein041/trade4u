@@ -7,7 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from '../../modules/user';
 import { SeedModule } from '../../modules/seed/seed.module';
-import { OctetModule } from '../../modules/octet/octet.module';
+import { KlaytnModule } from '../klaytn/klaytn.module';
 import { PaymentModule } from '../../modules/payment/payment.module';
 import { SchedulerModule } from '../../modules/scheduler/scheduler.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -28,7 +28,7 @@ import { LoggerModule } from '../../utils/logger/logger.module';
     AuthModule,
     CommonModule,
     UserModule,
-    OctetModule,
+    KlaytnModule,
     LoggerModule,
     SeedModule,
     PaymentModule,

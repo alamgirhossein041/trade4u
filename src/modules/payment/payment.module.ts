@@ -5,11 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Payment } from './payment.entity';
 import { SeedModule } from '../../modules/seed/seed.module';
 import { DepositTransaction } from './deposit.transaction';
-import { Account } from '../octet/account.entity';
+import { Account } from '../klaytn/account.entity';
 import { User } from '../user/user.entity';
 import { LoggerModule } from '../../utils/logger/logger.module';
 import { Deposit } from './deposit.entity';
-import { OctetModule } from '../octet/octet.module';
+import { KlaytnModule } from '../klaytn/klaytn.module';
 import { UserModule } from '../user/user.module';
 import { CompensationTransaction } from './compensation.transaction';
 import { LicenseFee } from '../seed/licensefee.entity';
@@ -27,7 +27,7 @@ import { PerformanceFee } from '../seed/preformaceFee.entity';
     ]),
     SeedModule,
     LoggerModule,
-    OctetModule,
+    KlaytnModule,
     UserModule,
   ],
   controllers: [PaymentController],

@@ -2,7 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SeedService } from '../../modules/seed/seed.service';
 import { getConnection, Repository, LessThanOrEqual } from 'typeorm';
-import { BonusType, PaymentStatus } from './commons/payment.enum';
+import { PaymentStatus } from './commons/payment.enum';
 import { Payment } from './payment.entity';
 import moment from 'moment';
 import { SchedulerService } from '../../modules/scheduler/scheduler.service';
@@ -15,12 +15,10 @@ import {
   IPaginationOptions,
 } from 'nestjs-typeorm-paginate';
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
-import { OctetService } from '../octet/octet.service';
-import { Account } from '../octet/account.entity';
+import { KlaytnService } from '../klaytn/klaytn.service';
+import { Account } from '../klaytn/account.entity';
 import { Deposit } from './deposit.entity';
 import { DepositTransaction } from './deposit.transaction';
-import { DepositListInterface } from '../octet/commons/octet.types';
-import { DepositWebHook } from './commons/payment.dtos';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { JOB } from '../../modules/scheduler/commons/scheduler.enum';
 import { LoggerService } from '../../utils/logger/logger.service';
@@ -34,14 +32,14 @@ export class PaymentService {
     private readonly depositRepository: Repository<Deposit>,
     private readonly seedService: SeedService,
     private readonly depositTransaction: DepositTransaction,
-    private readonly octetService: OctetService,
+    private readonly klaytnService: KlaytnService,
     private readonly loggerServce: LoggerService,
-  ) {}
+  ) { }
 
   /**
    * Make payment
    */
-  public async makePayment() {}
+  public async makePayment() { }
 
   /**
    * Get user payments
@@ -56,144 +54,6 @@ export class PaymentService {
       );
     }
     return { items: payment.items, meta: payment.meta };
-  }
-
-  /**
-   * Initialize the Deposit Recovery Process
-   */
-  public async initDepositRecoveryProcess() {
-    return new Promise<void>(async (resolve, reject) => {
-      const haltAccounts = await this.octetService.getHaltedAcocounts();
-      if (!haltAccounts.length) return resolve();
-      haltAccounts.map(async (account) => {
-        const depositsCount = await this.getAccountDepositsCount(
-          account.address,
-        );
-        const octetDepositsCount = await this.getAccountDepositsCountFromOctet(
-          account.address,
-        );
-        if (octetDepositsCount > depositsCount) {
-          let newDeposit: DepositListInterface;
-          const lastDeposit: Deposit = await this.getAccountLastDeposit(
-            account.address,
-          );
-          if (lastDeposit) {
-            const startDate = moment
-              .unix(lastDeposit.dwDate + 1)
-              .format('YYYY-MM-DDTHH:mm:ss');
-            newDeposit = await this.getNewDepositFromOctet(
-              account.address,
-              startDate,
-            );
-          } else {
-            newDeposit = await this.getNewDepositFromOctet(account.address);
-          }
-          await this.depositTransaction
-            .initDepositRecoveryTransaction(newDeposit)
-            .catch((err) => {
-              return reject(
-                `${ResponseMessage.DEPOSIT_RECOVERY_PROCESS_ERROR} for address ${newDeposit.to_address}`,
-              );
-            });
-        }
-        return resolve();
-      });
-    });
-  }
-
-  /**
-   * Initialize the Deposit Recovery Process
-   */
-  public async initDepositTransaction(body: DepositWebHook) {
-    return new Promise<void>(async (resolve, reject) => {
-      try {
-        await this.depositTransaction
-          .initDepositTransaction(body)
-          .catch((err) => {
-            throw err;
-          });
-        resolve();
-      } catch (err) {
-        reject(err);
-      }
-    });
-  }
-
-  /**
-   * Array Filter Opration
-   * @param list1
-   * @param list2
-   * @returns
-   */
-  public getDifference(list1, list2) {
-    return list1.filter((object1) => {
-      return !list2.some((object2) => {
-        return object1.id === object2.id;
-      });
-    });
-  }
-
-  public getNewDeposits(list1, list2): DepositListInterface[] {
-    return this.getDifference(list2, list1);
-  }
-
-  /**
-   * Get Deposit List Of Account
-   */
-  public async getAccountDeposits(address: string) {
-    const deposits = await this.depositRepository.find({ toAddress: address });
-    return deposits;
-  }
-
-  /**
-   * Get Deposits Count Of Account
-   */
-  public async getAccountDepositsCount(address: string) {
-    const sql = `SELECT COUNT(DISTINCT(id)) as total_deposits FROM deposits WHERE "toAddress"=$1`;
-    const result = await this.depositRepository.query(sql, [address]);
-    return Number(result[0].total_deposits);
-  }
-
-  /**
-   * Get Last Deposit Of Account
-   */
-  public async getAccountLastDeposit(address: string) {
-    const sql = `SELECT * FROM deposits WHERE "toAddress"=$1 ORDER BY id DESC LIMIT 1`;
-    const result = await this.depositRepository.query(sql, [address]);
-    return result[0];
-  }
-
-  /**
-   * Get Deposit List Of Account From Octet
-   */
-  public async getAccountDepositsFromOctet(address: string) {
-    const octetDeposits = await this.octetService.getAccountDepositList(
-      address,
-    );
-    return octetDeposits;
-  }
-
-  /**
-   * Get Deposit List Of Account From Octet
-   */
-  public async getNewDepositFromOctet(address: string, startDate?: string) {
-    let octetDeposit: DepositListInterface;
-    if (startDate) {
-      octetDeposit = await this.octetService.getnewDeposit(address, startDate);
-    } else {
-      octetDeposit = await this.octetService.getnewDeposit(address);
-    }
-    return octetDeposit;
-  }
-
-  /**
-   * Get Deposits Count Of Account From Octet
-   */
-  public async getAccountDepositsCountFromOctet(address: string) {
-    const octetDepositsCount = await this.octetService.getAccountDepositsCount(
-      address,
-    );
-    return octetDepositsCount;
   }
 
   /**
@@ -281,6 +141,7 @@ export class PaymentService {
             const account = await this.generateAddressAndBindToPayment(payment);
             resolve(account);
           } catch (err) {
+            console.log(err)
             reject();
           }
           break;
@@ -309,13 +170,14 @@ export class PaymentService {
         // lets now open a new transaction:
         await queryRunner.startTransaction();
         try {
-          const account = await this.octetService.getAccount(queryRunner);
+          const account = await this.klaytnService.getAccount(queryRunner);
           payment.account = account;
           await queryRunner.manager.save(payment);
           await queryRunner.commitTransaction();
           await queryRunner.release();
           return resolve(account);
         } catch (err) {
+          console.log("Error logs:", err)
           await queryRunner.rollbackTransaction();
           await queryRunner.release();
           reject(err);
@@ -344,7 +206,7 @@ export class PaymentService {
       await Promise.all(
         records.map(async (m) => {
           if (m.account) {
-            await this.octetService.freeAccount(m.account);
+            await this.klaytnService.freeAccount(m.account);
             m.account = null;
           }
           m.status = PaymentStatus.CANCELLED;
