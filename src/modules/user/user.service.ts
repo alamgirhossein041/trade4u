@@ -92,13 +92,13 @@ export class UsersService {
                   MlmTree
                 INNER JOIN plans p ON "planPlanId" = p."planId"
               WHERE
-                  level > 0 AND level <= $2
+                  level > 0 AND level <= $2 AND "planPlanId" IS NOT NULL
               ORDER BY level;`;
     const affliatesCountLevelWise = ` SELECT level,COUNT(level) as total_affiliates
               FROM
                   MlmTree
               WHERE
-                  level > 0 AND level <= $2
+                  level > 0 AND level <= $2 AND "planPlanId" IS NOT NULL
               GROUP BY level;`;
     const affiliatesResult = await this.userRepository.query(sql + affiliates, [
       user.uuid,
@@ -172,6 +172,7 @@ export class UsersService {
     newUser.userStats = await this.initializeStats();
     newUser.referralLink = this.getUserReferralLink(newUser);
     newUser.planIsActive = true;
+    newUser.plan = await this.seedService.getPlanById(1);
     newUser.emailConfirmed = true;
     return await this.userRepository.save(newUser);
   }
@@ -182,7 +183,7 @@ export class UsersService {
    * @returns
    */
   public getUserReferralLink(user: User): string {
-    const link = process.env.APP_URL + `signup?referrer=` + user.userName;
+    const link = process.env.APP_URL + `register?referrer=` + user.userName;
     return link;
   }
 

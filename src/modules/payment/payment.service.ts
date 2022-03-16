@@ -34,12 +34,12 @@ export class PaymentService {
     private readonly depositTransaction: DepositTransaction,
     private readonly klaytnService: KlaytnService,
     private readonly loggerServce: LoggerService,
-  ) { }
+  ) {}
 
   /**
    * Make payment
    */
-  public async makePayment() { }
+  public async makePayment() {}
 
   /**
    * Get user payments
@@ -108,7 +108,6 @@ export class PaymentService {
           relations: ['account'],
         },
       );
-
       if (!payment)
         return reject(
           new HttpException(

@@ -32,9 +32,9 @@ describe('BinancePlus payment test', () => {
         app.useGlobalPipes(new ValidationPipe());
         await app.init();
         helper = new Helper(app);
+        await AppService.startup();
         token = await helper.init();
         server = app.getHttpServer();
-        await AppService.startup();
     });
 
     it(`Test /order_plan API`, async () => {

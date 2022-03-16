@@ -7,6 +7,7 @@ import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
 import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock } from '../mocks/mocks';
+import { AppService } from '../../src/modules/main/app.service';
 import { ResponseMessage } from '../../src/utils/enum';
 import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
@@ -34,6 +35,7 @@ describe('BinancePlus auth test', () => {
         await app.init();
         helper = new Helper(app);
         server = app.getHttpServer();
+        await AppService.startup();
     });
 
     it(`Test /genesis_user register API`, async () => {
@@ -58,7 +60,7 @@ describe('BinancePlus auth test', () => {
             phoneNumber: "+14842918831",
             klayWallet: null,
             planIsActive: true,
-            referralLink: process.env.APP_URL + `signup?referrer=john58`,
+            referralLink: process.env.APP_URL + `register?referrer=john58`,
             refereeUuid: null
         }
 
