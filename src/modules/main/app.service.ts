@@ -7,13 +7,14 @@ import { Cron, SchedulerRegistry, CronExpression } from '@nestjs/schedule';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { JOB } from '../scheduler/commons/scheduler.enum';
 import { PaymentService } from '../payment/payment.service';
+import { KlaytnService } from '../../modules/klaytn/klaytn.service';
 
 @Injectable()
 export class AppService {
   constructor(
     private readonly loggerService: LoggerService,
     private readonly paymentService: PaymentService,
-  ) {}
+  ) { }
 
   root(): string {
     return process.env.APP_URL;
@@ -78,9 +79,9 @@ export class AppService {
     name: JOB.RECOVER_DEPOSIT,
   })
   public async recoverUnProcessedDeposits(): Promise<void> {
-    this.loggerService.warn(ResponseMessage.DEPOSIT_RECOVERY_PROCESS_STARTED);
-    await this.paymentService.initDepositRecoveryProcess().catch((err) => {
-      this.loggerService.error(err);
-    });
+    // this.loggerService.warn(ResponseMessage.DEPOSIT_RECOVERY_PROCESS_STARTED);
+    // await this.paymentService.initDepositRecoveryProcess().catch((err) => {
+    //   this.loggerService.error(err);
+    // });
   }
 }

@@ -1,6 +1,6 @@
-import { Account } from '../octet/account.entity';
+import { Account } from '../klaytn/account.entity';
 import { Column, Entity, JoinColumn, PrimaryColumn, ManyToOne } from 'typeorm';
-import { DepositListInterface } from 'modules/octet/commons/octet.types';
+import { DepositListInterface } from '../../modules/klaytn/commons/klaytn.types';
 import bigDecimal from 'js-big-decimal';
 import { DepositWebHook } from './commons/payment.dtos';
 import moment from 'moment';

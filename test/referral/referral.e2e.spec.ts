@@ -4,9 +4,10 @@ import { AppModule } from '../../src/modules/main/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { CoinMarketMock, LoggerMock, MailerMock } from '../mocks/mocks';
+import { CoinMarketMock, KlaytnServiceMock, LoggerMock, MailerMock } from '../mocks/mocks';
 import { Helper } from '../helper';
 import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
+import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 
 describe('BinancePlus referrals test', () => {
     let app: INestApplication;
@@ -22,6 +23,8 @@ describe('BinancePlus referrals test', () => {
             .useValue(MailerMock)
             .overrideProvider(CoinGeckoMarket)
             .useValue(CoinMarketMock)
+            .overrideProvider(KlaytnService)
+            .useValue(KlaytnServiceMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());

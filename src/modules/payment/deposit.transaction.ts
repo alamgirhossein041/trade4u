@@ -2,13 +2,13 @@ import { getConnection, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { User } from '../user/user.entity';
-import { Account } from '../octet/account.entity';
+import { Account } from '../klaytn/account.entity';
 import { Payment } from '../payment/payment.entity';
 import bigDecimal from 'js-big-decimal';
 import { Plan } from '../seed/plan.entity';
 import { Deposit } from './deposit.entity';
 import { DepositWebHook } from './commons/payment.dtos';
-import { DepositListInterface } from '../octet/commons/octet.types';
+import { DepositListInterface } from '../klaytn/commons/klaytn.types';
 import moment from 'moment';
 import { PaymentStatus } from './commons/payment.enum';
 

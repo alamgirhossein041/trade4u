@@ -1,4 +1,4 @@
-import { Account } from '../octet/account.entity';
+import { Account } from '../klaytn/account.entity';
 import { Plan } from '../seed/plan.entity';
 import { User } from '../user/user.entity';
 import {

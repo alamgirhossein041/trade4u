@@ -4,10 +4,8 @@ import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
   name: 'accounts',
 })
 export class Account {
-  @PrimaryColumn()
-  position: Number;
 
-  @Column()
+  @PrimaryColumn()
   address: string;
 
   @Column()

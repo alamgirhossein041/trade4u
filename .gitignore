@@ -21,4 +21,5 @@ yarn-error.log
 /.nyc_output
 build/config\.gypi
 
-sqlite-example.sql
+/database
+/test_database
