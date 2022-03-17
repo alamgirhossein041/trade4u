@@ -198,6 +198,17 @@ export class UsersService {
   }
 
   /**
+   * Update user plan
+   * @returns
+   */
+  public async updateUserPlan(user: User, planId: number): Promise<User> {
+    const plan = await this.seedService.getPlanById(planId);
+    user.planIsActive = true;
+    user.plan = plan;
+    return await this.userRepository.save(user);
+  }
+
+  /**
    * Create a new user
    * @param payload
    * @returns

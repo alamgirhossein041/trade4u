@@ -35,7 +35,6 @@ export class UserContoller {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('business_plan')
-  @UseGuards(AuthGuard('jwt'))
   public async getBussniessPlan(@Res() res: Response): Promise<Response> {
     this.loggerService.log(
       `Get user/business_plan ${LoggerMessages.API_CALLED}`,
@@ -44,6 +43,25 @@ export class UserContoller {
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: plans,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('update_plan/:planId')
+  public async updateUserPlan(@CurrentUser() user: User, @Param('planId') planId: number, @Res() res: Response): Promise<Response> {
+    const isPosInt = isPositiveInteger(planId.toString());
+    if (!isPosInt)
+      throw new HttpException(
+        `Parameter id ${ResponseMessage.IS_INVALID}`,
+        ResponseCode.BAD_REQUEST,
+      );
+    this.loggerService.log(
+      `Get user/update_plan ${LoggerMessages.API_CALLED}`,
+    );
+    await this.userService.updateUserPlan(user, planId);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
       message: ResponseMessage.SUCCESS,
     });
   }
