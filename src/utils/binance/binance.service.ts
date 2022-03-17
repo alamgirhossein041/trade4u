@@ -19,10 +19,17 @@ export class BinanceService {
       await this.binanceExchannge.fetchBalance();
       return;
     } catch (err) {
-      throw new HttpException(
+      if (err.message.includes('-2008')) {
+        throw new HttpException(
         ResponseMessage.INVALID_BINANCE_API,
         ResponseCode.BAD_REQUEST,
-      );
+        )
+      } else {
+        throw new HttpException(
+        ResponseMessage.INTERNAL_SERVER_ERROR,
+        ResponseCode.INTERNAL_ERROR,
+        )
+      }
     }
   }
   /**

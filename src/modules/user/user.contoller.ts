@@ -22,6 +22,7 @@ import { User } from './user.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { EarningLimit } from './commons/user.constants';
 import { isPositiveInteger } from '../../utils/methods';
+import { BinanceTradingDto } from './commons/user.dtos';
 
 @Controller('api/user')
 export class UserContoller {
@@ -48,18 +49,31 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('update_plan/:planId')
+  @Post('update_plan/:planId')
   public async updateUserPlan(@CurrentUser() user: User, @Param('planId') planId: number, @Res() res: Response): Promise<Response> {
     const isPosInt = isPositiveInteger(planId.toString());
     if (!isPosInt)
       throw new HttpException(
-        `Parameter id ${ResponseMessage.IS_INVALID}`,
+        `Parameter planId ${ResponseMessage.IS_INVALID}`,
         ResponseCode.BAD_REQUEST,
       );
     this.loggerService.log(
-      `Get user/update_plan ${LoggerMessages.API_CALLED}`,
+      `Post user/update_plan ${LoggerMessages.API_CALLED}`,
     );
     await this.userService.updateUserPlan(user, planId);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('binance_credentials')
+  public async updateBinanceCredentials(@CurrentUser() user: User,@Body() body: BinanceTradingDto, @Res() res: Response): Promise<Response> {
+    this.loggerService.log(
+      `Post user/binance_credentials ${LoggerMessages.API_CALLED}`,
+    );
+    await this.userService.updateUserBinanceCreds(user,body);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       message: ResponseMessage.SUCCESS,

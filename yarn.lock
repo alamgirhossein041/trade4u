@@ -2716,6 +2716,11 @@
   "resolved" "https://registry.npmjs.org/cborg/-/cborg-1.8.1.tgz"
   "version" "1.8.1"
 
+"ccxt@^1.76.31":
+  "integrity" "sha512-N84Ld/rUxTN8RBQuJJZB9HGdDMubyzKB/4w+74AOGyDmtu/G/QYvJT15Vxq5zM64UXE5f9wxvccrAyruEVSJOA=="
+  "resolved" "https://registry.npmjs.org/ccxt/-/ccxt-1.76.31.tgz"
+  "version" "1.76.31"
+
 "chai@4.1.2":
   "integrity" "sha1-D2RYS6ZC8PKs4oBiefTwbKI61zw="
   "resolved" "https://registry.npmjs.org/chai/-/chai-4.1.2.tgz"

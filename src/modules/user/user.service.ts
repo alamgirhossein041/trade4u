@@ -7,6 +7,8 @@ import { UserStats } from './user-stats.entity';
 import { AffliatesInterface } from './commons/user.types';
 import { User } from './user.entity';
 import { SeedService } from '../seed/seed.service';
+import { BinanceTradingDto } from './commons/user.dtos';
+import { BinanceService } from '../../utils/binance/binance.service';
 
 @Injectable()
 export class UsersService {
@@ -16,7 +18,8 @@ export class UsersService {
     @InjectRepository(UserStats)
     private readonly userStatsRepository: Repository<UserStats>,
     private readonly seedService: SeedService,
-  ) {}
+    private readonly binanceService: BinanceService,
+  ) { }
 
   /**
    * Get user by id
@@ -205,6 +208,18 @@ export class UsersService {
     const plan = await this.seedService.getPlanById(planId);
     user.planIsActive = true;
     user.plan = plan;
+    return await this.userRepository.save(user);
+  }
+
+  /**
+   * Update user Binance Creds
+   * @returns
+   */
+  public async updateUserBinanceCreds(user: User, binanceDto: BinanceTradingDto): Promise<User> {
+    await this.binanceService.verifyApiKey(binanceDto.apiKey, binanceDto.apiSecret);
+    user.apiKey = binanceDto.apiKey;
+    user.apiSecret = binanceDto.apiSecret;
+    user.tradingSystem = binanceDto.tradingSystem;
     return await this.userRepository.save(user);
   }
 
