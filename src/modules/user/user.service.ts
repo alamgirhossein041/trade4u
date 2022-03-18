@@ -146,16 +146,21 @@ export class UsersService {
                       INNER JOIN ReverseMlmTree h ON u.uuid = h."refereeUuid" 
                     )
             ) 
-             SELECT "fullName","balance","userName",p."planName" as plan_name,level FROM ReverseMlmTree
+             SELECT "fullName","balance","userName",p."planName" as plan_name,p."levels" as parent_depth_level,level FROM ReverseMlmTree
              INNER JOIN plans p ON "planPlanId" = p."planId"
              WHERE level > 0 AND level <= $2 AND "refereeUuid" IS NOT NULL
              ORDER BY level;
             `;
+    try{
     const parentsResult = await this.userRepository.query(sql, [
       user.uuid,
       user.plan.levels,
     ]);
     return parentsResult;
+    } catch(err) {
+      console.log(err);
+      throw new HttpException(ResponseMessage.INTERNAL_SERVER_ERROR,ResponseCode.INTERNAL_ERROR)
+    }
   }
 
   /**

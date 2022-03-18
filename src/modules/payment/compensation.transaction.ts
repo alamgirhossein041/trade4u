@@ -88,6 +88,7 @@ export class CompensationTransaction {
             bonusType,
             planName,
             parent.level,
+            parent.parent_depth_level
           );
           let amount = this.getBonusAmount(bonusPercentage, planAmount);
           amount += parent.balance;
@@ -113,7 +114,11 @@ export class CompensationTransaction {
     bonusType: string,
     planName: string,
     level: number,
+    parentDepthLevel: number
   ) {
+    if(level > parentDepthLevel) {
+      return 0;
+    }
     let percentage: number;
     let repository: Repository<LicenseFee | PerformanceFee>;
     if (bonusType === BonusType.PERFORMANCE)
