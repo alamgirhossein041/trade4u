@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsPositive, IsString } from "class-validator";
 import { TradingSystem } from "./user.enums";
 
 export class BinanceTradingDto {
@@ -12,4 +12,21 @@ export class BinanceTradingDto {
 
     @IsEnum(TradingSystem)
     tradingSystem: string;
+}
+
+export class TelegramNotifyDto {
+    @IsPositive()
+    code: number;
+    
+    @IsBoolean()
+    tradingNotifications: boolean;
+    
+    @IsBoolean()
+    systemNotifications: boolean;
+    
+    @IsBoolean()
+    bonusNotifications: boolean;
+    
+    @IsBoolean()
+    promotionNotifications: boolean;
 }

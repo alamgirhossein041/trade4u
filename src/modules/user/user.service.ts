@@ -7,8 +7,10 @@ import { UserStats } from './user-stats.entity';
 import { AffliatesInterface } from './commons/user.types';
 import { User } from './user.entity';
 import { SeedService } from '../seed/seed.service';
-import { BinanceTradingDto } from './commons/user.dtos';
+import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
 import { BinanceService } from '../../utils/binance/binance.service';
+import { UserTelegram } from './user-telegram.entity';
+import otpGenerator from 'otp-generator';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +19,8 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserStats)
     private readonly userStatsRepository: Repository<UserStats>,
+    @InjectRepository(UserTelegram)
+    private readonly userTelegramRepository: Repository<UserTelegram>,
     private readonly seedService: SeedService,
     private readonly binanceService: BinanceService,
   ) { }
@@ -40,6 +44,23 @@ export class UsersService {
    */
   async getByEmail(email: string): Promise<User> {
     return await this.userRepository.findOne({ email });
+  }
+
+  /**
+   * @param chat_id
+   * @returns BinancePlus Bot Starting Code
+   */
+  async getTelegramBotCode(chat_id: number,name: string): Promise<UserTelegram> {
+    const userTelegram = await this.userTelegramRepository.findOne({ chat_id });
+    if (userTelegram) {
+      return userTelegram;
+    }
+    const code = Number(otpGenerator.generate(8, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false }));
+    const newUserTelegram = new UserTelegram();
+    newUserTelegram.chat_id = chat_id;
+    newUserTelegram.name = name;
+    newUserTelegram.code = code;
+    return await this.userTelegramRepository.save(newUserTelegram);
   }
 
   /**
@@ -151,15 +172,15 @@ export class UsersService {
              WHERE level > 0 AND level <= $2 AND "refereeUuid" IS NOT NULL
              ORDER BY level;
             `;
-    try{
-    const parentsResult = await this.userRepository.query(sql, [
-      user.uuid,
-      user.plan.levels,
-    ]);
-    return parentsResult;
-    } catch(err) {
+    try {
+      const parentsResult = await this.userRepository.query(sql, [
+        user.uuid,
+        user.plan.levels,
+      ]);
+      return parentsResult;
+    } catch (err) {
       console.log(err);
-      throw new HttpException(ResponseMessage.INTERNAL_SERVER_ERROR,ResponseCode.INTERNAL_ERROR)
+      throw new HttpException(ResponseMessage.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_ERROR)
     }
   }
 
@@ -226,6 +247,26 @@ export class UsersService {
     user.apiSecret = binanceDto.apiSecret;
     user.tradingSystem = binanceDto.tradingSystem;
     return await this.userRepository.save(user);
+  }
+
+  /**
+   * Update user Telegram Notifications Creds
+   * @returns
+   */
+  public async updateUserTelegramNotifications(user: User, telegramDto: TelegramNotifyDto): Promise<UserTelegram> {
+    const userTelegram = await this.userTelegramRepository.findOne({code: telegramDto.code});
+    if(!userTelegram) {
+      throw new HttpException(`Code ${ResponseMessage.IS_INVALID}`,ResponseCode.BAD_REQUEST);
+    }
+    userTelegram.isActive = true;
+    userTelegram.systemNotificationsActive = telegramDto.systemNotifications;
+    userTelegram.bonusNotificationsActive = telegramDto.bonusNotifications;
+    userTelegram.promotionNotificationsActive = telegramDto.promotionNotifications;
+    userTelegram.tradeNotificationsActive = telegramDto.tradingNotifications;
+    const updatedTelegram = await this.userTelegramRepository.save(userTelegram);
+    user.userTelegram = updatedTelegram;
+    await this.userRepository.save(user);
+    return updatedTelegram;
   }
 
   /**
