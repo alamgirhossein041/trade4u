@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { LoggerService } from '../../utils/logger/logger.service';
-import { Cron, SchedulerRegistry, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { CoinGeckoMarket } from './coingecko.service';
 import { ResponseMessage } from '../../utils/enum';
-import { JOB } from './commons/scheduler.enum';
+import { JOB } from '../../utils/enum/index';
 import { Price } from './price.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';

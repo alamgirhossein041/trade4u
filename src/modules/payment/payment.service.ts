@@ -20,7 +20,7 @@ import { Account } from '../klaytn/account.entity';
 import { Deposit } from './deposit.entity';
 import { DepositTransaction } from './deposit.transaction';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { JOB } from '../../modules/scheduler/commons/scheduler.enum';
+import { JOB } from '../../utils/enum/index';
 import { LoggerService } from '../../utils/logger/logger.service';
 
 @Injectable()

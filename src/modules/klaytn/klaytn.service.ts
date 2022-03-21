@@ -4,7 +4,7 @@ import { QueryRunner, Repository } from 'typeorm';
 import { Account } from './account.entity';
 import Caver, { KeyringContainer } from 'caver-js';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { JOB } from '../../modules/scheduler/commons/scheduler.enum';
+import { JOB } from '../../utils/enum/index';
 import { LoggerService } from '../../utils/logger/logger.service';
 import Level from 'level-ts';
 
@@ -147,6 +147,7 @@ export class KlaytnService {
       }
     });
   }
+  
   /**
    * validate Klaytn Address
    */
