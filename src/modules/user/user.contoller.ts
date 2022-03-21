@@ -7,7 +7,11 @@ import {
   Res,
   UseGuards,
   HttpException,
+<<<<<<< HEAD
   Req,
+=======
+  Patch,
+>>>>>>> Profile API done
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Request, Response } from 'express';
@@ -218,5 +222,61 @@ export class UserContoller {
       data: preformanceFee,
       message: ResponseMessage.SUCCESS,
     });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('getprofilecode')
+  public async profileVerificationCode( @CurrentUser() user: User,@Res() res: Response): Promise<Response> {
+    this.loggerService.log(
+      `GET user/getprofilecode ${LoggerMessages.API_CALLED}`,
+    );
+    const profileCode = await this.userService.profileVerificationCode(user);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: profileCode,
+      message: ResponseMessage.VERIFICATION_CODE_SEND,
+    });
+  }
+
+
+   @UseGuards(AuthGuard('jwt'))
+  @Get('profile_details/:code')
+  public async profileDetails( @CurrentUser() user: User,@Res() res: Response,@Param() code:any): Promise<Response> {
+    this.loggerService.log(
+      `GET user/profile_details ${LoggerMessages.API_CALLED}`,
+    );
+    const profileCode = await this.userService.profileDetails(user,code);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: profileCode,
+      message: ResponseMessage.VERIFICATION_DONE,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('klay_wallet_address')
+  public async klayWallet(  @Body() payload:any,@CurrentUser() user: User,@Res() res: Response): Promise<Response> {
+    this.loggerService.log(
+      `Patch user/klay_wallet_address ${LoggerMessages.API_CALLED}`,
+    );
+    
+
+    const profileCode = await this.userService.klayWallet(user.email,payload.klayWallet);
+    const Caver = require('caver-js')
+    const caver = new Caver('https://api.baobab.klaytn.net:8651')
+    
+    if(caver.utils.isValidPublicKey(payload.klayWallet)===true){
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: profileCode,
+      message: ResponseMessage.VERIFICATION_DONE,
+    })}else{
+       throw new HttpException(
+        `${ResponseMessage.INVALID_ADDRESS}`,
+        ResponseCode.BAD_REQUEST,
+      );
+      
+    }
+    
   }
 }

@@ -15,6 +15,8 @@ import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
 import { BinanceService } from '../../utils/binance/binance.service';
 import { UserTelegram } from './telegram.entity';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
+import otpGenerator from 'otp-generator';
+import { MailService } from '../../utils/mailer/mail.service';
 
 @Injectable()
 export class UsersService {
@@ -28,7 +30,8 @@ export class UsersService {
     private readonly seedService: SeedService,
     private readonly binanceService: BinanceService,
     private readonly telegramService: TelegramService,
-  ) { }
+    private readonly mailerservice: MailService,
+  ) {}
 
   /**
    * Get user by id
@@ -487,4 +490,60 @@ export class UsersService {
   async remove(user: User) {
     await this.userRepository.delete({ uuid: user.uuid });
   }
+
+      /**
+   * Generate code for profile verification Latest
+   */
+  async profileVerificationCode(user: User) {
+
+    var random = Math.floor(100000 + Math.random() * 900000)
+    await this.userRepository.update( { email:user.email }, { profileCode:random.toString() });
+    
+    await this.mailerservice.sendEmailProfileVerificationCode(
+              user,
+              random.toString()
+            );
+    return;              
+
+  }
+
+    /**
+   * Profile Details After Verification
+   */
+  async profileDetails(user: User,code:any) {
+
+const dbuser:User[] = await this.userRepository.find({email:user.email});
+var b=dbuser[0].profileCode
+if(dbuser[0].profileCode==code.code){
+  return dbuser;
+}else {
+      throw new HttpException(
+        ResponseMessage.USER_DOES_NOT_EXIST,
+        ResponseCode.NOT_FOUND,
+      );
+    }
+  }
+
+    /**
+   * Klay Wallet Address 
+   * @param email
+   * @param klay
+   * @returns
+   */
+   async klayWallet(
+    email: string,
+    klay: string,
+  ): Promise<User> {
+    const user: User = await this.userRepository.findOne({ email });
+    if (user) {
+      await this.userRepository.update( { email:user.email }, { klayWallet:klay } );
+      return user;
+    } else {
+      throw new HttpException(
+        ResponseMessage.USER_DOES_NOT_EXIST,
+        ResponseCode.NOT_FOUND,
+      );
+    }
+  }
+
 }

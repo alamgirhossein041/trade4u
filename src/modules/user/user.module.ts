@@ -10,6 +10,7 @@ import { LoggerModule } from '../../utils/logger/logger.module';
 import { BinanceModule } from '../../utils/binance/binance.module';
 import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 import { UserTelegram } from './telegram.entity';
+import { MailModule } from '../../utils/mailer/mail.module';
 
 @Module({
   imports: [
@@ -18,6 +19,8 @@ import { UserTelegram } from './telegram.entity';
     LoggerModule,
     TelegramModule,
     BinanceModule,
+    BinanceModule,
+    MailModule,
   ],
   exports: [UsersService],
   providers: [UsersService],
