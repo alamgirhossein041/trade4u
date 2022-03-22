@@ -42,6 +42,8 @@ export enum ResponseMessage {
   VERIFICATION_CODE_SEND = `Email has been sent successfully`,
   VERIFICATION_DONE = `Verification Completed`,
   INVALID_ADDRESS = `Invalid Wallet Address`,
+  VALID_ADDRESS = `Valid Wallet Address`,
+  INVALID_CODE = `Invalid Code`,
 
 }
 

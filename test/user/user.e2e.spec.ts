@@ -26,7 +26,8 @@ describe('BinancePlus User test', () => {
         email: "bnptestuser@yopmail.com",
         phoneNumber: "+14842918831",
         password: "Rnssol@21",
-        passwordConfirmation: "Rnssol@21"
+        passwordConfirmation: "Rnssol@21",
+        profileCode:"123456"
     }
 
     beforeAll(async () => {
@@ -195,6 +196,52 @@ describe('BinancePlus User test', () => {
                 .send({message:{chat:{id: 154090},from:{first_name: 'HasNain'},text: 'hello'}})
                 .expect(200)
         });
+      
+
+        it(`Test Send verification code for profile info`, async () => {
+        await request(server)
+            .get('/api/user/getprofilecode')
+            .set('Authorization', helper.getAccessToken())
+            .expect(200)
+            .expect(({ body }) => {
+                expect(body.message).toEqual(ResponseMessage.VERIFICATION_CODE_SEND);
+            });
+    });
+
+    it(`Test verify code for profile info`, async () => {
+
+        await request(server)
+            .get('/api/user/profile_details/123456')
+            .set('Authorization', helper.getAccessToken())
+            .expect(({ body }) => {
+                expect(body.statusCode).toEqual(404);
+            });
+    });
+           
+
+        it(`Test get user klay wallet address API`, async () => {
+        await request(server)
+            .patch('/api/user/klay_wallet_address')
+            .send({klayWallet:`0xbd6405a7f14f57ecea4a6ffe774ee26d051f7eed13257c9a574055b20e42bab0e8beba92e2e675101eb2a55ba4693080d0bf14548beae7bc93b18b72d10dd350`})
+            .set('Authorization', helper.getAccessToken())
+            .expect(200)
+            .expect(({ body }) => {
+                expect(body.message).toEqual(ResponseMessage.VALID_ADDRESS);
+            });
+
+
+            await request(server)
+            .patch('/api/user/klay_wallet_address')
+            .send({klayWallet:`0xbd6405a7f14f55d0bf14548beae7bc93b18b72d10dd350`})
+            .set('Authorization', helper.getAccessToken())
+            .expect(400)
+            .expect(({ body }) => {
+                expect(body.message).toEqual(ResponseMessage.INVALID_ADDRESS);
+            });
+    });
+
+
+
     });
 
     afterAll(async () => {

@@ -7,11 +7,8 @@ import {
   Res,
   UseGuards,
   HttpException,
-<<<<<<< HEAD
   Req,
-=======
   Patch,
->>>>>>> Profile API done
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Request, Response } from 'express';
@@ -269,7 +266,7 @@ export class UserContoller {
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: profileCode,
-      message: ResponseMessage.VERIFICATION_DONE,
+      message: ResponseMessage.VALID_ADDRESS,
     })}else{
        throw new HttpException(
         `${ResponseMessage.INVALID_ADDRESS}`,

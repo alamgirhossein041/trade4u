@@ -4,6 +4,7 @@ import express, { Request, Response } from "express";
 export const MailerMock = {
     sendEmailConfirmation: jest.fn(),
     sendForgotPasswordMail: jest.fn(),
+    sendEmailProfileVerificationCode: jest.fn(),
 }
 export const LoggerMock = {
     log: jest.fn((value: string) => {

@@ -65,7 +65,8 @@ describe('BinancePlus auth test', () => {
             planIsActive: true,
             referralLink: process.env.APP_URL + `register?referrer=john58`,
             refereeUuid: null,
-            userTelegram: null
+            userTelegram: null,
+            profileCode: null,
         }
 
         await request(server)
