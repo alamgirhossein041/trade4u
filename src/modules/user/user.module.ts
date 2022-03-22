@@ -7,12 +7,15 @@ import { User } from './user.entity';
 import { UsersService } from './user.service';
 import { LicenseFee } from '../seed/licensefee.entity';
 import { LoggerModule } from '../../utils/logger/logger.module';
+import { BinanceModule } from '../../utils/binance/binance.module';
+import { UserTelegram } from './user-telegram.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserStats, LicenseFee]),
+    TypeOrmModule.forFeature([User, UserStats,UserTelegram, LicenseFee]),
     SeedModule,
     LoggerModule,
+    BinanceModule
   ],
   exports: [UsersService],
   providers: [UsersService],

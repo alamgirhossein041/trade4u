@@ -6,11 +6,12 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
 import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
+import { BinanceService } from '../../src/utils/binance/binance.service';
 
 describe('BinancePlus User test', () => {
     let app: INestApplication;
@@ -38,6 +39,8 @@ describe('BinancePlus User test', () => {
             .useValue(CoinMarketMock)
             .overrideProvider(KlaytnService)
             .useValue(KlaytnServiceMock)
+            .overrideProvider(BinanceService)
+            .useValue(BinanceMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
@@ -108,8 +111,8 @@ describe('BinancePlus User test', () => {
         it(`Test get user/parents of bnp user 2  API`, async () => {
             await helper.login('bnptestuser2@yopmail.com', 'Rnssol@21');
             const expectedParents = [
-                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0,parent_depth_level: 7, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0,parent_depth_level: 7, plan_name: 'Silver' }
             ];
             await request(server)
                 .get('/api/user/parents')
@@ -121,8 +124,8 @@ describe('BinancePlus User test', () => {
         });
         it(`Test get user/parents of bnp user 2 after plan purchase to verify balance  API`, async () => {
             const expectedParents = [
-                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`,parent_depth_level: 7, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`,parent_depth_level: 7, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
             ];
             await request(server)
                 .get('/api/user/parents')
@@ -142,6 +145,21 @@ describe('BinancePlus User test', () => {
                 .expect(({ body }) => {
                     expect(body.data).toEqual(expectedObj);
                 });
+        });
+
+        it(`Test post user/update_plan/:planId API`, async () => {
+            await request(server)
+                .post('/api/user/update_plan/3')
+                .set('Authorization', helper.getAccessToken())
+                .expect(200)
+        });
+        it(`Test post user/binance_credentials API`, async () => {
+            const dtoObj = {apiKey: "asdadadasdsfsd",apiSecret:"fdasfadfsdsfsdfsd",tradingSystem: 'both'};
+            await request(server)
+                .post('/api/user/binance_credentials')
+                .set('Authorization', helper.getAccessToken())
+                .send(dtoObj)
+                .expect(200)
         });
     });
 

@@ -1594,6 +1594,11 @@
   "resolved" "https://registry.npmjs.org/@types/node/-/node-14.17.12.tgz"
   "version" "14.17.12"
 
+"@types/otp-generator@^4.0.0":
+  "integrity" "sha512-QsMc+jgx2WX5ciAwc4Wj37eaGYGnoQcUishOWUgpZ+8nypK6hr5jgUE3xumQ7hvX4AC+gxZktpg/dUHWa4FZRA=="
+  "resolved" "https://registry.npmjs.org/@types/otp-generator/-/otp-generator-4.0.0.tgz"
+  "version" "4.0.0"
+
 "@types/prettier@^2.1.5":
   "integrity" "sha512-eI5Yrz3Qv4KPUa/nSIAi0h+qX0XyewOliug5F2QAtuRg6Kjg6jfmxe1GIwoIRhZspD1A0RP8ANrPwvEXXtRFog=="
   "resolved" "https://registry.npmjs.org/@types/prettier/-/prettier-2.3.2.tgz"
@@ -2715,6 +2720,11 @@
   "integrity" "sha512-x49Vf1DUrS9rc+ar8QwOqfvA48H9YRn6UzcvlXpd1jKIzq2ebSR1R/yegu7MsskJew4+yc+3znWmud0PMJkR1Q=="
   "resolved" "https://registry.npmjs.org/cborg/-/cborg-1.8.1.tgz"
   "version" "1.8.1"
+
+"ccxt@^1.76.31":
+  "integrity" "sha512-N84Ld/rUxTN8RBQuJJZB9HGdDMubyzKB/4w+74AOGyDmtu/G/QYvJT15Vxq5zM64UXE5f9wxvccrAyruEVSJOA=="
+  "resolved" "https://registry.npmjs.org/ccxt/-/ccxt-1.76.31.tgz"
+  "version" "1.76.31"
 
 "chai@4.1.2":
   "integrity" "sha1-D2RYS6ZC8PKs4oBiefTwbKI61zw="
@@ -7091,6 +7101,11 @@
   "integrity" "sha512-ZoXJkvAnljwvc56MbvhtKVWmSkzV712k42Is2mA0+0KTSRakq5XXuXpjZjgAt9ctzl51ojhQWakQQpmOvXWfjQ=="
   "resolved" "https://registry.npmjs.org/os/-/os-0.1.2.tgz"
   "version" "0.1.2"
+
+"otp-generator@^4.0.0":
+  "integrity" "sha512-P0nG+RVCRDkZdEjXgoMeOTVF3jwMShAk8qYYNx+VNdWgxhcLbZQjdx3GfzgRTZENTx+9I14XfTDJZjKQJdBcVw=="
+  "resolved" "https://registry.npmjs.org/otp-generator/-/otp-generator-4.0.0.tgz"
+  "version" "4.0.0"
 
 "p-cancelable@^1.0.0":
   "integrity" "sha512-s73XxOZ4zpt1edZYZzvhqFa6uvQc1vwUa0K0BdtIZgQMAJj9IbebH+JkgKZc9h+B05PKHLOTl4ajG1BmNrVZlw=="

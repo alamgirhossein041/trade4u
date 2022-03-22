@@ -17,6 +17,12 @@ export const LoggerMock = {
     })
 }
 
+export const BinanceMock = {
+    verifyApiKey: jest.fn((value: string) => {
+        return;
+    })
+}
+
 export const CoinMarketMock = {
     ping: jest.fn((value: string) => {
         return true;

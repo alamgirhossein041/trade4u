@@ -24,7 +24,7 @@ export class CompensationTransaction {
     @InjectRepository(PerformanceFee)
     private readonly performanceRepository: Repository<PerformanceFee>,
     private readonly userService: UsersService,
-  ) {}
+  ) { }
 
   /**
    * Distribute License Bonus Among Parents Of User
@@ -43,12 +43,14 @@ export class CompensationTransaction {
       try {
         const userWithPlan = await this.userService.get(user.uuid);
         const planAmount = userWithPlan.plan.price;
+        const planName = userWithPlan.plan.planName;
         const userParentTree = await this.userService.getUserParentsTree(
           userWithPlan,
         );
         await this.distBonusInParents(
           userParentTree,
           planAmount,
+          planName,
           bonusType,
           queryRunner,
         );
@@ -75,6 +77,7 @@ export class CompensationTransaction {
   private async distBonusInParents(
     parenTree: any,
     planAmount: number,
+    planName: string,
     bonusType: string,
     queryRunner: QueryRunner,
   ) {
@@ -83,8 +86,9 @@ export class CompensationTransaction {
         parenTree.map(async (parent: any) => {
           const bonusPercentage = await this.getBonusPercentage(
             bonusType,
-            parent.plan_name,
+            planName,
             parent.level,
+            parent.parent_depth_level
           );
           let amount = this.getBonusAmount(bonusPercentage, planAmount);
           amount += parent.balance;
@@ -110,28 +114,29 @@ export class CompensationTransaction {
     bonusType: string,
     planName: string,
     level: number,
+    parentDepthLevel: number
   ) {
+    if(level > parentDepthLevel) {
+      return 0;
+    }
     let percentage: number;
     let repository: Repository<LicenseFee | PerformanceFee>;
     if (bonusType === BonusType.PERFORMANCE)
       repository = this.performanceRepository;
     else repository = this.licenseRepository;
     let row: LicenseFee | PerformanceFee;
+    row = await repository.findOne({ levelNo: level });
     switch (planName) {
       case PlanNameEnum.Silver:
-        row = await repository.findOne({ levelNo: level });
         percentage = row.silverPercentage;
         break;
       case PlanNameEnum.Gold:
-        row = await repository.findOne({ levelNo: level });
         percentage = row.goldPercentage;
         break;
       case PlanNameEnum.Platinum:
-        row = await repository.findOne({ levelNo: level });
         percentage = row.platinumPercentage;
         break;
       case PlanNameEnum.Premium:
-        row = await repository.findOne({ levelNo: level });
         percentage = row.premiumPercentage;
         break;
     }
