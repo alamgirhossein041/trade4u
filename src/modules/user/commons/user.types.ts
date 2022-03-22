@@ -13,3 +13,9 @@ interface AffiliateCount {
   level: number;
   total_affiliates: number;
 }
+
+export interface BotResponse {
+  chat_id: number;
+  text: string;
+  parse_mode: string;
+}

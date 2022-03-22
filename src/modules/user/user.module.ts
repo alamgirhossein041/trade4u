@@ -8,14 +8,16 @@ import { UsersService } from './user.service';
 import { LicenseFee } from '../seed/licensefee.entity';
 import { LoggerModule } from '../../utils/logger/logger.module';
 import { BinanceModule } from '../../utils/binance/binance.module';
-import { UserTelegram } from './user-telegram.entity';
+import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
+import { UserTelegram } from './telegram.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserStats,UserTelegram, LicenseFee]),
+    TypeOrmModule.forFeature([User, UserStats, LicenseFee, UserTelegram]),
     SeedModule,
     LoggerModule,
-    BinanceModule
+    TelegramModule,
+    BinanceModule,
   ],
   exports: [UsersService],
   providers: [UsersService],

@@ -24,7 +24,7 @@ export class CompensationTransaction {
     @InjectRepository(PerformanceFee)
     private readonly performanceRepository: Repository<PerformanceFee>,
     private readonly userService: UsersService,
-  ) { }
+  ) {}
 
   /**
    * Distribute License Bonus Among Parents Of User
@@ -88,7 +88,7 @@ export class CompensationTransaction {
             bonusType,
             planName,
             parent.level,
-            parent.parent_depth_level
+            parent.parent_depth_level,
           );
           let amount = this.getBonusAmount(bonusPercentage, planAmount);
           amount += parent.balance;
@@ -114,9 +114,9 @@ export class CompensationTransaction {
     bonusType: string,
     planName: string,
     level: number,
-    parentDepthLevel: number
+    parentDepthLevel: number,
   ) {
-    if(level > parentDepthLevel) {
+    if (level > parentDepthLevel) {
       return 0;
     }
     let percentage: number;

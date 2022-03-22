@@ -21,14 +21,14 @@ export class BinanceService {
     } catch (err) {
       if (err.message.includes('-2008')) {
         throw new HttpException(
-        ResponseMessage.INVALID_BINANCE_API,
-        ResponseCode.BAD_REQUEST,
-        )
+          ResponseMessage.INVALID_BINANCE_API,
+          ResponseCode.BAD_REQUEST,
+        );
       } else {
         throw new HttpException(
-        ResponseMessage.INTERNAL_SERVER_ERROR,
-        ResponseCode.INTERNAL_ERROR,
-        )
+          ResponseMessage.INTERNAL_SERVER_ERROR,
+          ResponseCode.INTERNAL_ERROR,
+        );
       }
     }
   }

@@ -23,6 +23,15 @@ export const BinanceMock = {
     })
 }
 
+export const TelegramBotMock = {
+    getTelegramCode: jest.fn(() => {
+        return 12345678;
+    }),
+    sendResponseToUser: jest.fn(() => {
+        return;
+    })
+}
+
 export const CoinMarketMock = {
     ping: jest.fn((value: string) => {
         return true;

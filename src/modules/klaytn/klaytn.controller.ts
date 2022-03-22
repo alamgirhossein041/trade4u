@@ -1,6 +1,4 @@
-import {
-  Controller,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { KlaytnService } from './klaytn.service';
 
 @Controller('api/Klaytn')

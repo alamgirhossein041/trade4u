@@ -56,6 +56,12 @@ export enum LoggerMessages {
   API_CALLED = `Api Has Been Called.`,
 }
 
+export enum TelergramBotMessages {
+  ALREADY_ACTIVATED = `You Have Already Activated Binance Plus Notifications`,
+  SUCCCESSFULLY_ACTIVATED = `You Have SuccFully Activated Binance Plus Notifications`,
+  SUCCCESSFULLY_DEACTIVATED = `You Have SuccFully DeActivated Binance Plus Notifications`,
+}
+
 export enum NodeEnv {
   TEST = 'test',
   DEVELOPMENT = 'development',

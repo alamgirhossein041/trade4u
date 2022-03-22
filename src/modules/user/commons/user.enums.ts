@@ -1,5 +1,5 @@
 export enum TradingSystem {
-    USDT=`usdt`,
-    BTC=`btc`,
-    BOTH=`both`
+  USDT = `usdt`,
+  BTC = `btc`,
+  BOTH = `both`,
 }

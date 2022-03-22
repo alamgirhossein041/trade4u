@@ -6,12 +6,13 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock,TelegramBotMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
 import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 import { BinanceService } from '../../src/utils/binance/binance.service';
+import { TelegramService } from '../../src/utils/telegram/telegram-bot.service';
 
 describe('BinancePlus User test', () => {
     let app: INestApplication;
@@ -41,6 +42,8 @@ describe('BinancePlus User test', () => {
             .useValue(KlaytnServiceMock)
             .overrideProvider(BinanceService)
             .useValue(BinanceMock)
+            .overrideProvider(TelegramService)
+            .useValue(TelegramBotMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
@@ -159,6 +162,35 @@ describe('BinancePlus User test', () => {
                 .post('/api/user/binance_credentials')
                 .set('Authorization', helper.getAccessToken())
                 .send(dtoObj)
+                .expect(200)
+        });
+
+
+        it(`Test /webhook bnp telegram bot webhook API`, async () => {
+            await request(server)
+                .post('/api/user/webhook/5060344605:AAHuBFdqTZzKg_avhYCRP6DkZrJSXFFAqa4')
+                .send({message:{chat:{id: 154090},from:{first_name: 'HasNain'},text: 'hello'}})
+                .expect(200)
+        });
+
+        it(`Test /telegram_code bnp telegram notifications enabling API`, async () => {
+            await request(server)
+                .post('/api/user/telegram_code')
+                .set('Authorization',helper.getAccessToken())
+                .send({
+                    code: 12345678,
+                    tradingNotifications: true,
+                    systemNotifications: true,
+                    bonusNotifications: true,
+                    promotionNotifications: true
+                })
+                .expect(200)
+        });
+
+        it(`Test /webhook bnp telegram bot webhook API`, async () => {
+            await request(server)
+                .post('/api/user/webhook/5060344605:AAHuBFdqTZzKg_avhYCRP6DkZrJSXFFAqa4')
+                .send({message:{chat:{id: 154090},from:{first_name: 'HasNain'},text: 'hello'}})
                 .expect(200)
         });
     });

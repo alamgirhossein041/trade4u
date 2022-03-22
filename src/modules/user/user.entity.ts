@@ -13,7 +13,7 @@ import {
 import { PasswordTransformer } from './password.transformer';
 import { Crypto } from '../../utils/crypto';
 import { Plan } from '../seed/plan.entity';
-import { UserTelegram } from './user-telegram.entity';
+import { UserTelegram } from './telegram.entity';
 
 @Entity({
   name: 'users',
@@ -79,7 +79,7 @@ export class User {
   userStats: UserStats;
 
   @OneToOne(() => UserTelegram)
-  @JoinColumn({name:'telegramId'})
+  @JoinColumn({ name: 'telegramId' })
   userTelegram: UserTelegram;
 
   @ManyToOne(() => Plan)

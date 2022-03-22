@@ -7,16 +7,17 @@ import { Cron, SchedulerRegistry, CronExpression } from '@nestjs/schedule';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { JOB } from '../scheduler/commons/scheduler.enum';
 import { PaymentService } from '../payment/payment.service';
-import axios from 'axios'
+import axios from 'axios';
 import { KlaytnService } from '../../modules/klaytn/klaytn.service';
 
 @Injectable()
 export class AppService {
-  private readonly botWebhookUrl = process.env.SERVER_URL + `/webhook/${process.env.BOT_TOKEN}`;
+  private readonly botWebhookUrl =
+    process.env.SERVER_URL + `/webhook/${process.env.BOT_TOKEN}`;
   constructor(
     private readonly loggerService: LoggerService,
     private readonly paymentService: PaymentService,
-  ) { }
+  ) {}
 
   root(): string {
     return process.env.APP_URL;
@@ -39,10 +40,14 @@ export class AppService {
   static async initBotWebhook() {
     try {
       await axios.get(`${process.env.TELEGRAM_BOT_API}/deleteWebhook`);
-      const res = await axios.get(`${process.env.TELEGRAM_BOT_API}/setWebhook?url=${process.env.SERVER_URL}/api/user/webhook/${process.env.BOT_TOKEN}`);
+      const res = await axios.get(
+        `${process.env.TELEGRAM_BOT_API}/setWebhook?url=${process.env.SERVER_URL}/api/user/webhook/${process.env.BOT_TOKEN}`,
+      );
       console.log(res.data);
     } catch (err) {
-      console.log('Please Use VPN and Restart Server to Connect to Telegram Bot');
+      console.log(
+        'Please Use VPN and Restart Server to Connect to Telegram Bot',
+      );
     }
   }
   /**
