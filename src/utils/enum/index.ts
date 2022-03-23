@@ -59,6 +59,7 @@ export enum LoggerMessages {
 export enum TelergramBotMessages {
   ALREADY_ACTIVATED = `You Have Already Activated Binance Plus Notifications`,
   SUCCCESSFULLY_ACTIVATED = `You Have SuccFully Activated Binance Plus Notifications`,
+  ACTIVATE_FIRST = `Activate Binance Plus Notifications First`,
   SUCCCESSFULLY_DEACTIVATED = `You Have SuccFully DeActivated Binance Plus Notifications`,
 }
 

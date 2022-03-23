@@ -95,19 +95,21 @@ describe('BinancePlus User test', () => {
 
         it(`Test get user/affiliates of bnp user after plan purchase API`, async () => {
             const expectedAffiliates = [
-                { level: 1, fullName: `bnp user`, tradingSystem: null, userName: `testuser1`, phoneNumber: '+14842918831', plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, tradingSystem: null, userName: `testuser2`, phoneNumber: '+14842918831', plan_name: 'Silver' }
+                {level: 1, total_affiliates: 1,affiliates:[{ level: 1, fullName: `bnp user`, tradingSystem: null, userName: `testuser1`, phoneNumber: '+14842918831', plan_name: 'Silver' }]},
+                {level: 2, total_affiliates: 1, affiliates:[{ level: 2, fullName: `bnp user`, tradingSystem: null, userName: `testuser2`, phoneNumber: '+14842918831', plan_name: 'Silver' }]}
             ];
-            const expectedAffiliatesCount = [{ level: 1, total_affiliates: 1 }, { level: 2, total_affiliates: 1 }];
             await request(server)
                 .get('/api/user/affiliates')
                 .set('Authorization', helper.getAccessToken())
                 .expect(200)
                 .expect(({ body }) => {
-                    const { affiliates, affiliatesCount } = body.data;
-                    affiliates.map(affiliate => delete affiliate.createdAt);
+                    const affiliates = body.data;
+                    affiliates.map(affiliate => {
+                        affiliate.affiliates.map(levelAffiliate => {
+                            delete levelAffiliate.createdAt;
+                        })
+                    });
                     expect(affiliates).toEqual(expectedAffiliates);
-                    expect(affiliatesCount).toEqual(expectedAffiliatesCount);
                 });
         });
 

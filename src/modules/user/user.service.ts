@@ -29,7 +29,7 @@ export class UsersService {
     private readonly seedService: SeedService,
     private readonly binanceService: BinanceService,
     private readonly telegramService: TelegramService,
-  ) {}
+  ) { }
 
   /**
    * Get user by id
@@ -79,7 +79,7 @@ export class UsersService {
    * @param user
    * @returns
    */
-  async getUserAffiliates(user: User): Promise<AffliatesInterface> {
+  async getUserAffiliates(user: User): Promise<AffliatesInterface[]> {
     if (user.refereeUuid && !user.plan) {
       throw new HttpException(
         ResponseMessage.PURCHASE_PLAN,
@@ -112,7 +112,8 @@ export class UsersService {
                   MlmTree
               WHERE
                   level > 0 AND level <= $2 AND "planPlanId" IS NOT NULL
-              GROUP BY level;`;
+              GROUP BY level 
+              ORDER BY level;`;
     const affiliatesResult = await this.userRepository.query(sql + affiliates, [
       user.uuid,
       user.plan.levels,
@@ -124,10 +125,17 @@ export class UsersService {
     affiliatesCountResult.map(
       (count) => (count.total_affiliates = Number(count.total_affiliates)),
     );
-    return {
-      affiliates: affiliatesResult,
-      affiliatesCount: affiliatesCountResult,
-    };
+    let newAffiliatesRes: any[] =[]; 
+    for(let i=0;i < affiliatesCountResult.length; i++){
+      let levelWiseArray: any[] = [];
+      for(let j=0; j < affiliatesResult.length; j++) {
+        if(affiliatesResult[j].level === affiliatesCountResult[i].level){
+          levelWiseArray.push(affiliatesResult[j]);
+        }
+      }
+      newAffiliatesRes.push({level:affiliatesCountResult[i].level,total_affiliates: affiliatesCountResult[i].total_affiliates,affiliates: levelWiseArray});
+    }
+    return newAffiliatesRes;
   }
 
   /**
@@ -275,14 +283,22 @@ export class UsersService {
   async deActivateUserNotifications(chat_id: number) {
     try {
       const userTelegram = await this.getUserTelegramByChatId(chat_id);
-      userTelegram.isActive = false;
-      await this.userTelegramRepository.save(userTelegram);
+      if (userTelegram.isActive) {
+        userTelegram.isActive = false;
+        await this.userTelegramRepository.save(userTelegram);
+        await this.telegramService.sendResponseToUser({
+          chat_id: userTelegram.chat_id,
+          parse_mode: 'HTML',
+          text: TelergramBotMessages.SUCCCESSFULLY_DEACTIVATED,
+        });
+        return;
+      }
       await this.telegramService.sendResponseToUser({
-        chat_id: userTelegram.chat_id,
-        parse_mode: 'HTML',
-        text: TelergramBotMessages.SUCCCESSFULLY_DEACTIVATED,
-      });
-      return;
+          chat_id: userTelegram.chat_id,
+          parse_mode: 'HTML',
+          text: TelergramBotMessages.ACTIVATE_FIRST,
+        });
+        return;
     } catch (err) {
       throw err;
     }
