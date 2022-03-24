@@ -45,7 +45,6 @@ export enum ResponseMessage {
   VALID_ADDRESS = `Valid Wallet Address`,
   INVALID_CODE = `Invalid Code`,
   INVALID_VERIFICATION_CODE = `Invalid verification code`,
-
 }
 
 // some code enums for sending response code in api response

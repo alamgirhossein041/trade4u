@@ -7,9 +7,7 @@ import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 
 @Injectable()
 export class AppService {
-  constructor(
-  ) {
-  }
+  constructor() {}
 
   root(): string {
     return process.env.APP_URL;
@@ -69,10 +67,11 @@ export class AppService {
   public static async startup() {
     try {
       await SeedService.InsertSeed();
-      !(process.env.NODE_ENV === NodeEnv.TEST) ? await TelegramService.initBotWebhook() : '';
+      !(process.env.NODE_ENV === NodeEnv.TEST)
+        ? await TelegramService.initBotWebhook()
+        : '';
       return;
-    }
-    catch (err) {
+    } catch (err) {
       console.log(err);
     }
   }

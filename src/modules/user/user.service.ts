@@ -332,29 +332,29 @@ export class UsersService {
           return;
         }
       }
-        const code = this.telegramService.getTelegramCode();
-        const newUserTelegram = new UserTelegram();
-        newUserTelegram.chat_id = chat_id;
-        newUserTelegram.name = name;
-        newUserTelegram.code = code;
-        await this.userTelegramRepository.save(newUserTelegram);
-        await this.telegramService.sendCommunicationMessage(newUserTelegram);
-        return;
-      } catch (err) {
-        throw new HttpException(
-          ResponseMessage.INTERNAL_SERVER_ERROR,
-          ResponseCode.INTERNAL_ERROR,
-        );
-      }
+      const code = this.telegramService.getTelegramCode();
+      const newUserTelegram = new UserTelegram();
+      newUserTelegram.chat_id = chat_id;
+      newUserTelegram.name = name;
+      newUserTelegram.code = code;
+      await this.userTelegramRepository.save(newUserTelegram);
+      await this.telegramService.sendCommunicationMessage(newUserTelegram);
+      return;
+    } catch (err) {
+      throw new HttpException(
+        ResponseMessage.INTERNAL_SERVER_ERROR,
+        ResponseCode.INTERNAL_ERROR,
+      );
     }
+  }
 
   /**
    * Update user Telegram Notifications Creds
    * @returns
    */
   public async updateUserTelegramNotifications(
-      user: User,
-      telegramDto: TelegramNotifyDto,
+    user: User,
+    telegramDto: TelegramNotifyDto,
   ): Promise<UserTelegram> {
     const userTelegram = await this.getUserTelegramByCode(telegramDto.code);
     if (!userTelegram) {
@@ -493,7 +493,6 @@ export class UsersService {
     await this.userRepository.delete({ uuid: user.uuid });
   }
 
-
   /**
    * Generate code for profile verification Latest
    * @param User
@@ -576,5 +575,4 @@ export class UsersService {
       });
     return true;
   }
-
 }

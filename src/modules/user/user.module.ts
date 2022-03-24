@@ -15,7 +15,13 @@ import { KlaytnService } from '../klaytn/klaytn.service';
 import { Account } from '../klaytn/account.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserStats, LicenseFee, UserTelegram,Account]),
+    TypeOrmModule.forFeature([
+      User,
+      UserStats,
+      LicenseFee,
+      UserTelegram,
+      Account,
+    ]),
     SeedModule,
     LoggerModule,
     TelegramModule,
@@ -24,7 +30,7 @@ import { Account } from '../klaytn/account.entity';
     MailModule,
   ],
   exports: [UsersService],
-  providers: [UsersService,KlaytnService],
+  providers: [UsersService, KlaytnService],
   controllers: [UserContoller],
 })
 export class UserModule {}

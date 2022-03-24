@@ -137,13 +137,15 @@ export class MailService {
     });
   }
 
-
-    /**
+  /**
    * Latest Send Verfication Code Email To User
    * @param email
    * @param verificationCode
    */
-  public async sendEmailProfileVerificationCode(user: User, verificationCode: string): Promise<void> {
+  public async sendEmailProfileVerificationCode(
+    user: User,
+    verificationCode: string,
+  ): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       const url = process.env.APP_URL;
       const subRoute = 'ready_to_go';

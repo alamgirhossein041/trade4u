@@ -147,7 +147,7 @@ export class KlaytnService {
       }
     });
   }
-   /**
+  /**
    * validate Klaytn Address
    */
   public async validateKlaytnAddressByPublicKey(address: string) {
