@@ -150,7 +150,7 @@ export class KlaytnService {
   /**
    * validate Klaytn Address
    */
-  public async validateKlaytnAddressByPublicKey(address: string) {
+  public async validateKlaytnAddress(address: string) {
     if (this.caver.utils.isValidPublicKey(address) === true) {
       return true;
     } else {

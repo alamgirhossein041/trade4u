@@ -542,7 +542,7 @@ export class UsersService {
    * @returns
    */
   async validateKlaytnAddress(klay: string): Promise<boolean> {
-    const status = await this.klaytnService.validateKlaytnAddressByPublicKey(
+    const status = await this.klaytnService.validateKlaytnAddress(
       klay,
     );
     if (status) {
