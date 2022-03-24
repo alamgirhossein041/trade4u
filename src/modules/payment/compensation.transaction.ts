@@ -8,6 +8,8 @@ import { PlanNameEnum } from '../seed/seed.enums';
 import bigDecimal from 'js-big-decimal';
 import { PerformanceFee } from '../seed/preformaceFee.entity';
 import { BonusType } from './commons/payment.enum';
+import { TelegramService } from '../../utils/telegram/telegram-bot.service';
+import { SchedulerService } from '../scheduler/scheduler.service';
 
 @Injectable()
 export class CompensationTransaction {
@@ -15,16 +17,17 @@ export class CompensationTransaction {
    *
    * @param licenseRepository
    * @param performanceRepository
-   * @param userRepository
    * @param userService
-   */
+   * @param telegramService    
+   **/
   constructor(
     @InjectRepository(LicenseFee)
     private readonly licenseRepository: Repository<LicenseFee>,
     @InjectRepository(PerformanceFee)
     private readonly performanceRepository: Repository<PerformanceFee>,
     private readonly userService: UsersService,
-  ) { }
+    private readonly telegramService: TelegramService,
+  ) {}
 
   /**
    * Distribute License Bonus Among Parents Of User
@@ -88,7 +91,7 @@ export class CompensationTransaction {
             bonusType,
             planName,
             parent.level,
-            parent.parent_depth_level
+            parent.parent_depth_level,
           );
           let amount = this.getBonusAmount(bonusPercentage, planAmount);
           amount += parent.balance;
@@ -97,6 +100,7 @@ export class CompensationTransaction {
           );
           parentToUpdate.balance = amount;
           await queryRunner.manager.save(parentToUpdate);
+          await this.notifyParentOnTelegram(parentToUpdate,'sdsadsdasdasdadsad', amount);
           resolve();
         });
       } catch (err) {
@@ -114,9 +118,9 @@ export class CompensationTransaction {
     bonusType: string,
     planName: string,
     level: number,
-    parentDepthLevel: number
+    parentDepthLevel: number,
   ) {
-    if(level > parentDepthLevel) {
+    if (level > parentDepthLevel) {
       return 0;
     }
     let percentage: number;
@@ -158,5 +162,37 @@ export class CompensationTransaction {
         .getValue(),
     );
     return originalAmount;
+  }
+
+  /**
+   * Notify Parent On Telegram if Parent Notifications are active
+   * @param parent
+   * @returns
+   */
+  private async notifyParentOnTelegram(parent: User,txHash: string,amountKLAY: number) {
+    const parentWithDetail = await this.userService.get(parent.uuid);
+    if (
+      parentWithDetail.userTelegram &&
+      parentWithDetail.userTelegram.isActive
+    ) {
+      const parentTelegram = parentWithDetail.userTelegram;
+      if (parentTelegram.bonusNotificationsActive) {
+        const amountUSD = Number(
+          new bigDecimal(amountKLAY)
+            .multiply(new bigDecimal(SchedulerService.klayPrice))
+            .getValue(),
+        );
+        await this.telegramService.sendBonusNotification(
+          parentTelegram,
+          txHash,
+          SchedulerService.klayPrice,
+          amountKLAY,
+          amountUSD,
+          BonusType.LISENCE
+        );
+        return;
+      }
+    }
+    return;
   }
 }

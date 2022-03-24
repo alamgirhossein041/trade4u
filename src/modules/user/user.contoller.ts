@@ -10,8 +10,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
-import { Request,Response } from 'express';
-import axios from 'axios';
+import { Request, Response } from 'express';
 import {
   ResponseCode,
   ResponseMessage,
@@ -52,7 +51,11 @@ export class UserContoller {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('update_plan/:planId')
-  public async updateUserPlan(@CurrentUser() user: User, @Param('planId') planId: number, @Res() res: Response): Promise<Response> {
+  public async updateUserPlan(
+    @CurrentUser() user: User,
+    @Param('planId') planId: number,
+    @Res() res: Response,
+  ): Promise<Response> {
     const isPosInt = isPositiveInteger(planId.toString());
     if (!isPosInt)
       throw new HttpException(
@@ -71,11 +74,15 @@ export class UserContoller {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('binance_credentials')
-  public async updateBinanceCredentials(@CurrentUser() user: User,@Body() body: BinanceTradingDto, @Res() res: Response): Promise<Response> {
+  public async updateBinanceCredentials(
+    @CurrentUser() user: User,
+    @Body() body: BinanceTradingDto,
+    @Res() res: Response,
+  ): Promise<Response> {
     this.loggerService.log(
       `Post user/binance_credentials ${LoggerMessages.API_CALLED}`,
     );
-    await this.userService.updateUserBinanceCreds(user,body);
+    await this.userService.updateUserBinanceCreds(user, body);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       message: ResponseMessage.SUCCESS,
@@ -87,54 +94,46 @@ export class UserContoller {
     this.loggerService.log(
       `Post user/telegram_webhook ${LoggerMessages.API_CALLED}`,
     );
-    if (req.body.message.text && (req.body.message.text === 'hello' || req.body.message.text === '/start')) {
-      let message: string;
-      let resObj: Object;
-      let Url = process.env.TELEGRAM_BOT_API + `/sendMessage`;
-      const firstName = req.body.message.from.first_name;
-      const chatId = req.body.message.chat.id;
-      const userTelegram = await this.userService.getTelegramBotCode(chatId, firstName);
-      if(userTelegram.isActive) {
-      message = `You Have Already Activated Binance Plus Notifications`;  
-      } else {
-        message = `Hi ${firstName}!
-      \nYour Telegram comunication code is <u><b>${userTelegram.code}</b></u>
-      \nBinancePlus Team`;
-      }
-      resObj = { chat_id: chatId, text: message, parse_mode: 'HTML' };
-      try {
-        await axios.post(Url, resObj);
-      } catch (err) {
-        console.log(err);
-      }
+    let firstName: string;
+    let chatId: number;
+    let text: string = ``;
+    if (req.body.edited_message) {
+      firstName = req.body.edited_message.from.first_name;
+      chatId = req.body.edited_message.chat.id;
+      text = req.body.edited_message.text;
+    } else if (req.body.message.text) {
+      firstName = req.body.message.from.first_name;
+      chatId = req.body.message.chat.id;
+      text = req.body.message.text;
     }
-    return res.send();
+    if (text && (text === 'hello' || text === '/start')) {
+      await this.userService.getTelegramBotCode(chatId, firstName);
+    } else if (text && text === '/stop') {
+      await this.userService.deActivateUserNotifications(chatId);
+    }
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.SUCCESS,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('telegram_code')
-  public async updateTelegramNotifications(@CurrentUser() user: User,@Body() body: TelegramNotifyDto, @Res() res: Response): Promise<Response> {
+  public async updateTelegramNotifications(
+    @CurrentUser() user: User,
+    @Body() body: TelegramNotifyDto,
+    @Res() res: Response,
+  ): Promise<Response> {
     this.loggerService.log(
       `Post user/telegram_code ${LoggerMessages.API_CALLED}`,
     );
     try {
-      const userTelegram = await this.userService.updateUserTelegramNotifications(user,body);
-      let resObj: Object;
-      let Url = process.env.TELEGRAM_BOT_API + `/sendMessage`;
-      let message = `You have successfully activated Binance Plus Notifications\n`;
-      if(userTelegram.bonusNotificationsActive)  message+=`\n@ <b>Bonus Notifications</b>\n`;
-      if(userTelegram.promotionNotificationsActive)  message+=`\n@ <b>Promotion Notifications</b>\n`;
-      if(userTelegram.systemNotificationsActive)  message+=`\n@ <b>System Notifications</b>\n`;
-      if(userTelegram.tradeNotificationsActive)  message+=`\n@ <b>Trading Notifications</b>\n`;
-      message+=`\nBinancePlus Team`
-      resObj = {chat_id: userTelegram.chat_id,text: message,parse_mode: `HTML`}
-      await axios.post(Url,resObj);
+      await this.userService.updateUserTelegramNotifications(user, body);
       return res.status(ResponseCode.SUCCESS).send({
-      statusCode: ResponseCode.SUCCESS,
-      message: ResponseMessage.SUCCESS,
-    });
-    } catch(err) {
-      console.log(err);
+        statusCode: ResponseCode.SUCCESS,
+        message: ResponseMessage.SUCCESS,
+      });
+    } catch (err) {
       throw err;
     }
   }

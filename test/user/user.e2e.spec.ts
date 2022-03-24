@@ -6,12 +6,13 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock,TelegramBotMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
 import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 import { BinanceService } from '../../src/utils/binance/binance.service';
+import { TelegramService } from '../../src/utils/telegram/telegram-bot.service';
 
 describe('BinancePlus User test', () => {
     let app: INestApplication;
@@ -41,6 +42,8 @@ describe('BinancePlus User test', () => {
             .useValue(KlaytnServiceMock)
             .overrideProvider(BinanceService)
             .useValue(BinanceMock)
+            .overrideProvider(TelegramService)
+            .useValue(TelegramBotMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
@@ -51,7 +54,7 @@ describe('BinancePlus User test', () => {
         server = app.getHttpServer();
     });
 
-    describe(`Get /affiliates of bnp user`, () => {
+    describe(`bnp user`, () => {
         it(`Test /register bnp user affiliates API`, async () => {
             await request(server)
                 .post('/api/auth/register?referrer=john58')
@@ -92,19 +95,21 @@ describe('BinancePlus User test', () => {
 
         it(`Test get user/affiliates of bnp user after plan purchase API`, async () => {
             const expectedAffiliates = [
-                { level: 1, fullName: `bnp user`, tradingSystem: null, userName: `testuser1`, phoneNumber: '+14842918831', plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, tradingSystem: null, userName: `testuser2`, phoneNumber: '+14842918831', plan_name: 'Silver' }
+                {level: 1, total_affiliates: 1,affiliates:[{ level: 1, fullName: `bnp user`, tradingSystem: null, userName: `testuser1`, phoneNumber: '+14842918831', plan_name: 'Silver' }]},
+                {level: 2, total_affiliates: 1, affiliates:[{ level: 2, fullName: `bnp user`, tradingSystem: null, userName: `testuser2`, phoneNumber: '+14842918831', plan_name: 'Silver' }]}
             ];
-            const expectedAffiliatesCount = [{ level: 1, total_affiliates: 1 }, { level: 2, total_affiliates: 1 }];
             await request(server)
                 .get('/api/user/affiliates')
                 .set('Authorization', helper.getAccessToken())
                 .expect(200)
                 .expect(({ body }) => {
-                    const { affiliates, affiliatesCount } = body.data;
-                    affiliates.map(affiliate => delete affiliate.createdAt);
+                    const affiliates = body.data;
+                    affiliates.map(affiliate => {
+                        affiliate.affiliates.map(levelAffiliate => {
+                            delete levelAffiliate.createdAt;
+                        })
+                    });
                     expect(affiliates).toEqual(expectedAffiliates);
-                    expect(affiliatesCount).toEqual(expectedAffiliatesCount);
                 });
         });
 
@@ -159,6 +164,35 @@ describe('BinancePlus User test', () => {
                 .post('/api/user/binance_credentials')
                 .set('Authorization', helper.getAccessToken())
                 .send(dtoObj)
+                .expect(200)
+        });
+
+
+        it(`Test /webhook bnp telegram bot webhook API`, async () => {
+            await request(server)
+                .post('/api/user/webhook/5060344605:AAHuBFdqTZzKg_avhYCRP6DkZrJSXFFAqa4')
+                .send({message:{chat:{id: 154090},from:{first_name: 'HasNain'},text: 'hello'}})
+                .expect(200)
+        });
+
+        it(`Test /telegram_code bnp telegram notifications enabling API`, async () => {
+            await request(server)
+                .post('/api/user/telegram_code')
+                .set('Authorization',helper.getAccessToken())
+                .send({
+                    code: 12345678,
+                    tradingNotifications: true,
+                    systemNotifications: true,
+                    bonusNotifications: true,
+                    promotionNotifications: true
+                })
+                .expect(200)
+        });
+
+        it(`Test /webhook bnp telegram bot webhook API`, async () => {
+            await request(server)
+                .post('/api/user/webhook/5060344605:AAHuBFdqTZzKg_avhYCRP6DkZrJSXFFAqa4')
+                .send({message:{chat:{id: 154090},from:{first_name: 'HasNain'},text: 'hello'}})
                 .expect(200)
         });
     });

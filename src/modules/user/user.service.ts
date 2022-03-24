@@ -1,16 +1,20 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
+import { ConsoleLogger, HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
 import { Repository } from 'typeorm';
-import { ResponseCode, ResponseMessage } from '../../utils/enum';
+import {
+  ResponseCode,
+  ResponseMessage,
+  TelergramBotMessages,
+} from '../../utils/enum';
 import { UserStats } from './user-stats.entity';
 import { AffliatesInterface } from './commons/user.types';
 import { User } from './user.entity';
 import { SeedService } from '../seed/seed.service';
 import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
 import { BinanceService } from '../../utils/binance/binance.service';
-import { UserTelegram } from './user-telegram.entity';
-import otpGenerator from 'otp-generator';
+import { UserTelegram } from './telegram.entity';
+import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 
 @Injectable()
 export class UsersService {
@@ -23,17 +27,18 @@ export class UsersService {
     private readonly userTelegramRepository: Repository<UserTelegram>,
     private readonly seedService: SeedService,
     private readonly binanceService: BinanceService,
+    private readonly telegramService: TelegramService,
   ) { }
 
   /**
    * Get user by id
-   * @param id
+   * @param uuid
    * @returns
    */
   async get(uuid: string): Promise<User> {
     return this.userRepository.findOne(
       { uuid },
-      { relations: ['plan', 'userStats'] },
+      { relations: ['plan', 'userStats', 'userTelegram'] },
     );
   }
 
@@ -44,23 +49,6 @@ export class UsersService {
    */
   async getByEmail(email: string): Promise<User> {
     return await this.userRepository.findOne({ email });
-  }
-
-  /**
-   * @param chat_id
-   * @returns BinancePlus Bot Starting Code
-   */
-  async getTelegramBotCode(chat_id: number,name: string): Promise<UserTelegram> {
-    const userTelegram = await this.userTelegramRepository.findOne({ chat_id });
-    if (userTelegram) {
-      return userTelegram;
-    }
-    const code = Number(otpGenerator.generate(8, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false }));
-    const newUserTelegram = new UserTelegram();
-    newUserTelegram.chat_id = chat_id;
-    newUserTelegram.name = name;
-    newUserTelegram.code = code;
-    return await this.userTelegramRepository.save(newUserTelegram);
   }
 
   /**
@@ -90,7 +78,7 @@ export class UsersService {
    * @param user
    * @returns
    */
-  async getUserAffiliates(user: User): Promise<AffliatesInterface> {
+  async getUserAffiliates(user: User): Promise<AffliatesInterface[]> {
     if (user.refereeUuid && !user.plan) {
       throw new HttpException(
         ResponseMessage.PURCHASE_PLAN,
@@ -123,7 +111,8 @@ export class UsersService {
                   MlmTree
               WHERE
                   level > 0 AND level <= $2 AND "planPlanId" IS NOT NULL
-              GROUP BY level;`;
+              GROUP BY level 
+              ORDER BY level;`;
     const affiliatesResult = await this.userRepository.query(sql + affiliates, [
       user.uuid,
       user.plan.levels,
@@ -135,10 +124,21 @@ export class UsersService {
     affiliatesCountResult.map(
       (count) => (count.total_affiliates = Number(count.total_affiliates)),
     );
-    return {
-      affiliates: affiliatesResult,
-      affiliatesCount: affiliatesCountResult,
-    };
+    let newAffiliatesRes: any[] = [];
+    for (let i = 0; i < affiliatesCountResult.length; i++) {
+      let levelWiseArray: any[] = [];
+      for (let j = 0; j < affiliatesResult.length; j++) {
+        if (affiliatesResult[j].level === affiliatesCountResult[i].level) {
+          levelWiseArray.push(affiliatesResult[j]);
+        }
+      }
+      newAffiliatesRes.push({
+        level: affiliatesCountResult[i].level,
+        total_affiliates: affiliatesCountResult[i].total_affiliates,
+        affiliates: levelWiseArray,
+      });
+    }
+    return newAffiliatesRes;
   }
 
   /**
@@ -180,7 +180,10 @@ export class UsersService {
       return parentsResult;
     } catch (err) {
       console.log(err);
-      throw new HttpException(ResponseMessage.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_ERROR)
+      throw new HttpException(
+        ResponseMessage.INTERNAL_SERVER_ERROR,
+        ResponseCode.INTERNAL_ERROR,
+      );
     }
   }
 
@@ -241,8 +244,14 @@ export class UsersService {
    * Update user Binance Creds
    * @returns
    */
-  public async updateUserBinanceCreds(user: User, binanceDto: BinanceTradingDto): Promise<User> {
-    await this.binanceService.verifyApiKey(binanceDto.apiKey, binanceDto.apiSecret);
+  public async updateUserBinanceCreds(
+    user: User,
+    binanceDto: BinanceTradingDto,
+  ): Promise<User> {
+    await this.binanceService.verifyApiKey(
+      binanceDto.apiKey,
+      binanceDto.apiSecret,
+    );
     user.apiKey = binanceDto.apiKey;
     user.apiSecret = binanceDto.apiSecret;
     user.tradingSystem = binanceDto.tradingSystem;
@@ -250,22 +259,119 @@ export class UsersService {
   }
 
   /**
+   * get user telegram by code
+   * @param code
+   * @returns
+   */
+  async getUserTelegramByCode(code: number) {
+    const userTelegram = await this.userTelegramRepository.findOne({ code });
+    return userTelegram;
+  }
+
+  /**
+   * Get user telegram by chat id
+   * @param chat_id
+   * @returns
+   */
+  async getUserTelegramByChatId(chat_id: number) {
+    const userTelegram = await this.userTelegramRepository.findOne({ chat_id });
+    return userTelegram;
+  }
+
+  /**
+   * DeActivate user telegram notifications
+   * @param chat_id
+   * @returns
+   */
+  async deActivateUserNotifications(chat_id: number) {
+    try {
+      const userTelegram = await this.getUserTelegramByChatId(chat_id);
+      if (userTelegram && userTelegram.isActive) {
+        userTelegram.isActive = false;
+        await this.userTelegramRepository.save(userTelegram);
+        await this.telegramService.sendResponseToUser({
+          chat_id: userTelegram.chat_id,
+          parse_mode: 'HTML',
+          text: TelergramBotMessages.SUCCCESSFULLY_DEACTIVATED,
+        });
+        return;
+      } else if (userTelegram && !userTelegram.isActive) {
+        await this.telegramService.sendResponseToUser({
+          chat_id: userTelegram.chat_id,
+          parse_mode: 'HTML',
+          text: TelergramBotMessages.ACTIVATE_FIRST,
+        });
+        return;
+      }
+      return;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  /**
+   * Get The communication Code Of telegram bot for current user
+   * @param chat_id
+   * @param name
+   * @returns
+   */
+  async getTelegramBotCode(chat_id: number, name: string): Promise<void> {
+    try {
+      const userTelegram = await this.getUserTelegramByChatId(chat_id);
+      if (userTelegram) {
+        if (userTelegram.isActive) {
+          await this.telegramService.sendAlreadyActivatedMessage(userTelegram);
+          return;
+        } else {
+          await this.telegramService.sendCommunicationMessage(userTelegram);
+          return;
+        }
+      }
+        const code = this.telegramService.getTelegramCode();
+        const newUserTelegram = new UserTelegram();
+        newUserTelegram.chat_id = chat_id;
+        newUserTelegram.name = name;
+        newUserTelegram.code = code;
+        await this.userTelegramRepository.save(newUserTelegram);
+        await this.telegramService.sendCommunicationMessage(newUserTelegram);
+        return;
+      } catch (err) {
+        throw new HttpException(
+          ResponseMessage.INTERNAL_SERVER_ERROR,
+          ResponseCode.INTERNAL_ERROR,
+        );
+      }
+    }
+
+  /**
    * Update user Telegram Notifications Creds
    * @returns
    */
-  public async updateUserTelegramNotifications(user: User, telegramDto: TelegramNotifyDto): Promise<UserTelegram> {
-    const userTelegram = await this.userTelegramRepository.findOne({code: telegramDto.code});
-    if(!userTelegram) {
-      throw new HttpException(`Code ${ResponseMessage.IS_INVALID}`,ResponseCode.BAD_REQUEST);
+  public async updateUserTelegramNotifications(
+      user: User,
+      telegramDto: TelegramNotifyDto,
+  ): Promise<UserTelegram> {
+    const userTelegram = await this.getUserTelegramByCode(telegramDto.code);
+    if (!userTelegram) {
+      throw new HttpException(
+        `Code ${ResponseMessage.IS_INVALID}`,
+        ResponseCode.BAD_REQUEST,
+      );
     }
-    userTelegram.isActive = true;
-    userTelegram.systemNotificationsActive = telegramDto.systemNotifications;
     userTelegram.bonusNotificationsActive = telegramDto.bonusNotifications;
-    userTelegram.promotionNotificationsActive = telegramDto.promotionNotifications;
+    userTelegram.systemNotificationsActive = telegramDto.systemNotifications;
+    userTelegram.promotionNotificationsActive =
+      telegramDto.promotionNotifications;
     userTelegram.tradeNotificationsActive = telegramDto.tradingNotifications;
-    const updatedTelegram = await this.userTelegramRepository.save(userTelegram);
+    if (!userTelegram.isActive) {
+      userTelegram.isActive = true;
+    }
+    const updatedTelegram = await this.userTelegramRepository.save(
+      userTelegram,
+    );
     user.userTelegram = updatedTelegram;
     await this.userRepository.save(user);
+    await this.telegramService.sendNotificationsMessage(updatedTelegram);
     return updatedTelegram;
   }
 

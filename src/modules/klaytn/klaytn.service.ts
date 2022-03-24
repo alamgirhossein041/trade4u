@@ -30,9 +30,7 @@ export class KlaytnService {
     private readonly accountRepository: Repository<Account>,
     private readonly loggerService: LoggerService,
   ) {
-    this.caver = new Caver(
-      process.env.KLAYTN_NODE_URL
-    );
+    this.caver = new Caver(process.env.KLAYTN_NODE_URL);
     KlaytnService.keyStore = new Level(process.env.KEY_STORE_PATH);
     this.wallet = this.caver.wallet;
     (async () => {
@@ -82,11 +80,11 @@ export class KlaytnService {
     return new Promise<Account>(async (resolve, reject) => {
       try {
         const keyring = this.caver.wallet.keyring.generate();
-        await KlaytnService.keyStore.put(keyring.address, keyring.key.privateKey);
-        const account = await this.saveAccount(
+        await KlaytnService.keyStore.put(
           keyring.address,
-          queryRunner,
+          keyring.key.privateKey,
         );
+        const account = await this.saveAccount(keyring.address, queryRunner);
         this.wallet.add(keyring);
 
         resolve(account);
@@ -123,7 +121,7 @@ export class KlaytnService {
   }
 
   /**
-   * Sync wallet (inmemory ~ db) 
+   * Sync wallet (inmemory ~ db)
    */
   @Cron(CronExpression.EVERY_5_MINUTES, {
     name: JOB.WALLET_SYNC,
@@ -132,25 +130,21 @@ export class KlaytnService {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const accounts = await this.getHaltedAccounts();
-        await Promise.all(accounts.map(async m => {
-          const exist = this.wallet.isExisted(m.address);
-          if (!exist) {
-            const sk = await KlaytnService.keyStore.get(m.address);
-            this.wallet.newKeyring(m.address, sk);
-          }
-          this.loggerService.log(
-            `Listening at: ${m.address}`
-          );
-        }));
-        resolve();
-      }
-      catch (err) {
-        this.loggerService.error(
-          `Errow while wallet sync job`
+        await Promise.all(
+          accounts.map(async (m) => {
+            const exist = this.wallet.isExisted(m.address);
+            if (!exist) {
+              const sk = await KlaytnService.keyStore.get(m.address);
+              this.wallet.newKeyring(m.address, sk);
+            }
+            this.loggerService.log(`Listening at: ${m.address}`);
+          }),
         );
+        resolve();
+      } catch (err) {
+        this.loggerService.error(`Errow while wallet sync job`);
         reject(err);
       }
     });
-
   }
 }

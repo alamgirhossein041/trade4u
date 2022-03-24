@@ -140,7 +140,7 @@ export class PaymentService {
             const account = await this.generateAddressAndBindToPayment(payment);
             resolve(account);
           } catch (err) {
-            console.log(err)
+            console.log(err);
             reject();
           }
           break;
@@ -176,7 +176,7 @@ export class PaymentService {
           await queryRunner.release();
           return resolve(account);
         } catch (err) {
-          console.log("Error logs:", err)
+          console.log('Error logs:', err);
           await queryRunner.rollbackTransaction();
           await queryRunner.release();
           reject(err);
