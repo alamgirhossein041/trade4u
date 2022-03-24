@@ -4,7 +4,9 @@ import express, { Request, Response } from "express";
 export const MailerMock = {
     sendEmailConfirmation: jest.fn(),
     sendForgotPasswordMail: jest.fn(),
-    sendEmailProfileVerificationCode: jest.fn(),
+     sendEmailProfileVerificationCode:jest.fn(() => {
+        return;
+    }),
 }
 export const LoggerMock = {
     log: jest.fn((value: string) => {
@@ -56,4 +58,12 @@ export const CoinMarketMock = {
 };
 
 export const KlaytnServiceMock = {
+    validateKlaytnAddress:jest.fn((val) => {
+        if(val=="0xbd6405a7f14f57ecea4a6ffe774ee26d051f7eed13257c9a574055b20e42bab0e8beba92e2e675101eb2a55ba4693080d0bf14548beae7bc93b18b72d10dd350"){
+            return true
+        }else{
+            return false;
+        }
+        
+    }),
 };

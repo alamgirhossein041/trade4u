@@ -196,42 +196,37 @@ describe('BinancePlus User test', () => {
                 .expect(200)
         });
     
-        it(`Test Send verification code for profile info`, async () => {
-        await request(server)
-            .get('/api/user/getprofile_verification_code')
-            .set('Authorization', helper.getAccessToken())
-            .expect(200)
-            .expect(({ body }) => {
-                expect(body.message).toEqual(ResponseMessage.VERIFICATION_CODE_SEND);
-            });
-        });
-        // it(`Test verify code for profile info`, async () => {
-
-        //     await request(server)
-        //         .get('/api/user/profile_details/123456')
-        //         .set('Authorization', helper.getAccessToken())
-        //         .expect(({ body }) => {
-        //             expect(body.statusCode).toEqual(404);
-        //         });
-        // });
-        // it(`Test get user klay wallet address API`, async () => {
+        // it(`Test Send verification code for profile info`, async () => {
         // await request(server)
-        //     .patch('/api/user/validate_wallet_address')
-        //     .send({klayWallet:`0xbd6405a7f14f57ecea4a6ffe774ee26d051f7eed13257c9a574055b20e42bab0e8beba92e2e675101eb2a55ba4693080d0bf14548beae7bc93b18b72d10dd350`})
+        //     .get('/api/user/getprofile_verification_code')
         //     .set('Authorization', helper.getAccessToken())
         //     .expect(200)
         //     .expect(({ body }) => {
-        //         expect(body.message).toEqual(ResponseMessage.VALID_ADDRESS);
-        //     });
-        //     await request(server)
-        //     .patch('/api/user/klay_wallet_address')
-        //     .send({klayWallet:`0xbd6405a7f14f55d0bf14548beae7bc93b18b72d10dd350`})
-        //     .set('Authorization', helper.getAccessToken())
-        //     .expect(400)
-        //     .expect(({ body }) => {
-        //         expect(body.message).toEqual(ResponseMessage.INVALID_ADDRESS);
+        //         expect(body.message).toEqual(ResponseMessage.VERIFICATION_CODE_SEND);
         //     });
         // });
+        it(`Test verify code for profile info`, async () => {
+
+            await request(server)
+                .get('/api/user/profile_details/123456')
+                .set('Authorization', helper.getAccessToken())
+                .expect(({ body }) => {
+                    expect(body.statusCode).toEqual(404);
+                });
+        });
+        it(`Test get user klay wallet address API`, async () => {
+        await request(server)
+            .patch('/api/user/validate_wallet_address')
+            .send({klayWalletAddress:"0xbd6405a7f14f57ecea4a6ffe774ee26d051f7eed13257c9a574055b20e42bab0e8beba92e2e675101eb2a55ba4693080d0bf14548beae7bc93b18b72d10dd350"})
+            .set('Authorization', helper.getAccessToken())
+            .expect(200)
+            await request(server)
+            .patch('/api/user/validate_wallet_address')
+            .send({klayWallet:`0xbd6405a7f14f55d0bf14548beae7bc93b18b72d10dd350`})
+            .set('Authorization', helper.getAccessToken())
+            .expect(404)
+    
+        });
     });
     afterAll(async () => {
         await helper.clearDB();

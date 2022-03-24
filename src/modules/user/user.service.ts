@@ -463,42 +463,12 @@ export class UsersService {
     user.plan = plan;
     return await this.userRepository.save(user);
   }
-
-  /**
-   * Forget password confirmation
-   * @param email
-   * @param password
-   * @returns
-   */
-  public async confirmForgotPassword(
-    email: string,
-    password: string,
-  ): Promise<User> {
-    const user: User = await this.userRepository.findOne({ email });
-    if (user) {
-      await this.userRepository.update({ email }, { password });
-      return user;
-    } else {
-      throw new HttpException(
-        ResponseMessage.USER_DOES_NOT_EXIST,
-        ResponseCode.NOT_FOUND,
-      );
-    }
-  }
-
-  /**
-   * Remove a user
-   */
-  async remove(user: User) {
-    await this.userRepository.delete({ uuid: user.uuid });
-  }
-
-  /**
+    /**
    * Generate code for profile verification Latest
    * @param User
    * @returns
    */
-  async getProfileVerificationCode(user: User) {
+  async getProfileVerificationCode(user: User) :Promise<boolean>{
     var random = Math.floor(100000 + Math.random() * 900000);
     await this.userRepository.update(
       { email: user.email },
@@ -514,6 +484,38 @@ export class UsersService {
       });
     return;
   }
+
+  /**
+   * Forget password confirmation
+   * @param email
+   * @param password
+   * @returns
+   */
+  public async confirmForgotPassword(
+    email: string,
+    password: string,
+  ) {
+    const user: User = await this.userRepository.findOne({ email });
+    if (user) {
+      await this.userRepository.update({ email }, { password });
+      return user;
+    } else {
+      throw new HttpException(
+        ResponseMessage.USER_DOES_NOT_EXIST,
+        ResponseCode.NOT_FOUND,
+      );
+    }
+    
+  }
+
+  /**
+   * Remove a user
+   */
+  async remove(user: User) {
+    //await this.userRepository.delete({ uuid: user.uuid });
+  }
+
+
 
   /**
    * Profile Details After Verification
