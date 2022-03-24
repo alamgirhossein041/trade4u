@@ -4,6 +4,7 @@ import { getConnection } from 'typeorm';
 import { Plan } from "../src/modules/seed/plan.entity";
 import { User } from "../src/modules/user/user.entity";
 import { Account } from "../src/modules/klaytn/account.entity";
+const RedisServer = require('redis-server');
 
 export class Helper {
     private app: INestApplication;
@@ -144,5 +145,22 @@ export class Helper {
             const repository = getConnection().getRepository(entity.name);
             await repository.query(`TRUNCATE ${entity.tableName} RESTART IDENTITY CASCADE;`);
         }
+    }
+
+
+    /**
+     * 
+     */
+    public async startLocalRedisServer() {
+        const MOCK_SERVER_PORT = 6379;
+        try {
+            const server = new RedisServer();
+            await server.open({ port: MOCK_SERVER_PORT });
+        } catch (e) {
+            console.error('unable to start local redis-server', e);
+            process.exit(1);
+        }
+        return MOCK_SERVER_PORT;
+
     }
 }

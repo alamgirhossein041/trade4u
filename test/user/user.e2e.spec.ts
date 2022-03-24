@@ -9,7 +9,7 @@ import { MailService } from '../../src/utils/mailer/mail.service';
 import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock, TelegramBotMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
-import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
+import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
 import { BinanceService } from '../../src/utils/binance/binance.service';
 import { TelegramService } from '../../src/utils/telegram/telegram-bot.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';

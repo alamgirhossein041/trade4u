@@ -6,7 +6,7 @@ import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
 import { CoinMarketMock, LoggerMock, MailerMock } from '../mocks/mocks';
 import { Helper } from '../helper';
-import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
+import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
 import request from 'supertest';
 import { AppService } from '../../src/modules/main/app.service';
 var rimraf = require("rimraf");

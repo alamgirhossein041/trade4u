@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { SchedulerService } from './scheduler.service';
 import { SchedulerController } from './scheduler.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Price } from './price.entity';
 import { LoggerModule } from '../../utils/logger/logger.module';
-import { CoinGeckoMarket } from './coingecko.service';
+import { PaymentModule } from '../../modules/payment/payment.module';
+import { BlockProcessor } from './block.processor';
+import { KlaytnModule } from '../../modules/klaytn/klaytn.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Price]), LoggerModule],
+  imports: [LoggerModule, PaymentModule, KlaytnModule],
   controllers: [SchedulerController],
-  providers: [SchedulerService, CoinGeckoMarket],
-  exports: [SchedulerService, CoinGeckoMarket],
+  providers: [SchedulerService, BlockProcessor],
+  exports: [SchedulerService, BlockProcessor],
 })
 export class SchedulerModule {}
