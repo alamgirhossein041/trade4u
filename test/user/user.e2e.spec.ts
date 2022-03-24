@@ -152,7 +152,6 @@ describe('BinancePlus User test', () => {
                     expect(body.data).toEqual(expectedObj);
                 });
         });
-
         it(`Test post user/update_plan/:planId API`, async () => {
             await request(server)
                 .post('/api/user/update_plan/3')
@@ -206,19 +205,16 @@ describe('BinancePlus User test', () => {
             .expect(({ body }) => {
                 expect(body.message).toEqual(ResponseMessage.VERIFICATION_CODE_SEND);
             });
-    });
+        });
+        it(`Test verify code for profile info`, async () => {
 
-    it(`Test verify code for profile info`, async () => {
-
-        await request(server)
-            .get('/api/user/profile_details/123456')
-            .set('Authorization', helper.getAccessToken())
-            .expect(({ body }) => {
-                expect(body.statusCode).toEqual(404);
-            });
-    });
-           
-
+            await request(server)
+                .get('/api/user/profile_details/123456')
+                .set('Authorization', helper.getAccessToken())
+                .expect(({ body }) => {
+                    expect(body.statusCode).toEqual(404);
+                });
+        });
         it(`Test get user klay wallet address API`, async () => {
         await request(server)
             .patch('/api/user/klay_wallet_address')
@@ -228,8 +224,6 @@ describe('BinancePlus User test', () => {
             .expect(({ body }) => {
                 expect(body.message).toEqual(ResponseMessage.VALID_ADDRESS);
             });
-
-
             await request(server)
             .patch('/api/user/klay_wallet_address')
             .send({klayWallet:`0xbd6405a7f14f55d0bf14548beae7bc93b18b72d10dd350`})
@@ -238,12 +232,8 @@ describe('BinancePlus User test', () => {
             .expect(({ body }) => {
                 expect(body.message).toEqual(ResponseMessage.INVALID_ADDRESS);
             });
+        });
     });
-
-
-
-    });
-
     afterAll(async () => {
         await helper.clearDB();
         await app.close();

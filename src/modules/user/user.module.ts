@@ -11,10 +11,11 @@ import { BinanceModule } from '../../utils/binance/binance.module';
 import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 import { UserTelegram } from './telegram.entity';
 import { MailModule } from '../../utils/mailer/mail.module';
-
+import { KlaytnService } from '../klaytn/klaytn.service';
+import { Account } from '../klaytn/account.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserStats, LicenseFee, UserTelegram]),
+    TypeOrmModule.forFeature([User, UserStats, LicenseFee, UserTelegram,Account]),
     SeedModule,
     LoggerModule,
     TelegramModule,
@@ -23,7 +24,7 @@ import { MailModule } from '../../utils/mailer/mail.module';
     MailModule,
   ],
   exports: [UsersService],
-  providers: [UsersService],
+  providers: [UsersService,KlaytnService],
   controllers: [UserContoller],
 })
 export class UserModule {}

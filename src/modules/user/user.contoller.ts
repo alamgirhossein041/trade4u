@@ -25,7 +25,7 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { EarningLimit } from './commons/user.constants';
 import { isPositiveInteger } from '../../utils/methods';
 import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
-
+import { UserUpdatedData } from './commons/user.types';
 @Controller('api/user')
 export class UserContoller {
   constructor(
@@ -222,27 +222,32 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get('getprofilecode')
-  public async profileVerificationCode( @CurrentUser() user: User,@Res() res: Response): Promise<Response> {
+  @Get('getprofile_verification_code')
+  public async getProfileVerificationCode(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
     this.loggerService.log(
-      `GET user/getprofilecode ${LoggerMessages.API_CALLED}`,
+      `GET user/getprofile_verification_code ${LoggerMessages.API_CALLED}`,
     );
-    const profileCode = await this.userService.profileVerificationCode(user);
+    await this.userService.getProfileVerificationCode(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      data: profileCode,
       message: ResponseMessage.VERIFICATION_CODE_SEND,
     });
   }
 
-
-   @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('profile_details/:code')
-  public async profileDetails( @CurrentUser() user: User,@Res() res: Response,@Param() code:any): Promise<Response> {
+  public async getProfileDetails(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+    @Param('code') code: string,
+  ): Promise<Response> {
     this.loggerService.log(
       `GET user/profile_details ${LoggerMessages.API_CALLED}`,
     );
-    const profileCode = await this.userService.profileDetails(user,code);
+    const profileCode = await this.userService.getProfileDetails(user, code);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: profileCode,
@@ -251,29 +256,20 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Patch('klay_wallet_address')
-  public async klayWallet(  @Body() payload:any,@CurrentUser() user: User,@Res() res: Response): Promise<Response> {
+  @Patch('validate_wallet_address')
+  public async validateWalletAddress(
+    @Body() payload: UserUpdatedData,
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
     this.loggerService.log(
-      `Patch user/klay_wallet_address ${LoggerMessages.API_CALLED}`,
+      `Patch user/validate_wallet_address ${LoggerMessages.API_CALLED}`,
     );
-    
-
-    const profileCode = await this.userService.klayWallet(user.email,payload.klayWallet);
-    const Caver = require('caver-js')
-    const caver = new Caver('https://api.baobab.klaytn.net:8651')
-    
-    if(caver.utils.isValidPublicKey(payload.klayWallet)===true){
+    await this.userService.validateKlaytnAddress(payload.klayWalletAddress);
+    await this.userService.updateProfileInfo(payload, user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      data: profileCode,
-      message: ResponseMessage.VALID_ADDRESS,
-    })}else{
-       throw new HttpException(
-        `${ResponseMessage.INVALID_ADDRESS}`,
-        ResponseCode.BAD_REQUEST,
-      );
-      
-    }
-    
+      message: ResponseMessage.VERIFICATION_DONE,
+    });
   }
 }

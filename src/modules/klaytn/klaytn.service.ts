@@ -147,4 +147,14 @@ export class KlaytnService {
       }
     });
   }
+   /**
+   * validate Klaytn Address
+   */
+  public async validateKlaytnAddressByPublicKey(address: string) {
+    if (this.caver.utils.isValidPublicKey(address) === true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
