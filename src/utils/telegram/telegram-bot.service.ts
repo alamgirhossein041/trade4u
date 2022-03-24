@@ -19,6 +19,19 @@ export class TelegramService {
     );
   }
 
+  static async initBotWebhook() {
+    try {
+      const res = await axios.get(
+        `${process.env.TELEGRAM_BOT_API}/setWebhook?url=${process.env.SERVER_URL}/api/user/webhook/${process.env.BOT_TOKEN}`,
+      );
+      console.log(res.data);
+    } catch (err) {
+      console.log(
+        'Please Use VPN and Restart Server to Connect to Telegram Bot',
+      );
+    }
+  }
+
   /**
    * Get Notifications Message of Bot For User
    * @param userTelegram

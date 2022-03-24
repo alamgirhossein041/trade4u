@@ -16,7 +16,6 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   await app.listen(process.env.APP_PORT);
-  await AppService.initBotWebhook();
   await AppService.startup();
 }
 bootstrap();
