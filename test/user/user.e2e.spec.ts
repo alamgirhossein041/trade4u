@@ -54,7 +54,7 @@ describe('BinancePlus User test', () => {
         server = app.getHttpServer();
     });
 
-    describe(`Get /affiliates of bnp user`, () => {
+    describe(`bnp user`, () => {
         it(`Test /register bnp user affiliates API`, async () => {
             await request(server)
                 .post('/api/auth/register?referrer=john58')

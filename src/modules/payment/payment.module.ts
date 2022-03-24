@@ -14,6 +14,7 @@ import { UserModule } from '../user/user.module';
 import { CompensationTransaction } from './compensation.transaction';
 import { LicenseFee } from '../seed/licensefee.entity';
 import { PerformanceFee } from '../seed/preformaceFee.entity';
+import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { PerformanceFee } from '../seed/preformaceFee.entity';
     LoggerModule,
     KlaytnModule,
     UserModule,
+    TelegramModule,
   ],
   controllers: [PaymentController],
   providers: [PaymentService, DepositTransaction, CompensationTransaction],

@@ -5,6 +5,7 @@ export enum ResponseMessage {
   EMAIL_CONFIRMED = `Email Confirmed Successfully`,
   DEPOSIT_RECOVERY_PROCESS_STARTED = `Deposit Recovery Routine started`,
   DEPOSIT_RECOVERY_PROCESS_ERROR = `Deposit Recovery Routine Failed`,
+  BONUS_TRANSACTION_ERROR = `Bonus transaction failed`,
   EMAIL_LINK_EXPIRED = `This email link has been expired`,
   FORGOT_PASSWORD_EMAIL = `Please Check Your Email To Reset Password`,
   RESET_PASSWORD_LINK_EXPIRED = `This Reset Password Link Has Been Expied`,
@@ -57,10 +58,10 @@ export enum LoggerMessages {
 }
 
 export enum TelergramBotMessages {
-  ALREADY_ACTIVATED = `You Have Already Activated Binance Plus Notifications`,
-  SUCCCESSFULLY_ACTIVATED = `You Have SuccFully Activated Binance Plus Notifications`,
-  ACTIVATE_FIRST = `Activate Binance Plus Notifications First`,
-  SUCCCESSFULLY_DEACTIVATED = `You Have SuccFully DeActivated Binance Plus Notifications`,
+  ALREADY_ACTIVATED = `You Have <b>Already Activated</b> Binance Plus Notifications`,
+  SUCCCESSFULLY_ACTIVATED = `You Have <b>Successfully Activated</b> Binance Plus Notifications`,
+  ACTIVATE_FIRST = `<b>Activate</b> Binance Plus Notifications <b>First</b>`,
+  SUCCCESSFULLY_DEACTIVATED = `You Have <b>Successfully Deactivated</b> Binance Plus Notifications`,
 }
 
 export enum NodeEnv {

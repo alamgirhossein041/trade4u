@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
+import { ConsoleLogger, HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
 import { Repository } from 'typeorm';
@@ -15,7 +15,6 @@ import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
 import { BinanceService } from '../../utils/binance/binance.service';
 import { UserTelegram } from './telegram.entity';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
-import { BotResponse } from './commons/user.types';
 
 @Injectable()
 export class UsersService {
@@ -33,13 +32,13 @@ export class UsersService {
 
   /**
    * Get user by id
-   * @param id
+   * @param uuid
    * @returns
    */
   async get(uuid: string): Promise<User> {
     return this.userRepository.findOne(
       { uuid },
-      { relations: ['plan', 'userStats'] },
+      { relations: ['plan', 'userStats', 'userTelegram'] },
     );
   }
 
@@ -125,15 +124,19 @@ export class UsersService {
     affiliatesCountResult.map(
       (count) => (count.total_affiliates = Number(count.total_affiliates)),
     );
-    let newAffiliatesRes: any[] =[]; 
-    for(let i=0;i < affiliatesCountResult.length; i++){
+    let newAffiliatesRes: any[] = [];
+    for (let i = 0; i < affiliatesCountResult.length; i++) {
       let levelWiseArray: any[] = [];
-      for(let j=0; j < affiliatesResult.length; j++) {
-        if(affiliatesResult[j].level === affiliatesCountResult[i].level){
+      for (let j = 0; j < affiliatesResult.length; j++) {
+        if (affiliatesResult[j].level === affiliatesCountResult[i].level) {
           levelWiseArray.push(affiliatesResult[j]);
         }
       }
-      newAffiliatesRes.push({level:affiliatesCountResult[i].level,total_affiliates: affiliatesCountResult[i].total_affiliates,affiliates: levelWiseArray});
+      newAffiliatesRes.push({
+        level: affiliatesCountResult[i].level,
+        total_affiliates: affiliatesCountResult[i].total_affiliates,
+        affiliates: levelWiseArray,
+      });
     }
     return newAffiliatesRes;
   }
@@ -283,7 +286,7 @@ export class UsersService {
   async deActivateUserNotifications(chat_id: number) {
     try {
       const userTelegram = await this.getUserTelegramByChatId(chat_id);
-      if (userTelegram.isActive) {
+      if (userTelegram && userTelegram.isActive) {
         userTelegram.isActive = false;
         await this.userTelegramRepository.save(userTelegram);
         await this.telegramService.sendResponseToUser({
@@ -292,28 +295,18 @@ export class UsersService {
           text: TelergramBotMessages.SUCCCESSFULLY_DEACTIVATED,
         });
         return;
-      }
-      await this.telegramService.sendResponseToUser({
+      } else if (userTelegram && !userTelegram.isActive) {
+        await this.telegramService.sendResponseToUser({
           chat_id: userTelegram.chat_id,
           parse_mode: 'HTML',
           text: TelergramBotMessages.ACTIVATE_FIRST,
         });
         return;
+      }
+      return;
     } catch (err) {
       throw err;
     }
-  }
-
-  /**
-   * Get Communication Message Of Bot For User
-   * @param name
-   * @param code
-   * @returns message
-   */
-  public getCommunicationMessage(name: string, code: number) {
-    return `Hi ${name}!
-                \nYour Telegram comunication code is <u><b>${code}</b></u>
-                \nBinancePlus Team`;
   }
 
   /**
@@ -325,70 +318,39 @@ export class UsersService {
   async getTelegramBotCode(chat_id: number, name: string): Promise<void> {
     try {
       const userTelegram = await this.getUserTelegramByChatId(chat_id);
-      let resObj: BotResponse;
       if (userTelegram) {
         if (userTelegram.isActive) {
-          resObj = {
-            chat_id,
-            parse_mode: 'HTML',
-            text: TelergramBotMessages.ALREADY_ACTIVATED,
-          };
+          await this.telegramService.sendAlreadyActivatedMessage(userTelegram);
+          return;
         } else {
-          resObj = {
-            chat_id,
-            parse_mode: 'HTML',
-            text: this.getCommunicationMessage(name, userTelegram.code),
-          };
+          await this.telegramService.sendCommunicationMessage(userTelegram);
+          return;
         }
-        return await this.telegramService.sendResponseToUser(resObj);
       }
-      const newUserTelegram = new UserTelegram();
-      newUserTelegram.chat_id = chat_id;
-      newUserTelegram.name = name;
-      newUserTelegram.code = this.telegramService.getTelegramCode();
-      await this.userTelegramRepository.save(newUserTelegram);
-      resObj = {
-        chat_id,
-        parse_mode: 'HTML',
-        text: this.getCommunicationMessage(name, newUserTelegram.code),
-      };
-      return await this.telegramService.sendResponseToUser(resObj);
-    } catch (err) {
-      throw new HttpException(
-        ResponseMessage.INTERNAL_SERVER_ERROR,
-        ResponseCode.INTERNAL_ERROR,
-      );
+        const code = this.telegramService.getTelegramCode();
+        const newUserTelegram = new UserTelegram();
+        newUserTelegram.chat_id = chat_id;
+        newUserTelegram.name = name;
+        newUserTelegram.code = code;
+        await this.userTelegramRepository.save(newUserTelegram);
+        await this.telegramService.sendCommunicationMessage(newUserTelegram);
+        return;
+      } catch (err) {
+        throw new HttpException(
+          ResponseMessage.INTERNAL_SERVER_ERROR,
+          ResponseCode.INTERNAL_ERROR,
+        );
+      }
     }
-  }
-
-  /**
-   * Get Notifications Message of Bot For User
-   * @param userTelegram
-   * @returns
-   */
-  public getNotificationsMessage(userTelegram: UserTelegram) {
-    let message = TelergramBotMessages.SUCCCESSFULLY_ACTIVATED + `\n`;
-    if (userTelegram.bonusNotificationsActive)
-      message += `\n@ <b>Bonus Notifications</b>\n`;
-    if (userTelegram.promotionNotificationsActive)
-      message += `\n@ <b>Promotion Notifications</b>\n`;
-    if (userTelegram.systemNotificationsActive)
-      message += `\n@ <b>System Notifications</b>\n`;
-    if (userTelegram.tradeNotificationsActive)
-      message += `\n@ <b>Trading Notifications</b>\n`;
-    message += `\nBinancePlus Team`;
-    return message;
-  }
 
   /**
    * Update user Telegram Notifications Creds
    * @returns
    */
   public async updateUserTelegramNotifications(
-    user: User,
-    telegramDto: TelegramNotifyDto,
+      user: User,
+      telegramDto: TelegramNotifyDto,
   ): Promise<UserTelegram> {
-    let resObj: BotResponse;
     const userTelegram = await this.getUserTelegramByCode(telegramDto.code);
     if (!userTelegram) {
       throw new HttpException(
@@ -396,20 +358,20 @@ export class UsersService {
         ResponseCode.BAD_REQUEST,
       );
     }
-    const newUserTelegram = new UserTelegram().fromNotifyDto(telegramDto);
-    newUserTelegram.chat_id = userTelegram.chat_id;
-    newUserTelegram.isActive = true;
+    userTelegram.bonusNotificationsActive = telegramDto.bonusNotifications;
+    userTelegram.systemNotificationsActive = telegramDto.systemNotifications;
+    userTelegram.promotionNotificationsActive =
+      telegramDto.promotionNotifications;
+    userTelegram.tradeNotificationsActive = telegramDto.tradingNotifications;
+    if (!userTelegram.isActive) {
+      userTelegram.isActive = true;
+    }
     const updatedTelegram = await this.userTelegramRepository.save(
-      newUserTelegram,
+      userTelegram,
     );
-    resObj = {
-      chat_id: updatedTelegram.chat_id,
-      parse_mode: `HTML`,
-      text: this.getNotificationsMessage(updatedTelegram),
-    };
     user.userTelegram = updatedTelegram;
     await this.userRepository.save(user);
-    await this.telegramService.sendResponseToUser(resObj);
+    await this.telegramService.sendNotificationsMessage(updatedTelegram);
     return updatedTelegram;
   }
 

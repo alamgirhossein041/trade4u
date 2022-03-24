@@ -94,7 +94,9 @@ export class UserContoller {
     this.loggerService.log(
       `Post user/telegram_webhook ${LoggerMessages.API_CALLED}`,
     );
-    let firstName: string; let chatId: number; let text: string = ``;
+    let firstName: string;
+    let chatId: number;
+    let text: string = ``;
     if (req.body.edited_message) {
       firstName = req.body.edited_message.from.first_name;
       chatId = req.body.edited_message.chat.id;
@@ -104,10 +106,7 @@ export class UserContoller {
       chatId = req.body.message.chat.id;
       text = req.body.message.text;
     }
-    if (
-      text &&
-      (text === 'hello' || text === '/start')
-    ) {
+    if (text && (text === 'hello' || text === '/start')) {
       await this.userService.getTelegramBotCode(chatId, firstName);
     } else if (text && text === '/stop') {
       await this.userService.deActivateUserNotifications(chatId);

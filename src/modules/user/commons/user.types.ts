@@ -1,7 +1,7 @@
 export interface AffliatesInterface {
   level: number;
-   total_affiliates: number;
-   affiliates: Affiliate[]
+  total_affiliates: number;
+  affiliates: Affiliate[];
 }
 
 interface Affiliate {

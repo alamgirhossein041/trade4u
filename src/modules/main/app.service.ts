@@ -39,7 +39,7 @@ export class AppService {
 
   static async initBotWebhook() {
     try {
-      await axios.get(`${process.env.TELEGRAM_BOT_API}/deleteWebhook`);
+      //await axios.get(`${process.env.TELEGRAM_BOT_API}/deleteWebhook`);
       const res = await axios.get(
         `${process.env.TELEGRAM_BOT_API}/setWebhook?url=${process.env.SERVER_URL}/api/user/webhook/${process.env.BOT_TOKEN}`,
       );

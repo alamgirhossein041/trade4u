@@ -29,7 +29,16 @@ export const TelegramBotMock = {
     }),
     sendResponseToUser: jest.fn(() => {
         return;
-    })
+    }),
+    sendNotificationsMessage:jest.fn(() => {
+        return;
+    }),
+    sendCommunicationMessage:jest.fn(() => {
+        return;
+    }),
+    sendAlreadyActivatedMessage:jest.fn(() => {
+        return;
+    }),
 }
 
 export const CoinMarketMock = {

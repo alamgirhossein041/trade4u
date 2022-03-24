@@ -61,7 +61,8 @@ describe('BinancePlus auth test', () => {
             klayWallet: null,
             planIsActive: true,
             referralLink: process.env.APP_URL + `register?referrer=john58`,
-            refereeUuid: null
+            refereeUuid: null,
+            userTelegram: null
         }
 
         await request(server)
