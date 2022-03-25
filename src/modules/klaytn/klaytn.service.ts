@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { Account } from './account.entity';
-import Caver, { KeyringContainer } from 'caver-js';
+import Caver, { Keyring, KeyringContainer } from 'caver-js';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { JOB } from '../../utils/enum/index';
 import { LoggerService } from '../../utils/logger/logger.service';
@@ -11,6 +11,8 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { Attempts, BlockQueue } from '../scheduler/commons/scheduler.enum';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { Information } from './information.entity';
+import { InformationEnum } from './commons/klaytn.enum';
 
 @Injectable()
 export class KlaytnService {
@@ -45,6 +47,8 @@ export class KlaytnService {
     private readonly loggerService: LoggerService,
     @InjectQueue(BlockQueue.BLOCK)
     private readonly blockQueue: Queue,
+    @InjectRepository(Information)
+    private readonly informationRepository: Repository<Information>,
   ) {
     this.caver = new Caver(process.env.KLAYTN_NODE_URL);
     KlaytnService.keyStore = new Level(process.env.KEY_STORE_PATH);
@@ -153,11 +157,11 @@ export class KlaytnService {
         const accounts = await this.getHaltedAccounts();
         await Promise.all(
           accounts.map(async (m) => {
-            this.listeners.push(m.address);
             const exist = this.wallet.isExisted(m.address);
             if (!exist) {
               const sk = await KlaytnService.keyStore.get(m.address);
               this.wallet.newKeyring(m.address, sk);
+              this.listeners.push(m.address);
             }
             this.loggerService.log(`Listening at: ${m.address}`);
           }),
@@ -191,11 +195,15 @@ export class KlaytnService {
       const parsed = JSON.parse(data);
       if (!parsed.params) return;
 
-      const blockHeight = this.caver.utils.hexToNumber(
-        parsed.params.result.number,
-      );
-      this.loggerService.log(`Block recieved: ${blockHeight}`);
-      return await this.addBlock(parsed.params?.result);
+      if (this.listeners.length) {
+        const blockHeight = this.caver.utils.hexToNumber(
+          parsed.params.result.number,
+        );
+        this.loggerService.log(`Block recieved: ${blockHeight}`);
+        await this.addBlock(parsed.params?.result);
+        await this.updateBlockHeight(Number(blockHeight));
+      }
+      return;
     });
   }
 
@@ -229,40 +237,122 @@ export class KlaytnService {
   /**
    * Move deposit to master wallet
    */
-  public async moveToMasterWallet(address: string) {
-    const tx = this.caver.transaction.feeDelegatedValueTransfer.create({
-      from: address,
-      to: process.env.KLAY_MASTER_WALLET_ADDRESS,
-      value: await this.caver.rpc.klay.getBalance(address),
-      feePayer: process.env.KLAY_FEE_WALLET_ADDRESS,
-      gasPrice: await this.caver.klay.getGasPrice(),
-      gas: 3000000,
-      nonce: Number(await this.caver.klay.getTransactionCount(address)),
+  public async moveToMasterWallet(address: string): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        let feepayer: Keyring;
+        const tx = this.caver.transaction.feeDelegatedValueTransfer.create({
+          from: address,
+          to: process.env.KLAY_MASTER_WALLET_ADDRESS,
+          value: await this.caver.rpc.klay.getBalance(address),
+          feePayer: process.env.KLAY_FEE_WALLET_ADDRESS,
+          gasPrice: await this.caver.klay.getGasPrice(),
+          gas: 3000000,
+          nonce: Number(await this.caver.klay.getTransactionCount(address)),
+        });
+
+        const sender = this.caver.wallet.getKeyring(address);
+        const exist = this.wallet.isExisted(
+          process.env.KLAY_FEE_WALLET_ADDRESS,
+        );
+        feepayer = exist
+          ? this.caver.wallet.getKeyring(process.env.KLAY_FEE_WALLET_ADDRESS)
+          : this.caver.wallet.newKeyring(
+              process.env.KLAY_FEE_WALLET_ADDRESS,
+              process.env.KLAY_FEE_WALLET_SECRET,
+            );
+
+        await tx.sign(sender);
+        await tx.signAsFeePayer(feepayer);
+        await this.caver.klay.sendSignedTransaction(tx.getRawTransaction());
+        this.loggerService.debug(
+          `Successfully moved: ${address} => ${process.env.KLAY_MASTER_WALLET_ADDRESS} `,
+        );
+        return resolve();
+      } catch (err) {
+        reject(err);
+      }
     });
+  }
 
-    const sender = this.caver.wallet.getKeyring(address);
-    const feepayer = this.caver.wallet.newKeyring(
-      process.env.KLAY_FEE_WALLET_ADDRESS,
-      process.env.KLAY_FEE_WALLET_SECRET,
-    );
+  /**
+   * Sync Blocks (Klaytn Web Socket)
+   */
+  public async syncDeposits() {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        const lastProcessedBlock = await this.getLastProcessedBlock();
+        if (lastProcessedBlock) {
+          const lastProcessedBlockHeight = Number(lastProcessedBlock.value);
+          this.loggerService.log(
+            `Last Processed Block: ${lastProcessedBlockHeight}`,
+          );
+          const latestBlock = await this.caver.klay.getBlockNumber();
+          const latestBlockHeight = Number(
+            this.caver.utils.hexToNumber(latestBlock),
+          );
+          this.loggerService.log(`Latest Block: ${latestBlockHeight}`);
+          if (lastProcessedBlockHeight < latestBlockHeight) {
+            for (let i = lastProcessedBlockHeight; i < latestBlockHeight; i++) {
+              const blockNumber = i + 1;
+              const block = await this.caver.rpc.klay.getBlock(blockNumber);
+              await this.addBlock(block);
+              this.loggerService.log(`Processed Missed Block: ${blockNumber}`);
+            }
+          }
+        }
+        resolve();
+      } catch (err) {
+        this.loggerService.error(`Error while block sync job`);
+        reject(err);
+      }
+    });
+  }
 
-    await tx.sign(sender);
-    await tx.signAsFeePayer(feepayer);
-    await this.caver.klay.sendSignedTransaction(tx.getRawTransaction());
-    this.loggerService.debug(
-      `Successfully moved: ${address} => ${process.env.KLAY_MASTER_WALLET_ADDRESS} `,
-    );
-    return;
+  /**
+   * Get The Last Block Height Processed By Queue
+   * @returns Block
+   */
+  public async getLastProcessedBlock() {
+    const blockHeight = await this.informationRepository.findOne({
+      keyName: InformationEnum.HEIGHT,
+    });
+    return blockHeight;
+  }
+
+  /**
+   * Save Or Update Last Block Height Locally Coming From WebSocketServer
+   * @param height
+   * @returns
+   */
+  public async updateBlockHeight(height: number) {
+    const blockHeight = await this.getLastProcessedBlock();
+    if (blockHeight) {
+      blockHeight.value = height;
+      return await this.informationRepository.save(blockHeight);
+    }
+    const newBlockHeight = new Information();
+    newBlockHeight.keyName = InformationEnum.HEIGHT;
+    newBlockHeight.value = height;
+    return await this.informationRepository.save(newBlockHeight);
   }
 
   /**
    * Remove a listener
    */
   public removeListener(address) {
-    const index = this.listeners.indexOf(address);
-    if (index > -1) {
-      this.listeners.splice(index, 1);
-      this.loggerService.log(`listener removed: ${address}`);
-    }
+    return new Promise<void>((resolve, reject) => {
+      try {
+        const index = this.listeners.indexOf(address);
+        if (index > -1) {
+          this.listeners.splice(index, 1);
+          this.loggerService.log(`listener removed: ${address}`);
+        }
+        this.wallet.remove(address);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
   }
 }

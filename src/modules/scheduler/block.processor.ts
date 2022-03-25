@@ -35,7 +35,7 @@ export class BlockProcessor {
           );
         if (txCount === TxCount.ZER0 || !this.klaytnService.listeners.length)
           return resolve();
-        
+
         this.loggerService.debug(`Start processing block: ${this.blockHeight}`);
         const txs = await this.filterTransactions(job.data.block);
         await Promise.all(
@@ -54,6 +54,7 @@ export class BlockProcessor {
         );
         resolve();
       } catch (err) {
+        console.log(err);
         reject(err);
       }
     });
