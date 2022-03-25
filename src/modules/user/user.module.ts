@@ -11,8 +11,9 @@ import { BinanceModule } from '../../utils/binance/binance.module';
 import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 import { UserTelegram } from './telegram.entity';
 import { MailModule } from '../../utils/mailer/mail.module';
-import { KlaytnService } from '../klaytn/klaytn.service';
 import { Account } from '../klaytn/account.entity';
+import { KlaytnModule } from '../../modules/klaytn/klaytn.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -26,11 +27,11 @@ import { Account } from '../klaytn/account.entity';
     LoggerModule,
     TelegramModule,
     BinanceModule,
-    BinanceModule,
     MailModule,
+    KlaytnModule,
   ],
   exports: [UsersService],
-  providers: [UsersService, KlaytnService],
+  providers: [UsersService],
   controllers: [UserContoller],
 })
 export class UserModule {}

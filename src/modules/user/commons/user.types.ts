@@ -19,6 +19,6 @@ export interface BotResponse {
   text: string;
   parse_mode: string;
 }
-export interface UserUpdatedData {
-  klayWalletAddress: string;
+export interface UserDataDto {
+  address: string;
 }

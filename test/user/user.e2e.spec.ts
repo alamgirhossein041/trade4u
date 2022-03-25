@@ -6,13 +6,13 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock,TelegramBotMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock, TelegramBotMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
 import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
-import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 import { BinanceService } from '../../src/utils/binance/binance.service';
 import { TelegramService } from '../../src/utils/telegram/telegram-bot.service';
+import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 
 describe('BinancePlus User test', () => {
     let app: INestApplication;
@@ -27,7 +27,7 @@ describe('BinancePlus User test', () => {
         phoneNumber: "+14842918831",
         password: "Rnssol@21",
         passwordConfirmation: "Rnssol@21",
-        profileCode:"123456"
+        profileCode: "123456"
     }
 
     beforeAll(async () => {
@@ -96,8 +96,8 @@ describe('BinancePlus User test', () => {
 
         it(`Test get user/affiliates of bnp user after plan purchase API`, async () => {
             const expectedAffiliates = [
-                {level: 1, total_affiliates: 1,affiliates:[{ level: 1, fullName: `bnp user`, tradingSystem: null, userName: `testuser1`, phoneNumber: '+14842918831', plan_name: 'Silver' }]},
-                {level: 2, total_affiliates: 1, affiliates:[{ level: 2, fullName: `bnp user`, tradingSystem: null, userName: `testuser2`, phoneNumber: '+14842918831', plan_name: 'Silver' }]}
+                { level: 1, total_affiliates: 1, affiliates: [{ level: 1, fullName: `bnp user`, tradingSystem: null, userName: `testuser1`, phoneNumber: '+14842918831', plan_name: 'Silver' }] },
+                { level: 2, total_affiliates: 1, affiliates: [{ level: 2, fullName: `bnp user`, tradingSystem: null, userName: `testuser2`, phoneNumber: '+14842918831', plan_name: 'Silver' }] }
             ];
             await request(server)
                 .get('/api/user/affiliates')
@@ -117,8 +117,8 @@ describe('BinancePlus User test', () => {
         it(`Test get user/parents of bnp user 2  API`, async () => {
             await helper.login('bnptestuser2@yopmail.com', 'Rnssol@21');
             const expectedParents = [
-                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0,parent_depth_level: 7, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0,parent_depth_level: 7, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, parent_depth_level: 7, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, parent_depth_level: 7, plan_name: 'Silver' }
             ];
             await request(server)
                 .get('/api/user/parents')
@@ -130,8 +130,8 @@ describe('BinancePlus User test', () => {
         });
         it(`Test get user/parents of bnp user 2 after plan purchase to verify balance  API`, async () => {
             const expectedParents = [
-                { level: 1, fullName: `bnp user`,parent_depth_level: 7, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`,parent_depth_level: 7, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`, parent_depth_level: 7, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, parent_depth_level: 7, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
             ];
             await request(server)
                 .get('/api/user/parents')
@@ -159,7 +159,7 @@ describe('BinancePlus User test', () => {
                 .expect(200)
         });
         it(`Test post user/binance_credentials API`, async () => {
-            const dtoObj = {apiKey: "asdadadasdsfsd",apiSecret:"fdasfadfsdsfsdfsd",tradingSystem: 'both'};
+            const dtoObj = { apiKey: "asdadadasdsfsd", apiSecret: "fdasfadfsdsfsdfsd", tradingSystem: 'both' };
             await request(server)
                 .post('/api/user/binance_credentials')
                 .set('Authorization', helper.getAccessToken())
@@ -171,14 +171,14 @@ describe('BinancePlus User test', () => {
         it(`Test /webhook bnp telegram bot webhook API`, async () => {
             await request(server)
                 .post('/api/user/webhook/5060344605:AAHuBFdqTZzKg_avhYCRP6DkZrJSXFFAqa4')
-                .send({message:{chat:{id: 154090},from:{first_name: 'HasNain'},text: 'hello'}})
+                .send({ message: { chat: { id: 154090 }, from: { first_name: 'HasNain' }, text: 'hello' } })
                 .expect(200)
         });
 
         it(`Test /telegram_code bnp telegram notifications enabling API`, async () => {
             await request(server)
                 .post('/api/user/telegram_code')
-                .set('Authorization',helper.getAccessToken())
+                .set('Authorization', helper.getAccessToken())
                 .send({
                     code: 12345678,
                     tradingNotifications: true,
@@ -192,21 +192,21 @@ describe('BinancePlus User test', () => {
         it(`Test /webhook bnp telegram bot webhook API`, async () => {
             await request(server)
                 .post('/api/user/webhook/5060344605:AAHuBFdqTZzKg_avhYCRP6DkZrJSXFFAqa4')
-                .send({message:{chat:{id: 154090},from:{first_name: 'HasNain'},text: 'hello'}})
+                .send({ message: { chat: { id: 154090 }, from: { first_name: 'HasNain' }, text: 'hello' } })
                 .expect(200)
         });
-    
-        // it(`Test Send verification code for profile info`, async () => {
-        // await request(server)
-        //     .get('/api/user/getprofile_verification_code')
-        //     .set('Authorization', helper.getAccessToken())
-        //     .expect(200)
-        //     .expect(({ body }) => {
-        //         expect(body.message).toEqual(ResponseMessage.VERIFICATION_CODE_SEND);
-        //     });
-        // });
-        it(`Test verify code for profile info`, async () => {
 
+        it(`Test Send verification code for profile info`, async () => {
+        await request(server)
+            .get('/api/user/profile_verification_code')
+            .set('Authorization', helper.getAccessToken())
+            .expect(200)
+            .expect(({ body }) => {
+                expect(body.message).toEqual(ResponseMessage.VERIFICATION_CODE_SEND);
+            });
+        });
+        
+        it(`Test verify code for profile info`, async () => {
             await request(server)
                 .get('/api/user/profile_details/123456')
                 .set('Authorization', helper.getAccessToken())
@@ -214,18 +214,25 @@ describe('BinancePlus User test', () => {
                     expect(body.statusCode).toEqual(404);
                 });
         });
+
         it(`Test get user klay wallet address API`, async () => {
-        await request(server)
-            .patch('/api/user/validate_wallet_address')
-            .send({klayWalletAddress:"0xbd6405a7f14f57ecea4a6ffe774ee26d051f7eed13257c9a574055b20e42bab0e8beba92e2e675101eb2a55ba4693080d0bf14548beae7bc93b18b72d10dd350"})
-            .set('Authorization', helper.getAccessToken())
-            .expect(200)
+            const data = { address: `0xef76f8177198119e1bb97111e673ca0afcc25f19` };
             await request(server)
-            .patch('/api/user/validate_wallet_address')
-            .send({klayWallet:`0xbd6405a7f14f55d0bf14548beae7bc93b18b72d10dd350`})
-            .set('Authorization', helper.getAccessToken())
-            .expect(404)
-    
+                .patch('/api/user/validate_wallet_address')
+                .send(data)
+                .set('Authorization', helper.getAccessToken())
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.message).toEqual(ResponseMessage.VERIFICATION_DONE);
+                });
+            await request(server)
+                .patch('/api/user/validate_wallet_address')
+                .send({ address: `0xef76f8177198119e1bb97111e673ca0afcc25f1890` })
+                .set('Authorization', helper.getAccessToken())
+                .expect(400)
+                .expect(({ body }) => {
+                    expect(body.message).toEqual(ResponseMessage.INVALID_ADDRESS);
+                });
         });
     });
     afterAll(async () => {

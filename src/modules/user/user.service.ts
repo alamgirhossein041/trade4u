@@ -8,17 +8,16 @@ import {
   TelergramBotMessages,
 } from '../../utils/enum';
 import { UserStats } from './user-stats.entity';
-import { AffliatesInterface } from './commons/user.types';
+import { AffliatesInterface, UserDataDto } from './commons/user.types';
 import { User } from './user.entity';
 import { SeedService } from '../seed/seed.service';
 import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
 import { BinanceService } from '../../utils/binance/binance.service';
 import { UserTelegram } from './telegram.entity';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
-import otpGenerator from 'otp-generator';
 import { MailService } from '../../utils/mailer/mail.service';
 import { KlaytnService } from '../klaytn/klaytn.service';
-import { UserUpdatedData } from './commons/user.types';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -33,7 +32,7 @@ export class UsersService {
     private readonly telegramService: TelegramService,
     private readonly mailerservice: MailService,
     private readonly klaytnService: KlaytnService,
-  ) {}
+  ) { }
 
   /**
    * Get user by id
@@ -463,27 +462,6 @@ export class UsersService {
     user.plan = plan;
     return await this.userRepository.save(user);
   }
-    /**
-   * Generate code for profile verification Latest
-   * @param User
-   * @returns
-   */
-  async getProfileVerificationCode(user: User) :Promise<boolean>{
-    var random = Math.floor(100000 + Math.random() * 900000);
-    await this.userRepository.update(
-      { email: user.email },
-      { profileCode: random.toString() },
-    );
-    await this.mailerservice
-      .sendEmailProfileVerificationCode(user, random.toString())
-      .catch((e) => {
-        throw new HttpException(
-          ResponseMessage.CHECK_INTERNET_CONNECTION,
-          ResponseCode.NOT_FOUND,
-        );
-      });
-    return;
-  }
 
   /**
    * Forget password confirmation
@@ -505,17 +483,38 @@ export class UsersService {
         ResponseCode.NOT_FOUND,
       );
     }
-    
+
   }
 
   /**
    * Remove a user
    */
   async remove(user: User) {
-    //await this.userRepository.delete({ uuid: user.uuid });
+    return await this.userRepository.delete({ uuid: user.uuid });
   }
 
-
+  /**
+   * Generate code for profile verification Latest
+   * @param User
+   * @returns
+   */
+  async getProfileVerificationCode(user: User) {
+    try {
+      var random = Math.floor(100000 + Math.random() * 900000);
+      await this.userRepository.update(
+        { email: user.email },
+        { profileCode: random.toString() },
+      )
+      return await this.mailerservice
+        .sendEmailProfileVerificationCode(user, random.toString());
+    }
+    catch (err) {
+      throw new HttpException(
+        ResponseMessage.INTERNAL_SERVER_ERROR,
+        ResponseCode.INTERNAL_ERROR,
+      );
+    }
+  }
 
   /**
    * Profile Details After Verification
@@ -527,7 +526,7 @@ export class UsersService {
     const dbuser: User = await this.userRepository.findOne({
       email: user.email,
     });
-    if (dbuser.profileCode == code) {
+    if (dbuser.profileCode === code) {
       return dbuser;
     } else {
       throw new HttpException(
@@ -543,16 +542,16 @@ export class UsersService {
    * @param klay
    * @returns
    */
-  async validateKlaytnAddress(klay: string): Promise<boolean> {
+  async validateKlaytnAddress(address: string): Promise<boolean> {
     const status = await this.klaytnService.validateKlaytnAddress(
-      klay,
+      address,
     );
     if (status) {
       return status;
     } else {
       throw new HttpException(
         ResponseMessage.INVALID_ADDRESS,
-        ResponseCode.NOT_FOUND,
+        ResponseCode.BAD_REQUEST,
       );
     }
   }
@@ -564,11 +563,11 @@ export class UsersService {
    * @returns
    */
   async updateProfileInfo(
-    payload: UserUpdatedData,
+    data: UserDataDto,
     user: User,
   ): Promise<boolean> {
     await this.userRepository
-      .update({ email: user.email }, { klayWallet: payload.klayWalletAddress })
+      .update({ email: user.email }, { klayWallet: data.address })
       .catch((e) => {
         throw new HttpException(
           ResponseMessage.USER_DOES_NOT_EXIST,
