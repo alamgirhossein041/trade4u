@@ -4,6 +4,9 @@ import express, { Request, Response } from "express";
 export const MailerMock = {
     sendEmailConfirmation: jest.fn(),
     sendForgotPasswordMail: jest.fn(),
+    sendEmailProfileVerificationCode:jest.fn(() => {
+        return;
+    }),
 }
 export const LoggerMock = {
     log: jest.fn((value: string) => {
@@ -30,13 +33,13 @@ export const TelegramBotMock = {
     sendResponseToUser: jest.fn(() => {
         return;
     }),
-    sendNotificationsMessage:jest.fn(() => {
+    sendNotificationsMessage: jest.fn(() => {
         return;
     }),
-    sendCommunicationMessage:jest.fn(() => {
+    sendCommunicationMessage: jest.fn(() => {
         return;
     }),
-    sendAlreadyActivatedMessage:jest.fn(() => {
+    sendAlreadyActivatedMessage: jest.fn(() => {
         return;
     }),
 }
@@ -55,4 +58,11 @@ export const CoinMarketMock = {
 };
 
 export const KlaytnServiceMock = {
+    validateKlaytnAddress: jest.fn((val) => {
+        if (val == "0xef76f8177198119e1bb97111e673ca0afcc25f19") {
+            return true
+        } else {
+            return false;
+        }
+    }),
 };

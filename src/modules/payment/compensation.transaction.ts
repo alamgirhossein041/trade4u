@@ -18,7 +18,7 @@ export class CompensationTransaction {
    * @param licenseRepository
    * @param performanceRepository
    * @param userService
-   * @param telegramService    
+   * @param telegramService
    **/
   constructor(
     @InjectRepository(LicenseFee)
@@ -100,7 +100,11 @@ export class CompensationTransaction {
           );
           parentToUpdate.balance = amount;
           await queryRunner.manager.save(parentToUpdate);
-          await this.notifyParentOnTelegram(parentToUpdate,'sdsadsdasdasdadsad', amount);
+          await this.notifyParentOnTelegram(
+            parentToUpdate,
+            'sdsadsdasdasdadsad',
+            amount,
+          );
           resolve();
         });
       } catch (err) {
@@ -169,7 +173,11 @@ export class CompensationTransaction {
    * @param parent
    * @returns
    */
-  private async notifyParentOnTelegram(parent: User,txHash: string,amountKLAY: number) {
+  private async notifyParentOnTelegram(
+    parent: User,
+    txHash: string,
+    amountKLAY: number,
+  ) {
     const parentWithDetail = await this.userService.get(parent.uuid);
     if (
       parentWithDetail.userTelegram &&
@@ -188,7 +196,7 @@ export class CompensationTransaction {
           SchedulerService.klayPrice,
           amountKLAY,
           amountUSD,
-          BonusType.LISENCE
+          BonusType.LISENCE,
         );
         return;
       }

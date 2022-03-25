@@ -10,14 +10,25 @@ import { LoggerModule } from '../../utils/logger/logger.module';
 import { BinanceModule } from '../../utils/binance/binance.module';
 import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 import { UserTelegram } from './telegram.entity';
+import { MailModule } from '../../utils/mailer/mail.module';
+import { Account } from '../klaytn/account.entity';
+import { KlaytnModule } from '../../modules/klaytn/klaytn.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserStats, LicenseFee, UserTelegram]),
+    TypeOrmModule.forFeature([
+      User,
+      UserStats,
+      LicenseFee,
+      UserTelegram,
+      Account,
+    ]),
     SeedModule,
     LoggerModule,
     TelegramModule,
     BinanceModule,
+    MailModule,
+    KlaytnModule,
   ],
   exports: [UsersService],
   providers: [UsersService],

@@ -8,6 +8,7 @@ import {
   UseGuards,
   HttpException,
   Req,
+  Patch,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Request, Response } from 'express';
@@ -24,6 +25,7 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { EarningLimit } from './commons/user.constants';
 import { isPositiveInteger } from '../../utils/methods';
 import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
+import { UserDataDto } from './commons/user.types';
 
 @Controller('api/user')
 export class UserContoller {
@@ -217,6 +219,58 @@ export class UserContoller {
       statusCode: ResponseCode.SUCCESS,
       data: preformanceFee,
       message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('profile_verification_code')
+  public async getProfileVerificationCode(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
+    this.loggerService.log(
+      `GET user/profile_verification_code ${LoggerMessages.API_CALLED}`,
+    );
+    await this.userService.getProfileVerificationCode(user);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.VERIFICATION_CODE_SEND,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('profile_details/:code')
+  public async getProfileDetails(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+    @Param('code') code: string,
+  ): Promise<Response> {
+    this.loggerService.log(
+      `GET user/profile_details ${LoggerMessages.API_CALLED}`,
+    );
+    const profileCode = await this.userService.getProfileDetails(user, code);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: profileCode,
+      message: ResponseMessage.VERIFICATION_DONE,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('validate_wallet_address')
+  public async validateWalletAddress(
+    @Body() data: UserDataDto,
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
+    this.loggerService.log(
+      `Patch user/validate_wallet_address ${LoggerMessages.API_CALLED}`,
+    );
+    await this.userService.validateKlaytnAddress(data.address);
+    await this.userService.updateProfileInfo(data, user);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.VERIFICATION_DONE,
     });
   }
 }

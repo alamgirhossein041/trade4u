@@ -39,6 +39,12 @@ export enum ResponseMessage {
   CONTENT_NOT_FOUND = `Content not found`,
   PAYMENT_ALREADY_CANCELLED = `Requested Payment is already cancelled`,
   PAYMENT_ALREADY_PAID = `Requested Payment is already Paid`,
+  VERIFICATION_CODE_SEND = `Email has been sent successfully`,
+  VERIFICATION_DONE = `Verification Completed`,
+  INVALID_ADDRESS = `Invalid Wallet Address`,
+  VALID_ADDRESS = `Valid Wallet Address`,
+  INVALID_CODE = `Invalid Code`,
+  INVALID_VERIFICATION_CODE = `Invalid verification code`,
 }
 
 // some code enums for sending response code in api response

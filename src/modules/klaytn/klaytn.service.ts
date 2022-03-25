@@ -147,4 +147,10 @@ export class KlaytnService {
       }
     });
   }
+  /**
+   * validate Klaytn Address
+   */
+  public async validateKlaytnAddress(address: string) {
+    return this.caver.utils.isAddress(address);
+  }
 }

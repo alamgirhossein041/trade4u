@@ -140,7 +140,6 @@ export class PaymentService {
             const account = await this.generateAddressAndBindToPayment(payment);
             resolve(account);
           } catch (err) {
-            console.log(err);
             reject();
           }
           break;

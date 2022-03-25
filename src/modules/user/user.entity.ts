@@ -71,6 +71,9 @@ export class User {
   })
   password: string;
 
+  @Column({ default: null })
+  profileCode: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

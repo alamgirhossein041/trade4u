@@ -8,13 +8,15 @@ import {
   TelergramBotMessages,
 } from '../../utils/enum';
 import { UserStats } from './user-stats.entity';
-import { AffliatesInterface } from './commons/user.types';
+import { AffliatesInterface, UserDataDto } from './commons/user.types';
 import { User } from './user.entity';
 import { SeedService } from '../seed/seed.service';
 import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
 import { BinanceService } from '../../utils/binance/binance.service';
 import { UserTelegram } from './telegram.entity';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
+import { MailService } from '../../utils/mailer/mail.service';
+import { KlaytnService } from '../klaytn/klaytn.service';
 
 @Injectable()
 export class UsersService {
@@ -28,6 +30,8 @@ export class UsersService {
     private readonly seedService: SeedService,
     private readonly binanceService: BinanceService,
     private readonly telegramService: TelegramService,
+    private readonly mailerservice: MailService,
+    private readonly klaytnService: KlaytnService,
   ) { }
 
   /**
@@ -327,29 +331,29 @@ export class UsersService {
           return;
         }
       }
-        const code = this.telegramService.getTelegramCode();
-        const newUserTelegram = new UserTelegram();
-        newUserTelegram.chat_id = chat_id;
-        newUserTelegram.name = name;
-        newUserTelegram.code = code;
-        await this.userTelegramRepository.save(newUserTelegram);
-        await this.telegramService.sendCommunicationMessage(newUserTelegram);
-        return;
-      } catch (err) {
-        throw new HttpException(
-          ResponseMessage.INTERNAL_SERVER_ERROR,
-          ResponseCode.INTERNAL_ERROR,
-        );
-      }
+      const code = this.telegramService.getTelegramCode();
+      const newUserTelegram = new UserTelegram();
+      newUserTelegram.chat_id = chat_id;
+      newUserTelegram.name = name;
+      newUserTelegram.code = code;
+      await this.userTelegramRepository.save(newUserTelegram);
+      await this.telegramService.sendCommunicationMessage(newUserTelegram);
+      return;
+    } catch (err) {
+      throw new HttpException(
+        ResponseMessage.INTERNAL_SERVER_ERROR,
+        ResponseCode.INTERNAL_ERROR,
+      );
     }
+  }
 
   /**
    * Update user Telegram Notifications Creds
    * @returns
    */
   public async updateUserTelegramNotifications(
-      user: User,
-      telegramDto: TelegramNotifyDto,
+    user: User,
+    telegramDto: TelegramNotifyDto,
   ): Promise<UserTelegram> {
     const userTelegram = await this.getUserTelegramByCode(telegramDto.code);
     if (!userTelegram) {
@@ -468,7 +472,7 @@ export class UsersService {
   public async confirmForgotPassword(
     email: string,
     password: string,
-  ): Promise<User> {
+  ) {
     const user: User = await this.userRepository.findOne({ email });
     if (user) {
       await this.userRepository.update({ email }, { password });
@@ -479,12 +483,97 @@ export class UsersService {
         ResponseCode.NOT_FOUND,
       );
     }
+
   }
 
   /**
    * Remove a user
    */
   async remove(user: User) {
-    await this.userRepository.delete({ uuid: user.uuid });
+    return await this.userRepository.delete({ uuid: user.uuid });
+  }
+
+  /**
+   * Generate code for profile verification Latest
+   * @param User
+   * @returns
+   */
+  async getProfileVerificationCode(user: User) {
+    try {
+      var random = Math.floor(100000 + Math.random() * 900000);
+      await this.userRepository.update(
+        { email: user.email },
+        { profileCode: random.toString() },
+      )
+      return await this.mailerservice
+        .sendEmailProfileVerificationCode(user, random.toString());
+    }
+    catch (err) {
+      throw new HttpException(
+        ResponseMessage.INTERNAL_SERVER_ERROR,
+        ResponseCode.INTERNAL_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Profile Details After Verification
+   * @param User
+   * @param code
+   * @returns
+   */
+  async getProfileDetails(user: User, code: string) {
+    const dbuser: User = await this.userRepository.findOne({
+      email: user.email,
+    });
+    if (dbuser.profileCode === code) {
+      return dbuser;
+    } else {
+      throw new HttpException(
+        ResponseMessage.INVALID_VERIFICATION_CODE,
+        ResponseCode.NOT_FOUND,
+      );
+    }
+  }
+
+  /**
+   * Klay Wallet Address validation
+   * @param email
+   * @param klay
+   * @returns
+   */
+  async validateKlaytnAddress(address: string): Promise<boolean> {
+    const status = await this.klaytnService.validateKlaytnAddress(
+      address,
+    );
+    if (status) {
+      return status;
+    } else {
+      throw new HttpException(
+        ResponseMessage.INVALID_ADDRESS,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
+  }
+
+  /**
+   * Klay Wallet Address
+   * @param payload
+   * @param user
+   * @returns
+   */
+  async updateProfileInfo(
+    data: UserDataDto,
+    user: User,
+  ): Promise<boolean> {
+    await this.userRepository
+      .update({ email: user.email }, { klayWallet: data.address })
+      .catch((e) => {
+        throw new HttpException(
+          ResponseMessage.USER_DOES_NOT_EXIST,
+          ResponseCode.NOT_FOUND,
+        );
+      });
+    return true;
   }
 }

@@ -7,7 +7,7 @@ import { BotResponse } from 'modules/user/commons/user.types';
 
 @Injectable()
 export class TelegramService {
-  constructor() { }
+  constructor() {}
 
   public getTelegramCode() {
     return Number(
@@ -37,7 +37,9 @@ export class TelegramService {
    * @param userTelegram
    * @returns
    */
-  public async sendNotificationsMessage(userTelegram: UserTelegram): Promise<void> {
+  public async sendNotificationsMessage(
+    userTelegram: UserTelegram,
+  ): Promise<void> {
     let message = `Hi ${userTelegram.name}!
         \nCongratulations! Your Telegram configuration has been successfully updated!\n`;
     if (userTelegram.bonusNotificationsActive)
@@ -49,7 +51,11 @@ export class TelegramService {
     if (userTelegram.tradeNotificationsActive)
       message += `\n\u{2705}  <b>Trading Notifications</b>\n`;
     message += `\nThanks!\n\nBinancePlus Team`;
-    const resObj: BotResponse = { chat_id: userTelegram.chat_id, parse_mode: 'HTML', text: message };
+    const resObj: BotResponse = {
+      chat_id: userTelegram.chat_id,
+      parse_mode: 'HTML',
+      text: message,
+    };
     return await this.sendResponseToUser(resObj);
   }
 
@@ -58,11 +64,17 @@ export class TelegramService {
    * @param userTelegram
    * @returns
    */
-  public async sendCommunicationMessage(userTelegram: UserTelegram): Promise<void> {
+  public async sendCommunicationMessage(
+    userTelegram: UserTelegram,
+  ): Promise<void> {
     let message = `Hi ${userTelegram.name}!
                 \nYour Telegram comunication code is <u><b>${userTelegram.code}</b></u>
                 \nBinancePlus Team`;
-    const resObj: BotResponse = { chat_id: userTelegram.chat_id, parse_mode: 'HTML', text: message };
+    const resObj: BotResponse = {
+      chat_id: userTelegram.chat_id,
+      parse_mode: 'HTML',
+      text: message,
+    };
     return await this.sendResponseToUser(resObj);
   }
 
@@ -71,8 +83,14 @@ export class TelegramService {
    * @param userTelegram
    * @returns
    */
-  public async sendAlreadyActivatedMessage(userTelegram: UserTelegram): Promise<void> {
-    const resObj: BotResponse = { chat_id: userTelegram.chat_id, parse_mode: 'HTML', text: TelergramBotMessages.ALREADY_ACTIVATED };
+  public async sendAlreadyActivatedMessage(
+    userTelegram: UserTelegram,
+  ): Promise<void> {
+    const resObj: BotResponse = {
+      chat_id: userTelegram.chat_id,
+      parse_mode: 'HTML',
+      text: TelergramBotMessages.ALREADY_ACTIVATED,
+    };
     return await this.sendResponseToUser(resObj);
   }
 
@@ -89,7 +107,7 @@ export class TelegramService {
     klayPrice: number,
     amountKlay: number,
     amountUSD: number,
-    bonusType: string
+    bonusType: string,
   ) {
     let message = `${bonusType} Bonus Received ***
     \n<a href="https://scope.klaytn.com/tx/${txHash}"> ${txHash}</a>
