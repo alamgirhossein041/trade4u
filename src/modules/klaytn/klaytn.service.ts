@@ -250,10 +250,12 @@ export class KlaytnService {
           value: await this.caver.rpc.klay.getBalance(address),
           feePayer: process.env.KLAY_FEE_WALLET_ADDRESS,
           gasPrice: await this.caver.klay.getGasPrice(),
-          gas: 3000000,
+          gas: 0,
           nonce: Number(await this.caver.klay.getTransactionCount(address)),
         });
 
+        const gasLimit = await this.caver.klay.estimateGas(tx);
+        tx.gas = gasLimit;
         const sender = this.caver.wallet.getKeyring(address);
         const exist = this.wallet.isExisted(
           process.env.KLAY_FEE_WALLET_ADDRESS,
