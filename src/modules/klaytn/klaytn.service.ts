@@ -55,8 +55,11 @@ export class KlaytnService {
     this.wallet = this.caver.wallet;
     this.wsClient = new WebSocket(process.env.KLAYTN_NODE_WS);
     (async () => {
+      let promises = [];
       await this.syncWallet();
-      await this.subscribeNewHead();
+      if (this.listeners.length) promises.push(this.syncDeposits());
+      promises.push(await this.subscribeNewHead());
+      await Promise.all(promises);
     })();
   }
 
@@ -258,15 +261,15 @@ export class KlaytnService {
         feepayer = exist
           ? this.caver.wallet.getKeyring(process.env.KLAY_FEE_WALLET_ADDRESS)
           : this.caver.wallet.newKeyring(
-              process.env.KLAY_FEE_WALLET_ADDRESS,
-              process.env.KLAY_FEE_WALLET_SECRET,
-            );
+            process.env.KLAY_FEE_WALLET_ADDRESS,
+            process.env.KLAY_FEE_WALLET_SECRET,
+          );
 
         await tx.sign(sender);
         await tx.signAsFeePayer(feepayer);
         await this.caver.klay.sendSignedTransaction(tx.getRawTransaction());
         this.loggerService.debug(
-          `Successfully moved: ${address} => ${process.env.KLAY_MASTER_WALLET_ADDRESS} `,
+          `Successfully moved: ${address} => ${(process.env.KLAY_MASTER_WALLET_ADDRESS)} `,
         );
         return resolve();
       } catch (err) {
@@ -297,9 +300,12 @@ export class KlaytnService {
               const blockNumber = i + 1;
               const block = await this.caver.rpc.klay.getBlock(blockNumber);
               await this.addBlock(block);
-              this.loggerService.log(`Processed Missed Block: ${blockNumber}`);
+              this.loggerService.log(`Recover Missed Block: ${blockNumber}`);
             }
           }
+          this.loggerService.debug(
+            `********** Recovery Process Completed, Block Height = ${latestBlock} **********`,
+          );
         }
         resolve();
       } catch (err) {
