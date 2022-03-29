@@ -9,7 +9,7 @@ import bigDecimal from 'js-big-decimal';
 import { PerformanceFee } from '../seed/preformaceFee.entity';
 import { BonusType } from './commons/payment.enum';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
-import { SchedulerService } from '../scheduler/scheduler.service';
+import { PriceService } from '../../modules/price/price.service';
 
 @Injectable()
 export class CompensationTransaction {
@@ -187,13 +187,13 @@ export class CompensationTransaction {
       if (parentTelegram.bonusNotificationsActive) {
         const amountUSD = Number(
           new bigDecimal(amountKLAY)
-            .multiply(new bigDecimal(SchedulerService.klayPrice))
+            .multiply(new bigDecimal(PriceService.klayPrice))
             .getValue(),
         );
         await this.telegramService.sendBonusNotification(
           parentTelegram,
           txHash,
-          SchedulerService.klayPrice,
+          PriceService.klayPrice,
           amountKLAY,
           amountUSD,
           BonusType.LISENCE,

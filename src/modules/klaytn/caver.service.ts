@@ -132,6 +132,11 @@ export class CaverService {
         );
         return klay;
     }
+
+    public isAddress(address: string) {
+        return this.caver.utils.isAddress(address);
+    }
+    
     /**
      * 
      * @param address 

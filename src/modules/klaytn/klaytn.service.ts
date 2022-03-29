@@ -5,7 +5,7 @@ import { Account } from './account.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { JOB } from '../../utils/enum/index';
 import { LoggerService } from '../../utils/logger/logger.service';
-import Level from 'level-ts';
+import { Level } from 'level';
 import WebSocket, { WebSocketServer } from 'ws';
 import { Attempts, BlockQueue } from '../scheduler/commons/scheduler.enum';
 import { Queue } from 'bull';
@@ -171,7 +171,7 @@ export class KlaytnService {
    * validate Klaytn Address
    */
   public async validateKlaytnAddress(address: string) {
-    return this.caver.utils.isAddress(address);
+    return this.caverService.isAddress(address);
   }  
 
   /**
