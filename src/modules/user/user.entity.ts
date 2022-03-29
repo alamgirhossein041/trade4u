@@ -66,8 +66,7 @@ export class User {
 
   @Column({
     name: 'password',
-    length: 255,
-    transformer: new PasswordTransformer(),
+    length: 255
   })
   password: string;
 

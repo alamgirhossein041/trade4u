@@ -17,6 +17,7 @@ import { UserTelegram } from './telegram.entity';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 import { MailService } from '../../utils/mailer/mail.service';
 import { KlaytnService } from '../klaytn/klaytn.service';
+import { Hash } from '../../utils/Hash';
 
 @Injectable()
 export class UsersService {
@@ -210,6 +211,7 @@ export class UsersService {
     newUser.planIsActive = true;
     newUser.plan = await this.seedService.getPlanById(1);
     newUser.emailConfirmed = true;
+    newUser.password = await Hash.make(newUser.password);
     return await this.userRepository.save(newUser);
   }
 
@@ -410,6 +412,7 @@ export class UsersService {
     newUser.userStats = await this.initializeStats();
     newUser.referralLink = this.getUserReferralLink(newUser);
     newUser.refereeUuid = referee.uuid;
+    newUser.password = await Hash.make(newUser.password);
     return await this.userRepository.save(newUser);
   }
 
@@ -475,7 +478,8 @@ export class UsersService {
   ) {
     const user: User = await this.userRepository.findOne({ email });
     if (user) {
-      await this.userRepository.update({ email }, { password });
+      const passwordHash = await Hash.make(password);
+      await this.userRepository.update({ email }, { password: passwordHash });
       return user;
     } else {
       throw new HttpException(
