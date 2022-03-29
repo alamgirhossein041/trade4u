@@ -212,7 +212,8 @@ export class AuthService {
         ResponseCode.BAD_REQUEST,
       );
     }
-    if (!user || !Hash.compare(payload.password, user.password)) {
+    const isValidPassword = await Hash.compare(payload.password, user.password);
+    if (!user || !isValidPassword) {
       throw new HttpException(
         ResponseMessage.WRONG_PASSWORD,
         ResponseCode.BAD_REQUEST,
