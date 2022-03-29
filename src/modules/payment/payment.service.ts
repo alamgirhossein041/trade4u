@@ -5,7 +5,7 @@ import { getConnection, Repository, LessThanOrEqual } from 'typeorm';
 import { PaymentStatus } from './commons/payment.enum';
 import { Payment } from './payment.entity';
 import moment from 'moment';
-import { SchedulerService } from '../../modules/scheduler/scheduler.service';
+import { PriceService } from '../price/price.service';
 import bigDecimal from 'js-big-decimal';
 import ShortUniqueId from 'short-unique-id';
 import { User } from '../user/user.entity';
@@ -17,10 +17,8 @@ import {
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
 import { KlaytnService } from '../klaytn/klaytn.service';
 import { Account } from '../klaytn/account.entity';
-import { Deposit } from './deposit.entity';
-import { DepositTransaction } from './deposit.transaction';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { JOB } from '../../modules/scheduler/commons/scheduler.enum';
+import { JOB } from '../../utils/enum/index';
 import { LoggerService } from '../../utils/logger/logger.service';
 
 @Injectable()
@@ -28,10 +26,7 @@ export class PaymentService {
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
-    @InjectRepository(Deposit)
-    private readonly depositRepository: Repository<Deposit>,
     private readonly seedService: SeedService,
-    private readonly depositTransaction: DepositTransaction,
     private readonly klaytnService: KlaytnService,
     private readonly loggerServce: LoggerService,
   ) {}
@@ -87,7 +82,7 @@ export class PaymentService {
     payment.expireAt = payment.createdAt + 3600; // one hour after creation
     payment.amountKLAY = Number(
       new bigDecimal(payment.amountUSD)
-        .divide(new bigDecimal(SchedulerService.klayPrice), 4)
+        .divide(new bigDecimal(PriceService.klayPrice), 4)
         .getValue(),
     );
     payment.plan = plan;
@@ -140,6 +135,7 @@ export class PaymentService {
             const account = await this.generateAddressAndBindToPayment(payment);
             resolve(account);
           } catch (err) {
+            console.log(err);
             reject();
           }
           break;

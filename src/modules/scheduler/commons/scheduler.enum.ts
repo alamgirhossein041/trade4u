@@ -1,6 +1,15 @@
-export enum JOB {
-  MARKET_PRICE = `market price`,
-  RECOVER_DEPOSIT = `recover deposits`,
-  EXPIRE_PAYMENT = `expire payment`,
-  WALLET_SYNC = `wallet sync`,
+export enum TxCount {
+  ZER0 = '0x0',
+}
+
+export enum TxType {
+  VALUE_TRANSFER = 'TxTypeValueTransfer',
+}
+
+export enum BlockQueue {
+  BLOCK = 'block',
+}
+
+export enum Attempts {
+  THREE = 3,
 }

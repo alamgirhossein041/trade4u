@@ -7,7 +7,7 @@ import { MailService } from '../../src/utils/mailer/mail.service';
 import { CoinMarketMock, KlaytnServiceMock, LoggerMock, MailerMock } from '../mocks/mocks';
 import { AppService } from '../../src/modules/main/app.service';
 import { Helper } from '../helper';
-import { CoinGeckoMarket } from '../../src/modules/scheduler/coingecko.service';
+import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 
 describe('BinancePlus referrals test', () => {
