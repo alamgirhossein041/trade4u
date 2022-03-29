@@ -5,6 +5,8 @@ import { TxCount, TxType, BlockQueue } from './commons/scheduler.enum';
 import { KlaytnService } from '../klaytn/klaytn.service';
 import { TransactionReceipt } from 'caver-js';
 import { DepositTransaction } from '../../modules/payment/deposit.transaction';
+import { CaverService } from '../../modules/klaytn/caver.service';
+import { BlockProcess } from '../../utils/enum';
 
 @Processor(BlockQueue.BLOCK)
 export class BlockProcessor {
@@ -14,6 +16,7 @@ export class BlockProcessor {
     private readonly depositTransaction: DepositTransaction,
     private readonly loggerService: LoggerService,
     private readonly klaytnService: KlaytnService,
+    private readonly caverService: CaverService,
   ) {
     this.loggerService.setContext('BlockProcessor');
   }
@@ -24,35 +27,29 @@ export class BlockProcessor {
    */
   @Process(BlockQueue.BLOCK)
   public handleBlock(job: Job) {
-    return new Promise<void>(async (resolve, reject) => {
+    return new Promise<string>(async (resolve, reject) => {
       try {
-        this.blockHeight = Number(
-          this.klaytnService.caver.utils.hexToNumber(job.data.block.number),
-        );
+        this.blockHeight = this.caverService.hexToNumber(job.data.block.number)
         const txCount =
-          await this.klaytnService.caver.rpc.klay.getBlockTransactionCountByNumber(
+          await this.caverService.getBlockTransactionCount(
             this.blockHeight,
           );
         if (txCount === TxCount.ZER0 || !this.klaytnService.listeners.length)
-          return resolve();
+          return resolve('No Transactions In This Block');
 
         this.loggerService.debug(`Start processing block: ${this.blockHeight}`);
         const txs = await this.filterTransactions(job.data.block);
         await Promise.all(
           txs.map(async (tx) => {
-            tx.value = this.klaytnService.caver.utils.fromPeb(
-              this.klaytnService.caver.utils.hexToNumberString(tx.value),
-            );
-            tx.blockNumber = this.klaytnService.caver.utils.hexToNumber(
-              tx.blockNumber,
-            );
+            tx.value = this.caverService.fromPeb(tx.value);
+            tx.blockNumber = this.caverService.hexToNumber(tx.blockNumber).toString();
             await this.depositTransaction.initDepositTransaction(tx);
           }),
         );
         this.loggerService.debug(
           `Process completed block: ${this.blockHeight}`,
         );
-        resolve();
+        resolve(BlockProcess.PROCESS_COMPLETED);
       } catch (err) {
         console.log(err);
         reject(err);
@@ -67,7 +64,7 @@ export class BlockProcessor {
   public async filterTransactions(block): Promise<TransactionReceipt[]> {
     return new Promise<TransactionReceipt[]>(async (resolve, reject) => {
       try {
-        const recipents = await this.klaytnService.caver.klay.getBlockReceipts(
+        const recipents = await this.caverService.getBlockReceipts(
           block.hash,
         );
         const txs = recipents.filter((e) => e.type === TxType.VALUE_TRANSFER);
@@ -82,10 +79,4 @@ export class BlockProcessor {
     });
   }
 
-  // @OnQueueActive()
-  // onActive(job: Job) {
-  // console.log(
-  //   `Processing job ${job.id} of type ${job.name} with data ${job.data}...`,
-  // );
-  //}
 }

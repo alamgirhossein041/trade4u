@@ -17,8 +17,6 @@ import {
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
 import { KlaytnService } from '../klaytn/klaytn.service';
 import { Account } from '../klaytn/account.entity';
-import { Deposit } from './deposit.entity';
-import { DepositTransaction } from './deposit.transaction';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { JOB } from '../../utils/enum/index';
 import { LoggerService } from '../../utils/logger/logger.service';

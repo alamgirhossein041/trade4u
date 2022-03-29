@@ -4,10 +4,11 @@ import { getConnection } from 'typeorm';
 import { Plan } from "../src/modules/seed/plan.entity";
 import { User } from "../src/modules/user/user.entity";
 import { Account } from "../src/modules/klaytn/account.entity";
-const RedisServer = require('redis-server');
+import { WebSocketServer } from 'ws';
 
 export class Helper {
     private app: INestApplication;
+    private testWebSocketServer: WebSocketServer;
     private token: string;
 
     constructor(app) {
@@ -147,20 +148,50 @@ export class Helper {
         }
     }
 
+    /**
+     * 
+     */
+    public startTestWebSocketServer() {
+        try {
+            this.testWebSocketServer = new WebSocketServer({ port: 1234 });
+        } catch (e) {
+            console.error('Unable to start Mock WebSocketServer', e);
+        }
+    }
+
+    public getJob() {
+        try {
+            const block = {
+                baseFeePerGas: "0x0",
+                blockScore: "0x1",
+                extraData: "0xd883010801846b6c617988676f312e31352e37856c696e757800000000000000f90164f85494571e53df607be97431a5bbefca1dffe5aef56f4d945cb1a7dccbd0dc446e3640898ede8820368554c89499fb17d324fa0e07f23b49d09028ac0919414db694b74ff9dea397fe9e231df545eb53fe2adf776cb2b841cb3a800ba5ed625411532fa3e21c90f22e56dbda4b3c296a9b84f79c8fb36ab32bc31dc449a081ec4a872079c6021c59baf9109d20dd246c10503ccb61ae4e7b00f8c9b841fe82ff1f389fb684759dee4c72d48382c99e3308158d18037e4ed2ec1874ed1f6b9fcfc180ca2cce53f0d724afe95a8bd5811ca3d38231c84ec911f1540cbeb300b841b5cbf25e3dd684b5238846e833f4a584936d60a1091039d801979791144013a36d625b27f42b114b565c45bf9659076604a151162e1f574314d956e4005ea8b801b84150b8c3ed7cf7c8f8d96c78fa6347ee1328265209d0a0ad306cc5e58356bb08e754f713b24f12b61a0a785eb21069e68dd00c649c26c4cc18993dd99def6a451a00",
+                gasUsed: "0x0",
+                governanceData: "0x",
+                hash: "0x60d8aa4167e7eca1a196654c8e2ed80a5d10f74834399be6cecf184b7b6b1cda",
+                logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                number: "0x528a0c8",
+                parentHash: "0x12545bc685f8633b264a4d4b6738ca0bdc6b6b1c79a585b181640f54d704938d",
+                receiptsRoot: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+                reward: "0xa86fd667c6a340c53cc5d796ba84dbe1f29cb2f7",
+                stateRoot: "0x718a80ccf97b5183da398d3b3e06a2d124e4c0dc4a3d3e36cf4a2fc22aee2192",
+                timestamp: "0x623c4c2a",
+                timestampFoS: "0x0",
+                transactionsRoot: "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+            };
+            return block;
+        } catch (e) {
+            console.error('Unable to start Mock WebSocketServer', e);
+        }
+    }
 
     /**
      * 
      */
-    public async startLocalRedisServer() {
-        const MOCK_SERVER_PORT = 6379;
+    public stopTestWebSocketServer() {
         try {
-            const server = new RedisServer();
-            await server.open({ port: MOCK_SERVER_PORT });
+            this.testWebSocketServer.close();
         } catch (e) {
-            console.error('unable to start local redis-server', e);
-            process.exit(1);
+            console.error('Unable to stop Mock WebSocketServer', e);
         }
-        return MOCK_SERVER_PORT;
-
     }
 }

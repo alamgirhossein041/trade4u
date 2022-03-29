@@ -10,6 +10,7 @@ import moment from 'moment';
 import { PaymentStatus } from './commons/payment.enum';
 import { TransactionReceipt } from 'caver-js';
 import { KlaytnService } from '../../modules/klaytn/klaytn.service';
+import { CaverService } from '../../modules/klaytn/caver.service';
 
 @Injectable()
 export class DepositTransaction {
@@ -26,6 +27,7 @@ export class DepositTransaction {
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
     private readonly klaytnService: KlaytnService,
+    private readonly caverService: CaverService,
   ) {}
 
   /**
@@ -55,7 +57,7 @@ export class DepositTransaction {
             this.payment.plan,
             queryRunner,
           );
-          await this.klaytnService.moveToMasterWallet(tx.to);
+          await this.caverService.moveToMasterWallet(tx.to);
           await this.klaytnService.removeListener(tx.to);
         }
         await queryRunner.commitTransaction();

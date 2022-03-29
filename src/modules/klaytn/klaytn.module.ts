@@ -7,6 +7,7 @@ import { LoggerModule } from '../../utils/logger/logger.module';
 import { BullModule } from '@nestjs/bull';
 import { BlockQueue } from '../scheduler/commons/scheduler.enum';
 import { Information } from './information.entity';
+import { CaverService } from './caver.service';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { Information } from './information.entity';
     }),
   ],
   controllers: [KlaytnController],
-  providers: [KlaytnService],
-  exports: [KlaytnService],
+  providers: [KlaytnService, CaverService],
+  exports: [KlaytnService, CaverService],
 })
 export class KlaytnModule {}

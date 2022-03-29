@@ -4,18 +4,23 @@ import { AppModule } from '../../src/modules/main/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { CoinMarketMock, LoggerMock, MailerMock } from '../mocks/mocks';
+import { CaverMock, CoinMarketMock, LoggerMock, MailerMock } from '../mocks/mocks';
 import { Helper } from '../helper';
 import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
 import request from 'supertest';
 import { AppService } from '../../src/modules/main/app.service';
+import { BlockProcessor } from '../../src/modules/scheduler/block.processor';
+import { BlockProcess } from '../../src/utils/enum';
+import { CaverService } from '../../src/modules/klaytn/caver.service';
 var rimraf = require("rimraf");
 
 describe('BinancePlus payment test', () => {
     let app: INestApplication;
     let helper: Helper;
     let token: string;
+    let blockProcessService: BlockProcessor;
     let server: any;
+    let job: any = {};
     let payment_Id: string;
 
     beforeAll(async () => {
@@ -27,11 +32,15 @@ describe('BinancePlus payment test', () => {
             .useValue(MailerMock)
             .overrideProvider(CoinGeckoMarket)
             .useValue(CoinMarketMock)
+            .overrideProvider(CaverService)
+            .useClass(CaverMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
         await app.init();
+        blockProcessService = app.get(BlockProcessor);
         helper = new Helper(app);
+        helper.startTestWebSocketServer();
         await AppService.startup();
         token = await helper.init();
         server = app.getHttpServer();
@@ -62,12 +71,25 @@ describe('BinancePlus payment test', () => {
             .post('/api/payment/address')
             .query({ paymentId: payment_Id })
             .set('Authorization', helper.getAccessToken())
-            .expect(201);
+            .expect(201)
+            .expect(({ body }) => {
+                CaverMock.accountAddress = body.data.address;
+            })
     });
+
+    it(`Test Transaction Processing Function`, async () => {
+        const jobData = helper.getJob();
+        job.data = { block: jobData };
+        await blockProcessService.handleBlock(job).then((result) => {
+            expect(result).toEqual(BlockProcess.PROCESS_COMPLETED);
+        })
+    });
+
 
     afterAll(async () => {
         await helper.clearDB();
         await app.close();
         rimraf.sync(process.env.KEY_STORE_PATH);
+        helper.stopTestWebSocketServer();
     })
 });
