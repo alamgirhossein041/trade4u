@@ -110,15 +110,15 @@ export class UsersService {
     const affiliates = ` SELECT level,"fullName","userName","phoneNumber","tradingSystem",p."planName" as plan_name,"createdAt"
                 FROM
                   MlmTree
-                INNER JOIN plans p ON "planPlanId" = p."planId"
+                LEFT JOIN plans p ON "planPlanId" = p."planId"
               WHERE
-                  level > 0 AND level <= $2 AND "planPlanId" IS NOT NULL
+                  level > 0 AND level <= $2
               ORDER BY level;`;
     const affliatesCountLevelWise = ` SELECT level,COUNT(level) as total_affiliates
               FROM
                   MlmTree
               WHERE
-                  level > 0 AND level <= $2 AND "planPlanId" IS NOT NULL
+                  level > 0 AND level <= $2
               GROUP BY level 
               ORDER BY level;`;
     const affiliatesResult = await this.userRepository.query(sql + affiliates, [
