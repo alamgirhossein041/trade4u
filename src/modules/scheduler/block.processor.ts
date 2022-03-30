@@ -1,7 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { LoggerService } from '../../utils/logger/logger.service';
-import { TxCount, TxType, BlockQueue } from './commons/scheduler.enum';
+import { TxCount, TxType, BlockQueue, Events } from './commons/scheduler.enum';
 import { KlaytnService } from '../klaytn/klaytn.service';
 import { TransactionReceipt } from 'caver-js';
 import { DepositTransaction } from '../payment/deposit.transaction';
@@ -9,6 +9,8 @@ import { CaverService } from '../klaytn/caver.service';
 import { BlockProcess } from '../../utils/enum';
 import { CompensationTransaction } from '../payment/compensation.transaction';
 import { BonusType } from '../payment/commons/payment.enum';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DepositCompletedEvent } from './deposit.complete.event';
 
 @Processor(BlockQueue.BLOCK)
 export class BlockProcessor {
@@ -16,7 +18,7 @@ export class BlockProcessor {
 
   constructor(
     private readonly depositTransaction: DepositTransaction,
-    private readonly compensationTransaction: CompensationTransaction,
+    private eventEmitter: EventEmitter2,
     private readonly loggerService: LoggerService,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
@@ -55,7 +57,10 @@ export class BlockProcessor {
             tx.value = this.caverService.fromPeb(tx.value);
             tx.blockNumber = this.caverService.hexToNumber(tx.blockNumber).toString();
             const user = await this.depositTransaction.initDepositTransaction(tx);
-            await this.compensationTransaction.initCompensationTransaction(user,BonusType.LISENCE);
+            const depositCompletedEvent = new DepositCompletedEvent();
+            depositCompletedEvent.bonusType = BonusType.LISENCE;
+            depositCompletedEvent.user = user;
+            this.eventEmitter.emit(Events.DEPOSIT_COMPLETED,depositCompletedEvent);
           }),
         );
         this.loggerService.debug(

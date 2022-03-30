@@ -17,5 +17,11 @@ export class UserStats extends BaseEntity {
     default: 0,
     type: 'double precision',
   })
-  total_amount: number;
+  earning_limit: number;
+
+  @Column({
+    default: 0,
+    type: 'double precision',
+  })
+  consumed_amount: number;
 }

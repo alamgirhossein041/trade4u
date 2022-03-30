@@ -10,6 +10,10 @@ import { PerformanceFee } from '../seed/preformaceFee.entity';
 import { BonusType } from './commons/payment.enum';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 import { PriceService } from '../../modules/price/price.service';
+import { OnEvent } from '@nestjs/event-emitter';
+import { Events } from '../scheduler/commons/scheduler.enum';
+import { DepositCompletedEvent } from '../scheduler/deposit.complete.event';
+import { UserStats } from '../user/user-stats.entity';
 
 @Injectable()
 export class CompensationTransaction {
@@ -34,7 +38,8 @@ export class CompensationTransaction {
    * @param user
    * @returns
    */
-  public async initCompensationTransaction(user: User, bonusType: string) {
+  @OnEvent(Events.DEPOSIT_COMPLETED, { async: true })
+  public async initCompensationTransaction(depositCompletedEvent: DepositCompletedEvent) {
     return new Promise<void>(async (resolve, reject) => {
       // get a connection and create a new query runner
       const connection = getConnection();
@@ -44,7 +49,7 @@ export class CompensationTransaction {
       // lets now open a new transaction:
       await queryRunner.startTransaction();
       try {
-        const userWithPlan = await this.userService.get(user.uuid);
+        const userWithPlan = await this.userService.get(depositCompletedEvent.user.uuid);
         const planAmount = userWithPlan.plan.price;
         const planName = userWithPlan.plan.planName;
         const userParentTree = await this.userService.getUserParentsTree(
@@ -54,7 +59,7 @@ export class CompensationTransaction {
           userParentTree,
           planAmount,
           planName,
-          bonusType,
+          depositCompletedEvent.bonusType,
           queryRunner,
         );
         await queryRunner.commitTransaction();
@@ -95,10 +100,11 @@ export class CompensationTransaction {
               parent.parent_depth_level,
             );
             let amount = this.getBonusAmount(bonusPercentage, planAmount);
-            const parentToUpdate = await this.userService.getByUserName(
-              parent.userName,
+            const parentToUpdate = await this.userService.get(
+              parent.uuid
             );
-            parentToUpdate.balance =Number(new bigDecimal(amount).add(new bigDecimal(parent.balance)).getValue());
+            await this.updateParentStats(parentToUpdate.userStats, amount, queryRunner);
+            parentToUpdate.balance = Number(new bigDecimal(amount).add(new bigDecimal(parent.balance)).getValue());
             await queryRunner.manager.save(parentToUpdate);
           })
         );
@@ -164,6 +170,26 @@ export class CompensationTransaction {
     return originalAmount;
   }
 
+
+  /**
+   * Update Stats of PArent
+   * @param userStats 
+   * @param consumedAmount 
+   * @param queryRunner 
+   * @returns 
+   */
+  private async updateParentStats(userStats: UserStats, consumedAmount: number, queryRunner: QueryRunner) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        userStats.consumed_amount = Number(new bigDecimal(userStats.consumed_amount).add(new bigDecimal(consumedAmount)).getValue());
+        await queryRunner.manager.save(userStats);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
   /**
    * Notify Parent On Telegram if Parent Notifications are active
    * @param parent
@@ -183,7 +209,7 @@ export class CompensationTransaction {
       if (parentTelegram.bonusNotificationsActive) {
         const amountKLAY = Number(
           new bigDecimal(amountUSD)
-            .divide(new bigDecimal(PriceService.klayPrice),8)
+            .divide(new bigDecimal(PriceService.klayPrice), 8)
             .getValue()
         );
         await this.telegramService.sendBonusNotification(

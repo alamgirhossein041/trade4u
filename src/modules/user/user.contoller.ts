@@ -268,7 +268,7 @@ export class UserContoller {
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: user.toDto(),
-      message: ResponseMessage.VERIFICATION_DONE,
+      message: ResponseMessage.SUCCESS,
     });
   }
 

@@ -13,6 +13,7 @@ import { PriceModule } from '../price/price.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from '../../utils/logger/logger.module';
 import { BullModule } from '@nestjs/bull';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SchedulerModule } from '../../modules/scheduler/scheduler.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { SchedulerModule } from '../../modules/scheduler/scheduler.module';
         password: process.env.REDIS_PASSWORD,
       },
     }),
+    EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     AuthModule,
     CommonModule,

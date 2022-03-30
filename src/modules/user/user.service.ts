@@ -178,7 +178,7 @@ export class UsersService {
                       INNER JOIN ReverseMlmTree h ON u.uuid = h."refereeUuid" 
                     )
             ) 
-             SELECT "fullName","balance","userName",p."planName" as plan_name,p."levels" as parent_depth_level,level FROM ReverseMlmTree
+             SELECT uuid,"fullName","balance","userName",p."planName" as plan_name,p."levels" as parent_depth_level,level FROM ReverseMlmTree
              INNER JOIN plans p ON "planPlanId" = p."planId"
              WHERE level > 0 AND level <= $2 AND "refereeUuid" IS NOT NULL
              ORDER BY level;

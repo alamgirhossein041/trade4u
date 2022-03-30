@@ -11,6 +11,8 @@ import { PaymentStatus } from './commons/payment.enum';
 import { TransactionReceipt } from 'caver-js';
 import { KlaytnService } from '../../modules/klaytn/klaytn.service';
 import { CaverService } from '../../modules/klaytn/caver.service';
+import bigDecimal from 'js-big-decimal';
+import { UserStats } from '../user/user-stats.entity';
 
 @Injectable()
 export class DepositTransaction {
@@ -28,7 +30,7 @@ export class DepositTransaction {
     private readonly paymentRepository: Repository<Payment>,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
-  ) {}
+  ) { }
 
   /**
    * Deposit Transaction On Webhook Triggered
@@ -129,7 +131,7 @@ export class DepositTransaction {
       try {
         const payment = await this.paymentRepository.findOne(
           { paymentId: id },
-          { relations: ['plan', 'user', 'account'] },
+          { relations: ['plan', 'user', 'user.userStats', 'account'] },
         );
         resolve(payment);
       } catch (err) {
@@ -213,8 +215,40 @@ export class DepositTransaction {
     return new Promise<void>(async (resolve, reject) => {
       try {
         user.plan = plan;
-        user.planIsActive = true;
+        await this.updateUserStats(user.userStats,plan,user.planIsActive,queryRunner);
+        if(!user.planIsActive) user.planIsActive = true;
         await queryRunner.manager.save(user);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * Update Stats Of User
+   * @param userStats
+   * @param plan
+   * @returns
+   */
+  private async updateUserStats(
+    userStats: UserStats,
+    plan: Plan,
+    planIsActive: boolean,
+    queryRunner: QueryRunner,
+  ) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        const planLimit = Number(plan.limit.split('')[0]);
+        const earningLimit = Number(new bigDecimal(planLimit).multiply(new bigDecimal(plan.price)).getValue());
+        if (planIsActive) {
+          const remainingAmount = Number(new bigDecimal(userStats.earning_limit).subtract(new bigDecimal(userStats.consumed_amount)).getValue());
+          const newEarningLimit = Number(new bigDecimal(remainingAmount).add(new bigDecimal(earningLimit)).getValue());
+          userStats.earning_limit = newEarningLimit;
+        } else {
+          userStats.earning_limit = earningLimit;
+        }
+        await queryRunner.manager.save(userStats);
         resolve();
       } catch (err) {
         reject(err);
