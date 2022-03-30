@@ -21,6 +21,7 @@ import { Hash } from '../../utils/Hash';
 import otpGenerator from 'otp-generator';
 import speakeasy from 'speakeasy';
 import { UserDataDto } from '.';
+import { Crypto } from '../../utils/crypto';
 
 @Injectable()
 export class UsersService {
@@ -77,8 +78,10 @@ export class UsersService {
     return await this.userRepository.findOne({
       userName,
       emailConfirmed: true,
-      planIsActive: true,
-    });
+      planIsActive: true
+    },
+      { relations: ['userTelegram'] }
+    );
   }
 
   /**
@@ -261,8 +264,8 @@ export class UsersService {
       binanceDto.apiKey,
       binanceDto.apiSecret,
     );
-    user.apiKey = binanceDto.apiKey;
-    user.apiSecret = binanceDto.apiSecret;
+    user.apiKey = Crypto.encrypt(binanceDto.apiKey);
+    user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
     user.tradingSystem = binanceDto.tradingSystem;
     return await this.userRepository.save(user);
   }

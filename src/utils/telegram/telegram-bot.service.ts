@@ -109,11 +109,11 @@ export class TelegramService {
     amountUSD: number,
     bonusType: string,
   ) {
-    let message = `${bonusType} Bonus Received ***
-    \n<a href="https://scope.klaytn.com/tx/${txHash}"> ${txHash}</a>
-    \n KLAY Price: US$ ${klayPrice}
-    \n Amount (KLAY): ${amountKlay}
-    \n <b>Amount(USDT): US$ ${amountUSD}
+    let message = `${bonusType.toUpperCase()} Bonus Received ***
+    \n<a href="https://baobab.scope.klaytn.com/tx/${txHash}"> ${txHash}</a>
+    \n <b>KLAY Price: US$ ${klayPrice}</b>
+    \n <b>Amount (KLAY): ${amountKlay}</b>
+    \n <b>Amount(USDT): US$ ${amountUSD}</b>
     \n Binance Plus Team
     `;
     const resObj: BotResponse = {
@@ -176,6 +176,29 @@ export class TelegramService {
     return;
   }
 
+   /**
+   * Send Sysytem Notification to User on telegram
+   * @param userTelegram
+   * @param affiliateUsername
+   * @returns
+   */
+  public async sendReferralNotification(
+    userTelegram: UserTelegram,
+    affiliateUsername: string,
+  ) {
+    let message = `Hi ${userTelegram.name}!
+                \nYou Have A New Affiliate
+                \nUsername : <b>${affiliateUsername}</b>
+                \nBinancePlus Team`;
+    const resObj: BotResponse = {
+      chat_id: userTelegram.chat_id,
+      parse_mode: 'HTML',
+      text: message,
+    };
+    await this.sendResponseToUser(resObj);
+    return;
+  }
+
   /**
    * Send Promotional Notification to User on telegram
    * @param userTelegram
@@ -208,6 +231,7 @@ export class TelegramService {
       await axios.post(process.env.TELEGRAM_BOT_API + `/sendMessage`, resObj);
       return;
     } catch (err) {
+      console.log(err);
       throw new HttpException(
         ResponseMessage.INTERNAL_SERVER_ERROR,
         ResponseCode.INTERNAL_ERROR,

@@ -4,9 +4,11 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { TxCount, TxType, BlockQueue } from './commons/scheduler.enum';
 import { KlaytnService } from '../klaytn/klaytn.service';
 import { TransactionReceipt } from 'caver-js';
-import { DepositTransaction } from '../../modules/payment/deposit.transaction';
-import { CaverService } from '../../modules/klaytn/caver.service';
+import { DepositTransaction } from '../payment/deposit.transaction';
+import { CaverService } from '../klaytn/caver.service';
 import { BlockProcess } from '../../utils/enum';
+import { CompensationTransaction } from '../payment/compensation.transaction';
+import { BonusType } from '../payment/commons/payment.enum';
 
 @Processor(BlockQueue.BLOCK)
 export class BlockProcessor {
@@ -14,6 +16,7 @@ export class BlockProcessor {
 
   constructor(
     private readonly depositTransaction: DepositTransaction,
+    private readonly compensationTransaction: CompensationTransaction,
     private readonly loggerService: LoggerService,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
@@ -50,10 +53,9 @@ export class BlockProcessor {
         await Promise.all(
           txs.map(async (tx) => {
             tx.value = this.caverService.fromPeb(tx.value);
-            tx.blockNumber = this.caverService
-              .hexToNumber(tx.blockNumber)
-              .toString();
-            await this.depositTransaction.initDepositTransaction(tx);
+            tx.blockNumber = this.caverService.hexToNumber(tx.blockNumber).toString();
+            const user = await this.depositTransaction.initDepositTransaction(tx);
+            await this.compensationTransaction.initCompensationTransaction(user,BonusType.LISENCE);
           }),
         );
         this.loggerService.debug(

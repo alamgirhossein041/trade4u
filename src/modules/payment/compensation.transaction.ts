@@ -27,7 +27,7 @@ export class CompensationTransaction {
     private readonly performanceRepository: Repository<PerformanceFee>,
     private readonly userService: UsersService,
     private readonly telegramService: TelegramService,
-  ) {}
+  ) { }
 
   /**
    * Distribute License Bonus Among Parents Of User
@@ -86,27 +86,23 @@ export class CompensationTransaction {
   ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        parenTree.map(async (parent: any) => {
-          const bonusPercentage = await this.getBonusPercentage(
-            bonusType,
-            planName,
-            parent.level,
-            parent.parent_depth_level,
-          );
-          let amount = this.getBonusAmount(bonusPercentage, planAmount);
-          amount += parent.balance;
-          const parentToUpdate = await this.userService.getByUserName(
-            parent.userName,
-          );
-          parentToUpdate.balance = amount;
-          await queryRunner.manager.save(parentToUpdate);
-          await this.notifyParentOnTelegram(
-            parentToUpdate,
-            'sdsadsdasdasdadsad',
-            amount,
-          );
-          resolve();
-        });
+        await Promise.all(
+          parenTree.map(async (parent: any) => {
+            const bonusPercentage = await this.getBonusPercentage(
+              bonusType,
+              planName,
+              parent.level,
+              parent.parent_depth_level,
+            );
+            let amount = this.getBonusAmount(bonusPercentage, planAmount);
+            const parentToUpdate = await this.userService.getByUserName(
+              parent.userName,
+            );
+            parentToUpdate.balance =Number(new bigDecimal(amount).add(new bigDecimal(parent.balance)).getValue());
+            await queryRunner.manager.save(parentToUpdate);
+          })
+        );
+        resolve();
       } catch (err) {
         reject(err);
       }
@@ -176,7 +172,7 @@ export class CompensationTransaction {
   private async notifyParentOnTelegram(
     parent: User,
     txHash: string,
-    amountKLAY: number,
+    amountUSD: number,
   ) {
     const parentWithDetail = await this.userService.get(parent.uuid);
     if (
@@ -185,10 +181,10 @@ export class CompensationTransaction {
     ) {
       const parentTelegram = parentWithDetail.userTelegram;
       if (parentTelegram.bonusNotificationsActive) {
-        const amountUSD = Number(
-          new bigDecimal(amountKLAY)
-            .multiply(new bigDecimal(PriceService.klayPrice))
-            .getValue(),
+        const amountKLAY = Number(
+          new bigDecimal(amountUSD)
+            .divide(new bigDecimal(PriceService.klayPrice),8)
+            .getValue()
         );
         await this.telegramService.sendBonusNotification(
           parentTelegram,

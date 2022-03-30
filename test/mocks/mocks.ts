@@ -1,8 +1,12 @@
 import { TxType } from "../../src/modules/scheduler/commons/scheduler.enum";
 
 export const MailerMock = {
-    sendEmailConfirmation: jest.fn(),
-    sendForgotPasswordMail: jest.fn(),
+    sendEmailConfirmation: jest.fn(() => {
+        return;
+    }),
+    sendForgotPasswordMail: jest.fn(() => {
+        return;
+    }),
     sendEmailProfileVerificationCode: jest.fn(() => {
         return;
     }),
@@ -44,6 +48,12 @@ export const TelegramBotMock = {
     sendAlreadyActivatedMessage: jest.fn(() => {
         return;
     }),
+    sendReferralNotification: jest.fn(()=> {
+        return;
+    }),
+    sendBonusNotification: jest.fn(() => {
+        return;
+    })
 }
 
 export const CoinMarketMock = {

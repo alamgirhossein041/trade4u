@@ -36,7 +36,7 @@ export class DepositTransaction {
    * @returns
    */
   public async initDepositTransaction(tx: TransactionReceipt) {
-    return new Promise<void>(async (resolve, reject) => {
+    return new Promise<User>(async (resolve, reject) => {
       // get a connection and create a new query runner
       const connection = getConnection();
       const queryRunner = connection.createQueryRunner();
@@ -69,7 +69,7 @@ export class DepositTransaction {
       } finally {
         // you need to release query runner which is manually created:
         await queryRunner.release();
-        resolve();
+        resolve(this.payment.user);
       }
     });
   }

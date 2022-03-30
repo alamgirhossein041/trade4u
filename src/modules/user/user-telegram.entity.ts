@@ -10,7 +10,7 @@ export class UserTelegram {
   @Column({ length: 50 })
   name: string;
 
-  @Column()
+  @Column({type: 'bigint'})
   code: number;
 
   @Column({ default: false })
