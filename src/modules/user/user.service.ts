@@ -52,6 +52,17 @@ export class UsersService {
   }
 
   /**
+   * Get user by id
+   * @param uuid
+   * @returns
+   */
+  async getByid(uuid: string): Promise<User> {
+    return this.userRepository.findOne(
+      uuid 
+    );
+  }
+
+  /**
    * Get user by email
    * @param email
    * @returns
@@ -517,7 +528,6 @@ export class UsersService {
         secret: process.env.OTP_KEY,
         digits: 6,
         step: 60,
-        window: 10,
       });
       return await this.mailerservice.sendEmailProfileVerificationCode(
         user,
@@ -538,17 +548,23 @@ export class UsersService {
    * @returns
    */
   async getProfileDetails(user: User, code: string) {
-    const dbuser: User = await this.userRepository.findOne({
-      email: user.email,
-    });
+    if (user.profileCode === Number(code)) {
+      throw new HttpException(
+        ResponseMessage.INVALID_VERIFICATION_CODE,
+        ResponseCode.NOT_FOUND,
+      );
+    }
     const verified = speakeasy.totp.verify({
       secret: process.env.OTP_KEY,
       token: code,
       step: 60,
-      window: 10,
     });
     if (verified) {
-      return dbuser;
+      await this.userRepository.update(
+        { uuid: user.uuid },
+        { profileCode: Number(code) },
+      );
+      return user.toDto();
     } else {
       throw new HttpException(
         ResponseMessage.INVALID_VERIFICATION_CODE,

@@ -262,10 +262,15 @@ export class UserContoller {
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
+    let referrerObj: Object = null;
     this.loggerService.log(`GET user/me ${LoggerMessages.API_CALLED}`);
+    if(user.refereeUuid) {
+      const referrer = await this.userService.getByid(user.refereeUuid);
+      referrerObj = {name: referrer.fullName,username: referrer.userName, contact: referrer.phoneNumber };
+    }
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      data: user.toDto(),
+      data: { user: user.toDto() , referrer: referrerObj },
       message: ResponseMessage.SUCCESS,
     });
   }
