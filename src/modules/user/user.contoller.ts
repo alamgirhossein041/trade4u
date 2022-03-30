@@ -25,7 +25,7 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { EarningLimit } from './commons/user.constants';
 import { isPositiveInteger } from '../../utils/methods';
 import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
-import { UserDataDto } from './commons/user.types';
+import { UserDataDto } from './user.entity';
 
 @Controller('api/user')
 export class UserContoller {
@@ -257,20 +257,20 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Patch('validate_wallet_address')
+  @Patch('update_profile')
   public async validateWalletAddress(
     @Body() data: UserDataDto,
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
     this.loggerService.log(
-      `Patch user/validate_wallet_address ${LoggerMessages.API_CALLED}`,
+      `Patch user/update_profile ${LoggerMessages.API_CALLED}`,
     );
     await this.userService.validateKlaytnAddress(data.address);
     await this.userService.updateProfileInfo(data, user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      message: ResponseMessage.VERIFICATION_DONE,
+      message: ResponseMessage.PROFILE_UPDATED_SUCCESSFULLY,
     });
   }
 }

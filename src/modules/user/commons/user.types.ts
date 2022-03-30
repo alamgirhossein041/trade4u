@@ -19,6 +19,3 @@ export interface BotResponse {
   text: string;
   parse_mode: string;
 }
-export interface UserDataDto {
-  address: string;
-}

@@ -8,7 +8,7 @@ import {
   TelergramBotMessages,
 } from '../../utils/enum';
 import { UserStats } from './user-stats.entity';
-import { AffliatesInterface, UserDataDto } from './commons/user.types';
+import { AffliatesInterface } from './commons/user.types';
 import { User } from './user.entity';
 import { SeedService } from '../seed/seed.service';
 import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
@@ -18,6 +18,9 @@ import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 import { MailService } from '../../utils/mailer/mail.service';
 import { KlaytnService } from '../klaytn/klaytn.service';
 import { Hash } from '../../utils/Hash';
+import otpGenerator from 'otp-generator';
+import speakeasy from 'speakeasy';
+import { UserDataDto } from '.';
 
 @Injectable()
 export class UsersService {
@@ -504,13 +507,14 @@ export class UsersService {
    */
   async getProfileVerificationCode(user: User) {
     try {
-      var random = Math.floor(100000 + Math.random() * 900000);
-      await this.userRepository.update(
-        { email: user.email },
-        { profileCode: random.toString() },
-      )
+      let token = speakeasy.totp({
+        secret: process.env.OTP_KEY,
+        digits: 6,
+        step: 60,
+        window: 10
+      });
       return await this.mailerservice
-        .sendEmailProfileVerificationCode(user, random.toString());
+        .sendEmailProfileVerificationCode(user, token.toString());
     }
     catch (err) {
       throw new HttpException(
@@ -530,7 +534,8 @@ export class UsersService {
     const dbuser: User = await this.userRepository.findOne({
       email: user.email,
     });
-    if (dbuser.profileCode === code) {
+    const verified = speakeasy.totp.verify({ secret: process.env.OTP_KEY, token: code, step: 60, window: 10 })
+    if (verified) {
       return dbuser;
     } else {
       throw new HttpException(
@@ -569,15 +574,18 @@ export class UsersService {
   async updateProfileInfo(
     data: UserDataDto,
     user: User,
-  ): Promise<boolean> {
-    await this.userRepository
-      .update({ email: user.email }, { klayWallet: data.address })
-      .catch((e) => {
-        throw new HttpException(
-          ResponseMessage.USER_DOES_NOT_EXIST,
-          ResponseCode.NOT_FOUND,
-        );
-      });
-    return true;
+  ): Promise<User> {
+    const exist = await this.userRepository.findOne({ email: user.email })
+    if (!exist) {
+      throw new HttpException(
+        ResponseMessage.USER_DOES_NOT_EXIST,
+        ResponseCode.NOT_FOUND,
+      );
+    }
+    exist.klayWallet = data.address;
+    exist.phoneNumber = data.phoneNumber;
+    exist.fullName = data.fullName;
+    exist.country = data.country;
+    return await this.userRepository.save(exist);
   }
 }

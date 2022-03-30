@@ -10,10 +10,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { PasswordTransformer } from './password.transformer';
 import { Crypto } from '../../utils/crypto';
 import { Plan } from '../seed/plan.entity';
 import { UserTelegram } from './telegram.entity';
+import { IsNotEmpty, Matches } from 'class-validator';
+import { IsValidCountry } from '../../modules/common/validator/country.validator';
+import { IsValidPhoneNumber } from '../../modules/common/validator/phone.validator';
+import { ResponseMessage } from '../../utils/enum';
 
 @Entity({
   name: 'users',
@@ -116,4 +119,25 @@ export class UserFillableFields {
   firstName: string;
   lastName: string;
   password: string;
+}
+
+
+export class UserDataDto {
+  address: string;
+
+  @IsNotEmpty()
+  @IsValidPhoneNumber()
+  phoneNumber:string;
+  
+  userTelegram:string;
+  
+  @IsNotEmpty()
+  @Matches(/^[a-zA-Z ]{3,26}$/, {
+    message: ResponseMessage.INVALID_NAME,
+  })
+  fullName:string;
+  
+  @IsNotEmpty()
+  @IsValidCountry()
+  country:string;
 }

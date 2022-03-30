@@ -60,6 +60,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.3.0",
     "short-unique-id": "^4.4.4",
+    "speakeasy": "^2.0.0",
     "typeorm": "^0.2.30",
     "typeorm-extension": "^1.1.0",
     "typescript": "^4.4.2",

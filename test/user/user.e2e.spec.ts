@@ -197,15 +197,15 @@ describe('BinancePlus User test', () => {
         });
 
         it(`Test Send verification code for profile info`, async () => {
-        await request(server)
-            .get('/api/user/profile_verification_code')
-            .set('Authorization', helper.getAccessToken())
-            .expect(200)
-            .expect(({ body }) => {
-                expect(body.message).toEqual(ResponseMessage.VERIFICATION_CODE_SEND);
-            });
+            await request(server)
+                .get('/api/user/profile_verification_code')
+                .set('Authorization', helper.getAccessToken())
+                .expect(200)
+                .expect(({ body }) => {
+                    expect(body.message).toEqual(ResponseMessage.VERIFICATION_CODE_SEND);
+                });
         });
-        
+
         it(`Test verify code for profile info`, async () => {
             await request(server)
                 .get('/api/user/profile_details/123456')
@@ -215,23 +215,20 @@ describe('BinancePlus User test', () => {
                 });
         });
 
-        it(`Test get user klay wallet address API`, async () => {
-            const data = { address: `0xef76f8177198119e1bb97111e673ca0afcc25f19` };
+        it(`Test update profile API`, async () => {
+            const data = {
+                address: "0xef76f8177198119e1bb97111e673ca0afcc25f19",
+                fullName: "Waqar ahmed",
+                phoneNumber: "+923415742058",
+                country: "Pakistan"
+            };
             await request(server)
-                .patch('/api/user/validate_wallet_address')
+                .patch('/api/user/update_profile')
                 .send(data)
                 .set('Authorization', helper.getAccessToken())
                 .expect(200)
                 .expect(({ body }) => {
-                    expect(body.message).toEqual(ResponseMessage.VERIFICATION_DONE);
-                });
-            await request(server)
-                .patch('/api/user/validate_wallet_address')
-                .send({ address: `0xef76f8177198119e1bb97111e673ca0afcc25f1890` })
-                .set('Authorization', helper.getAccessToken())
-                .expect(400)
-                .expect(({ body }) => {
-                    expect(body.message).toEqual(ResponseMessage.INVALID_ADDRESS);
+                    expect(body.message).toEqual(ResponseMessage.PROFILE_UPDATED_SUCCESSFULLY);
                 });
         });
     });
