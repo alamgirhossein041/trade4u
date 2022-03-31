@@ -29,11 +29,22 @@ export class BlockProcessor {
   public handleBlock(job: Job) {
     return new Promise<string>(async (resolve, reject) => {
       try {
+        let txCount: string;
+        const wait = ms => new Promise(r => setTimeout(r, ms));
         this.blockHeight = this.caverService.hexToNumber(job.data.block.number)
-        const txCount =
-          await this.caverService.getBlockTransactionCount(
-            this.blockHeight,
-          );
+        try {
+          txCount =
+            await this.caverService.getBlockTransactionCount(
+              this.blockHeight,
+            )
+        }
+        catch (err) {
+          await wait(1000);
+          txCount =
+            await this.caverService.getBlockTransactionCount(
+              this.blockHeight,
+            );
+        }
         if (txCount === TxCount.ZER0 || !this.klaytnService.listeners.length)
           return resolve('No Transactions In This Block');
 

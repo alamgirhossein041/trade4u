@@ -13,6 +13,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Information } from './information.entity';
 import { InformationEnum } from './commons/klaytn.enum';
 import { CaverService } from './caver.service';
+import { async } from 'rxjs';
 
 @Injectable()
 export class KlaytnService {
@@ -48,8 +49,8 @@ export class KlaytnService {
       let promises = [];
       await this.syncWallet();
       if (this.listeners.length && process.env.ENABLE_RECOVERY === 'true') promises.push(this.syncDeposits());
-      promises.push(await this.subscribeNewHead());
-      await Promise.all(promises);
+      promises.push(this.subscribeNewHead());
+      return await Promise.all(promises);
     })();
   }
 
@@ -166,20 +167,20 @@ export class KlaytnService {
       }
     });
   }
-  
+
   /**
    * validate Klaytn Address
    */
   public async validateKlaytnAddress(address: string) {
     return this.caverService.isAddress(address);
-  }  
+  }
 
   /**
    * Subscribe newHead event of klaytn network
    */
   public async subscribeNewHead() {
-    this.wsClient.on('open', () => {
-      this.wsClient.send(
+    this.wsClient.on('open', async () => {
+      await this.wsClient.send(
         '{"jsonrpc":"2.0", "id": 1, "method": "klay_subscribe", "params": ["newHeads"]}',
       );
     });
