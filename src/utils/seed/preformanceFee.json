@@ -8,79 +8,79 @@
     },
     {
         "levelNo": 2,
+        "silverPercentage": 5,
+        "goldPercentage": 5,
+        "platinumPercentage": 5,
+        "premiumPercentage": 5
+    },
+    {
+        "levelNo": 3,
         "silverPercentage": 4,
         "goldPercentage": 4,
         "platinumPercentage": 4,
         "premiumPercentage": 4
     },
     {
-        "levelNo": 3,
+        "levelNo": 4,
         "silverPercentage": 3,
         "goldPercentage": 3,
         "platinumPercentage": 3,
         "premiumPercentage": 3
     },
     {
-        "levelNo": 4,
-        "silverPercentage": 1,
-        "goldPercentage": 1,
-        "platinumPercentage": 1,
-        "premiumPercentage": 1
-    },
-    {
         "levelNo": 5,
-        "silverPercentage": 1,
-        "goldPercentage": 1,
-        "platinumPercentage": 1,
-        "premiumPercentage": 1
+        "silverPercentage": 2,
+        "goldPercentage": 2,
+        "platinumPercentage": 2,
+        "premiumPercentage": 2
     },
     {
         "levelNo": 6,
-        "silverPercentage": 0.5,
-        "goldPercentage": 0.5,
-        "platinumPercentage": 0.5,
-        "premiumPercentage": 0.5
+        "silverPercentage": 1,
+        "goldPercentage": 1,
+        "platinumPercentage": 1,
+        "premiumPercentage": 1
     },
     {
         "levelNo": 7,
-        "silverPercentage": 0.5,
-        "goldPercentage": 0.5,
-        "platinumPercentage": 0.5,
-        "premiumPercentage": 0.5
+        "silverPercentage": 1,
+        "goldPercentage": 1,
+        "platinumPercentage": 1,
+        "premiumPercentage": 1
     },
     {
         "levelNo": 8,
         "silverPercentage": 0,
-        "goldPercentage": 0.5,
-        "platinumPercentage": 0.5,
-        "premiumPercentage": 0.5
+        "goldPercentage": 1,
+        "platinumPercentage": 1,
+        "premiumPercentage": 1
     },
     {
         "levelNo": 9,
         "silverPercentage": 0,
-        "goldPercentage": 0.5,
-        "platinumPercentage": 0.5,
-        "premiumPercentage": 0.5
+        "goldPercentage": 1,
+        "platinumPercentage": 1,
+        "premiumPercentage": 1
     },
     {
         "levelNo": 10,
         "silverPercentage": 0,
-        "goldPercentage": 0.5,
-        "platinumPercentage": 0.5,
-        "premiumPercentage": 0.5
+        "goldPercentage": 1,
+        "platinumPercentage": 1,
+        "premiumPercentage": 1
     },
     {
         "levelNo": 11,
         "silverPercentage": 0,
         "goldPercentage": 0,
-        "platinumPercentage": 0.25,
-        "premiumPercentage": 0.25
+        "platinumPercentage": 1,
+        "premiumPercentage": 1
     },
     {
         "levelNo": 12,
         "silverPercentage": 0,
         "goldPercentage": 0,
-        "platinumPercentage": 0.25,
-        "premiumPercentage": 0.25
+        "platinumPercentage": 1,
+        "premiumPercentage": 1
     }
 ]
