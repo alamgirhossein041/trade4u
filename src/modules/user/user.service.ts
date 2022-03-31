@@ -559,7 +559,7 @@ export class UsersService {
       return status;
     } else {
       throw new HttpException(
-        ResponseMessage.INVALID_ADDRESS,
+        ResponseMessage.INVALID_KLAYTN_ADDRESS,
         ResponseCode.BAD_REQUEST,
       );
     }

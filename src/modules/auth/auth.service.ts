@@ -202,7 +202,7 @@ export class AuthService {
     const user = await this.userService.getByEmail(payload.email);
     if (!user) {
       throw new HttpException(
-        ResponseMessage.USER_DOES_NOT_EXIST,
+        ResponseMessage.INVALID_USERNAME_OR_PASSWORD,
         ResponseCode.BAD_REQUEST,
       );
     }
@@ -215,7 +215,7 @@ export class AuthService {
     const isValidPassword = await Hash.compare(payload.password, user.password);
     if (!user || !isValidPassword) {
       throw new HttpException(
-        ResponseMessage.WRONG_PASSWORD,
+        ResponseMessage.INVALID_USERNAME_OR_PASSWORD,
         ResponseCode.BAD_REQUEST,
       );
     }
