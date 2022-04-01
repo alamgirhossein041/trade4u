@@ -4,5 +4,5 @@ export enum InformationEnum {
 }
 
 export enum BlockProcess {
-  PROCESS_COMPLETED= `Block Processing Completed`
+  PROCESS_COMPLETED = `Block Processing Completed`,
 }

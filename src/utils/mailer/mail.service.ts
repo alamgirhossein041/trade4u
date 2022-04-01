@@ -258,7 +258,7 @@ export class MailService {
         });
         resolve();
       } catch (err) {
-          console.log(err)
+        console.log(err);
         reject();
       }
     });

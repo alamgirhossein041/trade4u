@@ -30,20 +30,17 @@ export class BlockProcessor {
     return new Promise<string>(async (resolve, reject) => {
       try {
         let txCount: string;
-        const wait = ms => new Promise(r => setTimeout(r, ms));
-        this.blockHeight = this.caverService.hexToNumber(job.data.block.number)
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        this.blockHeight = this.caverService.hexToNumber(job.data.block.number);
         try {
-          txCount =
-            await this.caverService.getBlockTransactionCount(
-              this.blockHeight,
-            )
-        }
-        catch (err) {
+          txCount = await this.caverService.getBlockTransactionCount(
+            this.blockHeight,
+          );
+        } catch (err) {
           await wait(1000);
-          txCount =
-            await this.caverService.getBlockTransactionCount(
-              this.blockHeight,
-            );
+          txCount = await this.caverService.getBlockTransactionCount(
+            this.blockHeight,
+          );
         }
         if (txCount === TxCount.ZER0 || !this.klaytnService.listeners.length)
           return resolve('No Transactions In This Block');
@@ -53,7 +50,9 @@ export class BlockProcessor {
         await Promise.all(
           txs.map(async (tx) => {
             tx.value = this.caverService.fromPeb(tx.value);
-            tx.blockNumber = this.caverService.hexToNumber(tx.blockNumber).toString();
+            tx.blockNumber = this.caverService
+              .hexToNumber(tx.blockNumber)
+              .toString();
             await this.depositTransaction.initDepositTransaction(tx);
           }),
         );
@@ -75,9 +74,7 @@ export class BlockProcessor {
   public async filterTransactions(block): Promise<TransactionReceipt[]> {
     return new Promise<TransactionReceipt[]>(async (resolve, reject) => {
       try {
-        const recipents = await this.caverService.getBlockReceipts(
-          block.hash,
-        );
+        const recipents = await this.caverService.getBlockReceipts(block.hash);
         const txs = recipents.filter((e) => e.type === TxType.VALUE_TRANSFER);
         const recipentsAddresses = txs
           .map((t) => t.to)
@@ -89,5 +86,4 @@ export class BlockProcessor {
       }
     });
   }
-
 }

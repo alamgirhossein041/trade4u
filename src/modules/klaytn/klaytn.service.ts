@@ -17,7 +17,6 @@ import { async } from 'rxjs';
 
 @Injectable()
 export class KlaytnService {
-
   /**
    * Level db keyStore
    */
@@ -48,7 +47,8 @@ export class KlaytnService {
     (async () => {
       let promises = [];
       await this.syncWallet();
-      if (this.listeners.length && process.env.ENABLE_RECOVERY === 'true') promises.push(this.syncDeposits());
+      if (this.listeners.length && process.env.ENABLE_RECOVERY === 'true')
+        promises.push(this.syncDeposits());
       promises.push(this.subscribeNewHead());
       return await Promise.all(promises);
     })();

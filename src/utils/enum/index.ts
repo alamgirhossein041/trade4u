@@ -2,7 +2,7 @@ export enum ResponseMessage {
   SUCCESS = `Success`,
   CREATED_SUCCESSFULLY = `Created successfully`,
   CONTENT_NOT_FOUND = `Content not found`,
-  
+
   CONFIRAMATION_EMAIL_SENT = `Email has been sent to you for verification, Kindly verify your email to get access to the system.`,
   EMAIL_CONFIRMED = `Email Confirmed Successfully`,
   EMAIL_LINK_EXPIRED = `This email link has been expired`,
@@ -12,7 +12,7 @@ export enum ResponseMessage {
   EMAIL_NOT_REGISTERED = `Email not registered`,
   EMAIL_QUERY_PARAM_MISSING = `non optional param 'email' missing`,
   CONFIRM_EMAIL_FIRST = `Please confirm your email first`,
-  
+
   PAYMENT_ALREADY_CANCELLED = `Requested Payment is already cancelled`,
   PAYMENT_ALREADY_PAID = `Requested Payment is already Paid`,
   DEPOSIT_RECOVERY_PROCESS_STARTED = `Deposit Recovery Routine started`,
@@ -20,7 +20,7 @@ export enum ResponseMessage {
   BONUS_TRANSACTION_ERROR = `Bonus transaction failed`,
   ERROR_WHILE_DISTRIBUTING_BONUS = `Error While Distributing The Bonus`,
   ERROR_WHILE_DEPOSIT = `Error While Confirming Deposit Amount`,
- 
+
   INVALID_QUERY_PARAM = `Invalid query parameter`,
   IS_INVALID = `Is Invalid`,
   INVALID_PAYMENT_ID = `Invalid paymentId`,
@@ -28,7 +28,7 @@ export enum ResponseMessage {
   USER_DOES_NOT_EXIST = `User with specified email does not exists`,
   INVALID_USERNAME_OR_PASSWORD = `Invalid email or password`,
   USERNAME_ALREADY_TAKEN = `User with the same username already exists, please try another one.`,
-  
+
   INVALID_EMAIL = `Invalid email address`,
   INVALID_PASSWORD = `Invalid Password. Use 8-15 characters with a mix of letters, numbers & symbols`,
   INVALID_USERNAME = `Invalid user name`,
@@ -36,14 +36,15 @@ export enum ResponseMessage {
   INVALID_COUNTRY = `Invalid country name`,
   INVALID_PHONE_NUMBER = `Invalid phone number`,
   INVALID_BINANCE_API = `Invalid binance api key`,
-  INVALID_REFERRER = `Referrer does not exist / has no active plan`,
- 
+  INVALID_REFERRER = `Referrer does not exist or plan not activated`,
+  REFERRER_PLAN_NOT_ACTIVATED = `Referrer plan has not been activated`,
+
   PURCHASE_PLAN = `Purchase plan from available plans first`,
   BINANCE_SERVER_ERROR = `Binance server error`,
   INTERNAL_SERVER_ERROR = `Internal server error`,
   CHECK_INTERNET_CONNECTION = `Error while sending email please check internet connection`,
   UNABLE_TO_PING_COINMARKET = `Unable to ping coin-gecko market`,
-  
+
   VERIFICATION_CODE_SEND = `Email has been sent successfully`,
   VERIFICATION_DONE = `Verification Completed`,
   INVALID_KLAYTN_ADDRESS = `Invalid Wallet Address`,
@@ -88,5 +89,5 @@ export enum JOB {
 }
 
 export enum BlockProcess {
-  PROCESS_COMPLETED= `Block Processing Completed`
+  PROCESS_COMPLETED = `Block Processing Completed`,
 }

@@ -69,7 +69,7 @@ export class User {
 
   @Column({
     name: 'password',
-    length: 255
+    length: 255,
   })
   password: string;
 
@@ -121,23 +121,22 @@ export class UserFillableFields {
   password: string;
 }
 
-
 export class UserDataDto {
   address: string;
 
   @IsNotEmpty()
   @IsValidPhoneNumber()
-  phoneNumber:string;
-  
-  userTelegram:string;
-  
+  phoneNumber: string;
+
+  userTelegram: string;
+
   @IsNotEmpty()
   @Matches(/^[a-zA-Z ]{3,26}$/, {
     message: ResponseMessage.INVALID_NAME,
   })
-  fullName:string;
-  
+  fullName: string;
+
   @IsNotEmpty()
   @IsValidCountry()
-  country:string;
+  country: string;
 }

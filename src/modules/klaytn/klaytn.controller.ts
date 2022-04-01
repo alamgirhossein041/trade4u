@@ -6,7 +6,5 @@ export class KlaytnController {
   constructor(private readonly KlaytnService: KlaytnService) {}
 
   @Get(`send`)
-  public async orderPlan() {
-   
-  }
+  public async orderPlan() {}
 }

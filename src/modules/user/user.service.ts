@@ -36,7 +36,7 @@ export class UsersService {
     private readonly telegramService: TelegramService,
     private readonly mailerservice: MailService,
     private readonly klaytnService: KlaytnService,
-  ) { }
+  ) {}
 
   /**
    * Get user by id
@@ -73,7 +73,7 @@ export class UsersService {
    * @param username
    * @returns
    */
-  async checkReferee(userName: string): Promise<User> {
+  async checkReferrer(userName: string): Promise<User> {
     return await this.userRepository.findOne({
       userName,
       emailConfirmed: true,
@@ -389,11 +389,17 @@ export class UsersService {
    * @param payload
    * @returns
    */
-  async create(payload: RegisterPayload, referrer: string): Promise<User> {
-    const referee = await this.checkReferee(referrer);
-    if (!referee) {
+  async create(payload: RegisterPayload, referrerName: string): Promise<User> {
+    const referrer = await this.checkReferrer(referrerName);
+    if (!referrer) {
       throw new HttpException(
         ResponseMessage.INVALID_REFERRER,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
+    if (!referrer.planIsActive) {
+      throw new HttpException(
+        ResponseMessage.REFERRER_PLAN_NOT_ACTIVATED,
         ResponseCode.BAD_REQUEST,
       );
     }
@@ -414,7 +420,7 @@ export class UsersService {
     const newUser = new User().fromDto(payload);
     newUser.userStats = await this.initializeStats();
     newUser.referralLink = this.getUserReferralLink(newUser);
-    newUser.refereeUuid = referee.uuid;
+    newUser.refereeUuid = referrer.uuid;
     newUser.password = await Hash.make(newUser.password);
     return await this.userRepository.save(newUser);
   }
@@ -475,10 +481,7 @@ export class UsersService {
    * @param password
    * @returns
    */
-  public async confirmForgotPassword(
-    email: string,
-    password: string,
-  ) {
+  public async confirmForgotPassword(email: string, password: string) {
     const user: User = await this.userRepository.findOne({ email });
     if (user) {
       const passwordHash = await Hash.make(password);
@@ -490,7 +493,6 @@ export class UsersService {
         ResponseCode.NOT_FOUND,
       );
     }
-
   }
 
   /**
@@ -511,12 +513,13 @@ export class UsersService {
         secret: process.env.OTP_KEY,
         digits: 6,
         step: 60,
-        window: 10
+        window: 10,
       });
-      return await this.mailerservice
-        .sendEmailProfileVerificationCode(user, token.toString());
-    }
-    catch (err) {
+      return await this.mailerservice.sendEmailProfileVerificationCode(
+        user,
+        token.toString(),
+      );
+    } catch (err) {
       throw new HttpException(
         ResponseMessage.INTERNAL_SERVER_ERROR,
         ResponseCode.INTERNAL_ERROR,
@@ -534,7 +537,12 @@ export class UsersService {
     const dbuser: User = await this.userRepository.findOne({
       email: user.email,
     });
-    const verified = speakeasy.totp.verify({ secret: process.env.OTP_KEY, token: code, step: 60, window: 10 })
+    const verified = speakeasy.totp.verify({
+      secret: process.env.OTP_KEY,
+      token: code,
+      step: 60,
+      window: 10,
+    });
     if (verified) {
       return dbuser;
     } else {
@@ -552,9 +560,7 @@ export class UsersService {
    * @returns
    */
   async validateKlaytnAddress(address: string): Promise<boolean> {
-    const status = await this.klaytnService.validateKlaytnAddress(
-      address,
-    );
+    const status = await this.klaytnService.validateKlaytnAddress(address);
     if (status) {
       return status;
     } else {
@@ -571,11 +577,8 @@ export class UsersService {
    * @param user
    * @returns
    */
-  async updateProfileInfo(
-    data: UserDataDto,
-    user: User,
-  ): Promise<User> {
-    const exist = await this.userRepository.findOne({ email: user.email })
+  async updateProfileInfo(data: UserDataDto, user: User): Promise<User> {
+    const exist = await this.userRepository.findOne({ email: user.email });
     if (!exist) {
       throw new HttpException(
         ResponseMessage.USER_DOES_NOT_EXIST,
