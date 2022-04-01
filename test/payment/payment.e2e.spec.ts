@@ -12,7 +12,7 @@ import { AppService } from '../../src/modules/main/app.service';
 import { BlockProcessor } from '../../src/modules/scheduler/block.processor';
 import { BlockProcess } from '../../src/utils/enum';
 import { CaverService } from '../../src/modules/klaytn/caver.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter } from '../../src/modules/scheduler/event.emitter';
 import { CompensationTransaction } from '../../src/modules/payment/compensation.transaction';
 var rimraf = require("rimraf");
 
@@ -36,8 +36,8 @@ describe('BinancePlus payment test', () => {
             .useValue(CoinMarketMock)
             .overrideProvider(CaverService)
             .useClass(CaverMock)
-            .overrideProvider(EventEmitter2)
-            .useClass(EventEmitterMock)
+            .overrideProvider(EventEmitter)
+            .useValue(EventEmitterMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());

@@ -8,8 +8,8 @@ import { DepositTransaction } from '../payment/deposit.transaction';
 import { CaverService } from '../klaytn/caver.service';
 import { BlockProcess } from '../../utils/enum';
 import { BonusType } from '../payment/commons/payment.enum';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DepositCompletedEvent } from './deposit.complete.event';
+import { EventEmitter } from './event.emitter';
 
 @Processor(BlockQueue.BLOCK)
 export class BlockProcessor {
@@ -17,7 +17,7 @@ export class BlockProcessor {
 
   constructor(
     private readonly depositTransaction: DepositTransaction,
-    private eventEmitter: EventEmitter2,
+    private eventEmitter: EventEmitter,
     private readonly loggerService: LoggerService,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
@@ -66,6 +66,9 @@ export class BlockProcessor {
             this.eventEmitter.emit(
               Events.DEPOSIT_COMPLETED,
               depositCompletedEvent,
+            );
+            this.loggerService.log(
+              `Deposit complete event emitted`,
             );
           }),
         );

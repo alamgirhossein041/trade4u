@@ -14,6 +14,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { Events } from '../scheduler/commons/scheduler.enum';
 import { DepositCompletedEvent } from '../scheduler/deposit.complete.event';
 import { UserStats } from '../user/user-stats.entity';
+import { LoggerService } from '../../utils/logger/logger.service';
 
 @Injectable()
 export class CompensationTransaction {
@@ -31,7 +32,10 @@ export class CompensationTransaction {
     private readonly performanceRepository: Repository<PerformanceFee>,
     private readonly userService: UsersService,
     private readonly telegramService: TelegramService,
-  ) {}
+    private readonly loggerService: LoggerService,
+  ) {
+    this.loggerService.setContext('CompensationTransaction');
+  }
 
   /**
    * Distribute License Bonus Among Parents Of User
@@ -42,6 +46,9 @@ export class CompensationTransaction {
   public async initCompensationTransaction(
     depositCompletedEvent: DepositCompletedEvent,
   ) {
+    this.loggerService.log(
+              `Compensation Transaction Started`,
+            );
     return new Promise<void>(async (resolve, reject) => {
       // get a connection and create a new query runner
       const connection = getConnection();
@@ -71,10 +78,16 @@ export class CompensationTransaction {
         // since we have errors let's rollback changes we made
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
+        this.loggerService.error(
+              `Error In Compensation Transaction`,
+            );
         reject(err);
       } finally {
         // you need to release query runner which is manually created:
         await queryRunner.release();
+        this.loggerService.log(
+              `Compensation Transaction Completed`,
+            );
         resolve();
       }
     });
