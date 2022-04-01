@@ -86,14 +86,10 @@ export class UsersService {
    * @returns
    */
   async checkReferrer(userName: string): Promise<User> {
-    return await this.userRepository.findOne(
-      {
-        userName,
-        emailConfirmed: true,
-        planIsActive: true,
-      },
-      { relations: ['userTelegram'] },
-    );
+    return await this.userRepository.findOne({
+      userName,
+      emailConfirmed: true,
+    });
   }
 
   /**

@@ -36,7 +36,7 @@ export enum ResponseMessage {
   INVALID_COUNTRY = `Invalid country name`,
   INVALID_PHONE_NUMBER = `Invalid phone number`,
   INVALID_BINANCE_API = `Invalid binance api key`,
-  INVALID_REFERRER = `Referrer does not exist or plan not activated`,
+  INVALID_REFERRER = `Referrer does not exist`,
   REFERRER_PLAN_NOT_ACTIVATED = `Referrer plan has not been activated`,
 
   PURCHASE_PLAN = `Purchase plan from available plans first`,
