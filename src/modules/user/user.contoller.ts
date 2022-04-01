@@ -257,6 +257,20 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  public async getCurrentUserDetails(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
+    this.loggerService.log(`GET user/me ${LoggerMessages.API_CALLED}`);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: user.toDto(),
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Patch('update_profile')
   public async validateWalletAddress(
     @Body() data: UserDataDto,

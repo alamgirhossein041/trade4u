@@ -125,6 +125,8 @@ describe('BinancePlus User test', () => {
                 .set('Authorization', helper.getAccessToken())
                 .expect(200)
                 .expect(({ body }) => {
+                    delete body.data[0].uuid;
+                    delete body.data[1].uuid;
                     expect(body.data).toEqual(expectedParents);
                 });
         });
@@ -138,6 +140,8 @@ describe('BinancePlus User test', () => {
                 .set('Authorization', helper.getAccessToken())
                 .expect(200)
                 .expect(({ body }) => {
+                    delete body.data[0].uuid;
+                    delete body.data[1].uuid;
                     expect(body.data).toEqual(expectedParents);
                 });
         });

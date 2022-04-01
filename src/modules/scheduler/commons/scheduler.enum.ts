@@ -13,3 +13,7 @@ export enum BlockQueue {
 export enum Attempts {
   THREE = 3,
 }
+
+export enum Events {
+  DEPOSIT_COMPLETED = `deposit.completed`,
+}

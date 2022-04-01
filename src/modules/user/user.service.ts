@@ -21,6 +21,7 @@ import { Hash } from '../../utils/Hash';
 import otpGenerator from 'otp-generator';
 import speakeasy from 'speakeasy';
 import { UserDataDto } from '.';
+import { Crypto } from '../../utils/crypto';
 
 @Injectable()
 export class UsersService {
@@ -74,11 +75,14 @@ export class UsersService {
    * @returns
    */
   async checkReferrer(userName: string): Promise<User> {
-    return await this.userRepository.findOne({
-      userName,
-      emailConfirmed: true,
-      planIsActive: true,
-    });
+    return await this.userRepository.findOne(
+      {
+        userName,
+        emailConfirmed: true,
+        planIsActive: true,
+      },
+      { relations: ['userTelegram'] },
+    );
   }
 
   /**
@@ -175,7 +179,7 @@ export class UsersService {
                       INNER JOIN ReverseMlmTree h ON u.uuid = h."refereeUuid" 
                     )
             ) 
-             SELECT "fullName","balance","userName",p."planName" as plan_name,p."levels" as parent_depth_level,level FROM ReverseMlmTree
+             SELECT uuid,"fullName","balance","userName",p."planName" as plan_name,p."levels" as parent_depth_level,level FROM ReverseMlmTree
              INNER JOIN plans p ON "planPlanId" = p."planId"
              WHERE level > 0 AND level <= $2 AND "refereeUuid" IS NOT NULL
              ORDER BY level;
@@ -261,8 +265,8 @@ export class UsersService {
       binanceDto.apiKey,
       binanceDto.apiSecret,
     );
-    user.apiKey = binanceDto.apiKey;
-    user.apiSecret = binanceDto.apiSecret;
+    user.apiKey = Crypto.encrypt(binanceDto.apiKey);
+    user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
     user.tradingSystem = binanceDto.tradingSystem;
     return await this.userRepository.save(user);
   }

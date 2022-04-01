@@ -4,7 +4,7 @@ import { AppModule } from '../../src/modules/main/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { CaverMock, CoinMarketMock, LoggerMock, MailerMock } from '../mocks/mocks';
+import { CaverMock, CoinMarketMock, EventEmitterMock, LoggerMock, MailerMock } from '../mocks/mocks';
 import { Helper } from '../helper';
 import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
 import request from 'supertest';
@@ -12,13 +12,15 @@ import { AppService } from '../../src/modules/main/app.service';
 import { BlockProcessor } from '../../src/modules/scheduler/block.processor';
 import { BlockProcess } from '../../src/utils/enum';
 import { CaverService } from '../../src/modules/klaytn/caver.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CompensationTransaction } from '../../src/modules/payment/compensation.transaction';
 var rimraf = require("rimraf");
 
 describe('BinancePlus payment test', () => {
     let app: INestApplication;
     let helper: Helper;
-    let token: string;
     let blockProcessService: BlockProcessor;
+    let compensationTransaction: CompensationTransaction;
     let server: any;
     let job: any = {};
     let payment_Id: string;
@@ -34,27 +36,34 @@ describe('BinancePlus payment test', () => {
             .useValue(CoinMarketMock)
             .overrideProvider(CaverService)
             .useClass(CaverMock)
+            .overrideProvider(EventEmitter2)
+            .useClass(EventEmitterMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
         await app.init();
         blockProcessService = app.get(BlockProcessor);
+        compensationTransaction = app.get(CompensationTransaction);
         helper = new Helper(app);
         helper.startTestWebSocketServer();
         await AppService.startup();
-        token = await helper.init();
+        await helper.init();
         server = app.getHttpServer();
+    });
+    it(`Test /register bnp user affiliates API`, async () => {
+        await helper.insertUserTree();
+        await helper.login('bnptestuser3@yopmail.com', 'Rnssol@21');
     });
 
     it(`Test /order_plan API`, async () => {
         await request(server)
-            .post('/api/payment/order_plan/1')
+            .post('/api/payment/order_plan/2')
             .set('Authorization', helper.getAccessToken())
             .expect(201);
     });
 
     it(`Test /payment_list API`, async () => {
-        const expected = { amountUSD: 100, amountKLAY: 82.6446, status: 'pending' };
+        const expected = { amountUSD: 200, amountKLAY: 165.2893, status: 'pending' };
         await request(server)
             .get('/api/payment/payment_list')
             .set('Authorization', helper.getAccessToken())
@@ -82,9 +91,30 @@ describe('BinancePlus payment test', () => {
         job.data = { block: jobData };
         await blockProcessService.handleBlock(job).then((result) => {
             expect(result).toEqual(BlockProcess.PROCESS_COMPLETED);
-        })
+        });
     });
 
+    it(`Test Check Earning Limit Of license purchaser`, async () => {
+        const user = await helper.getUserByEmail('bnptestuser3@yopmail.com');
+        expect(user.balance).toEqual(0)
+        expect(user.userStats.consumed_amount).toEqual(0);
+        expect(user.userStats.earning_limit).toEqual(1000);
+    });
+
+    it(`Test Compensation Transaction Processing Function`, async () => {
+        const eventObj = await helper.getEventObject('bnptestuser3@yopmail.com');
+        await compensationTransaction.initCompensationTransaction(eventObj).then(async () => {
+            const parent1 = await helper.getUserByEmail('bnptestuser2@yopmail.com');
+            const parent2 = await helper.getUserByEmail('bnptestuser1@yopmail.com');
+            const parent3 = await helper.getUserByEmail('bnptestuser@yopmail.com');
+            expect(parent1.balance).toEqual(30)
+            expect(parent1.userStats.consumed_amount).toEqual(30);
+            expect(parent2.balance).toEqual(10)
+            expect(parent2.userStats.consumed_amount).toEqual(10);
+            expect(parent3.balance).toEqual(8)
+            expect(parent3.userStats.consumed_amount).toEqual(8);
+        })
+    });
 
     afterAll(async () => {
         await helper.clearDB();

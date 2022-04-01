@@ -1,8 +1,14 @@
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { event } from "eventemitter2";
 import { TxType } from "../../src/modules/scheduler/commons/scheduler.enum";
 
 export const MailerMock = {
-    sendEmailConfirmation: jest.fn(),
-    sendForgotPasswordMail: jest.fn(),
+    sendEmailConfirmation: jest.fn(() => {
+        return;
+    }),
+    sendForgotPasswordMail: jest.fn(() => {
+        return;
+    }),
     sendEmailProfileVerificationCode: jest.fn(() => {
         return;
     }),
@@ -44,6 +50,12 @@ export const TelegramBotMock = {
     sendAlreadyActivatedMessage: jest.fn(() => {
         return;
     }),
+    sendReferralNotification: jest.fn(()=> {
+        return;
+    }),
+    sendBonusNotification: jest.fn(() => {
+        return;
+    })
 }
 
 export const CoinMarketMock = {
@@ -58,6 +70,12 @@ export const CoinMarketMock = {
         return object;
     }),
 };
+
+export class EventEmitterMock extends EventEmitter2 {
+    emit() {
+       return false; 
+    }
+}
 
 export class CaverMock {
     public static accountAddress: string;
