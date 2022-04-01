@@ -54,12 +54,19 @@ export class BlockProcessor {
         await Promise.all(
           txs.map(async (tx) => {
             tx.value = this.caverService.fromPeb(tx.value);
-            tx.blockNumber = this.caverService.hexToNumber(tx.blockNumber).toString();
-            const user = await this.depositTransaction.initDepositTransaction(tx);
+            tx.blockNumber = this.caverService
+              .hexToNumber(tx.blockNumber)
+              .toString();
+            const user = await this.depositTransaction.initDepositTransaction(
+              tx,
+            );
             const depositCompletedEvent = new DepositCompletedEvent();
             depositCompletedEvent.bonusType = BonusType.LISENCE;
             depositCompletedEvent.user = user;
-            this.eventEmitter.emit(Events.DEPOSIT_COMPLETED,depositCompletedEvent);
+            this.eventEmitter.emit(
+              Events.DEPOSIT_COMPLETED,
+              depositCompletedEvent,
+            );
           }),
         );
         this.loggerService.debug(

@@ -30,7 +30,7 @@ export class DepositTransaction {
     private readonly paymentRepository: Repository<Payment>,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
-  ) { }
+  ) {}
 
   /**
    * Deposit Transaction On Webhook Triggered
@@ -215,8 +215,13 @@ export class DepositTransaction {
     return new Promise<void>(async (resolve, reject) => {
       try {
         user.plan = plan;
-        await this.updateUserStats(user.userStats,plan,user.planIsActive,queryRunner);
-        if(!user.planIsActive) user.planIsActive = true;
+        await this.updateUserStats(
+          user.userStats,
+          plan,
+          user.planIsActive,
+          queryRunner,
+        );
+        if (!user.planIsActive) user.planIsActive = true;
         await queryRunner.manager.save(user);
         resolve();
       } catch (err) {
@@ -240,10 +245,22 @@ export class DepositTransaction {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const planLimit = Number(plan.limit.split('')[0]);
-        const earningLimit = Number(new bigDecimal(planLimit).multiply(new bigDecimal(plan.price)).getValue());
+        const earningLimit = Number(
+          new bigDecimal(planLimit)
+            .multiply(new bigDecimal(plan.price))
+            .getValue(),
+        );
         if (planIsActive) {
-          const remainingAmount = Number(new bigDecimal(userStats.earning_limit).subtract(new bigDecimal(userStats.consumed_amount)).getValue());
-          const newEarningLimit = Number(new bigDecimal(remainingAmount).add(new bigDecimal(earningLimit)).getValue());
+          const remainingAmount = Number(
+            new bigDecimal(userStats.earning_limit)
+              .subtract(new bigDecimal(userStats.consumed_amount))
+              .getValue(),
+          );
+          const newEarningLimit = Number(
+            new bigDecimal(remainingAmount)
+              .add(new bigDecimal(earningLimit))
+              .getValue(),
+          );
           userStats.earning_limit = newEarningLimit;
         } else {
           userStats.earning_limit = earningLimit;

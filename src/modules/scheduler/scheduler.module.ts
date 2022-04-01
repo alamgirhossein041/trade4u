@@ -10,7 +10,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 @Module({
   imports: [LoggerModule, PaymentModule, KlaytnModule],
   controllers: [SchedulerController],
-  providers: [SchedulerService, BlockProcessor,EventEmitter2],
-  exports: [SchedulerService, BlockProcessor,EventEmitter2],
+  providers: [SchedulerService, BlockProcessor, EventEmitter2],
+  exports: [SchedulerService, BlockProcessor, EventEmitter2],
 })
 export class SchedulerModule {}

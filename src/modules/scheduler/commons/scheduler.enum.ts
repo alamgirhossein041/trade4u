@@ -15,5 +15,5 @@ export enum Attempts {
 }
 
 export enum Events {
-  DEPOSIT_COMPLETED = `deposit.completed`
+  DEPOSIT_COMPLETED = `deposit.completed`,
 }

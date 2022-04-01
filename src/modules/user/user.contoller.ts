@@ -260,11 +260,9 @@ export class UserContoller {
   @Get('me')
   public async getCurrentUserDetails(
     @CurrentUser() user: User,
-    @Res() res: Response
+    @Res() res: Response,
   ): Promise<Response> {
-    this.loggerService.log(
-      `GET user/me ${LoggerMessages.API_CALLED}`,
-    );
+    this.loggerService.log(`GET user/me ${LoggerMessages.API_CALLED}`);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: user.toDto(),
