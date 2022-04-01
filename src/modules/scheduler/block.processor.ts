@@ -7,7 +7,6 @@ import { TransactionReceipt } from 'caver-js';
 import { DepositTransaction } from '../payment/deposit.transaction';
 import { CaverService } from '../klaytn/caver.service';
 import { BlockProcess } from '../../utils/enum';
-import { CompensationTransaction } from '../payment/compensation.transaction';
 import { BonusType } from '../payment/commons/payment.enum';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DepositCompletedEvent } from './deposit.complete.event';
