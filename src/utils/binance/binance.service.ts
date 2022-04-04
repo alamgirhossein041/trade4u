@@ -14,37 +14,26 @@ export class BinanceService {
    * @returns
    */
   public async verifyApiKey(apiKey: string, secret: string) {
+    this.binanceExchannge = new binance({ apiKey, secret, defaultType: 'future' });
+    this.binanceExchannge.setSandboxMode(true);
     try {
-      this.binanceExchannge = new binance({ apiKey, secret });
-      await this.binanceExchannge.fetchBalance();
-      return;
-    } catch (err) {
-      if (err.message.includes('-2008')) {
+      this.binanceExchannge.checkRequiredCredentials() // throw AuthenticationError
+      await this.binanceExchannge.fetchBalance()
+    } catch (error) {
+      if (error.message.includes('-2014') ||
+        error.message.includes('-2015') ||
+        error.message.includes('-1022')) {
         throw new HttpException(
-          ResponseMessage.INVALID_BINANCE_API,
+          ResponseMessage.INVALID_BINANCE_CREDENTIALS,
           ResponseCode.BAD_REQUEST,
         );
-      } else {
+      }
+      else {
         throw new HttpException(
           ResponseMessage.INTERNAL_SERVER_ERROR,
           ResponseCode.INTERNAL_ERROR,
         );
       }
-    }
-  }
-  /**
-   * Get current Nano Price
-   * @returns
-   */
-  public async getNanoPrice() {
-    try {
-      const price = await this.binanceExchannge.fetchTicker(`XNOUSDT`);
-      return price.info.lastPrice;
-    } catch (err) {
-      throw new HttpException(
-        ResponseMessage.INTERNAL_SERVER_ERROR,
-        ResponseCode.INTERNAL_ERROR,
-      );
     }
   }
 }

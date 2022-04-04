@@ -57,7 +57,6 @@ describe('BinancePlus auth test', () => {
             email: "testuser@yopmail.com",
             emailConfirmed: true,
             apiKey: null,
-            apiSecret: null,
             tradingSystem: null,
             balance: 0,
             phoneNumber: "+14842918831",
