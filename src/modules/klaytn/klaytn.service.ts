@@ -89,6 +89,7 @@ export class KlaytnService {
    * @returns
    */
   public async freeAccount(account: Account) {
+    await this.removeListener(account.address)
     account.isHalt = false;
     return await this.accountRepository.save(account);
   }
