@@ -13,6 +13,7 @@ import { KlaytnService } from '../../modules/klaytn/klaytn.service';
 import { CaverService } from '../../modules/klaytn/caver.service';
 import bigDecimal from 'js-big-decimal';
 import { UserStats } from '../user/user-stats.entity';
+import { LoggerService } from '../../utils/logger/logger.service';
 
 @Injectable()
 export class DepositTransaction {
@@ -30,7 +31,10 @@ export class DepositTransaction {
     private readonly paymentRepository: Repository<Payment>,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
-  ) {}
+    private readonly loggerService: LoggerService,
+  ) {
+    this.loggerService.setContext('DepositTransaction');
+  }
 
   /**
    * Deposit Transaction On Webhook Triggered
@@ -38,6 +42,7 @@ export class DepositTransaction {
    * @returns
    */
   public async initDepositTransaction(tx: TransactionReceipt) {
+    this.loggerService.log('Deposit Transaction Started');
     return new Promise<User>(async (resolve, reject) => {
       // get a connection and create a new query runner
       const connection = getConnection();
@@ -67,10 +72,12 @@ export class DepositTransaction {
         // since we have errors let's rollback changes we made
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
+        this.loggerService.error('Error In Deposit Transaction');
         reject(err);
       } finally {
         // you need to release query runner which is manually created:
         await queryRunner.release();
+        this.loggerService.log('Deposit Transaction Completed');
         resolve(this.payment.user);
       }
     });

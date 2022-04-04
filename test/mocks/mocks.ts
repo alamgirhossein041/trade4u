@@ -71,10 +71,10 @@ export const CoinMarketMock = {
     }),
 };
 
-export class EventEmitterMock extends EventEmitter2 {
-    emit() {
-       return false; 
-    }
+export const EventEmitterMock = {
+    emit: jest.fn(() => {
+        return;
+    })
 }
 
 export class CaverMock {

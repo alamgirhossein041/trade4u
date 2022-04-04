@@ -5,12 +5,12 @@ import { LoggerModule } from '../../utils/logger/logger.module';
 import { PaymentModule } from '../../modules/payment/payment.module';
 import { BlockProcessor } from './block.processor';
 import { KlaytnModule } from '../../modules/klaytn/klaytn.module';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter } from './event.emitter';
 
 @Module({
   imports: [LoggerModule, PaymentModule, KlaytnModule],
   controllers: [SchedulerController],
-  providers: [SchedulerService, BlockProcessor, EventEmitter2],
-  exports: [SchedulerService, BlockProcessor, EventEmitter2],
+  providers: [SchedulerService, BlockProcessor,EventEmitter],
+  exports: [SchedulerService, BlockProcessor,EventEmitter],
 })
 export class SchedulerModule {}
