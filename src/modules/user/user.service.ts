@@ -57,9 +57,7 @@ export class UsersService {
    * @returns
    */
   async getByid(uuid: string): Promise<User> {
-    return this.userRepository.findOne(
-      uuid 
-    );
+    return this.userRepository.findOne(uuid);
   }
 
   /**

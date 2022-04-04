@@ -264,13 +264,17 @@ export class UserContoller {
   ): Promise<Response> {
     let referrerObj: Object = null;
     this.loggerService.log(`GET user/me ${LoggerMessages.API_CALLED}`);
-    if(user.refereeUuid) {
+    if (user.refereeUuid) {
       const referrer = await this.userService.getByid(user.refereeUuid);
-      referrerObj = {name: referrer.fullName,username: referrer.userName, contact: referrer.phoneNumber };
+      referrerObj = {
+        name: referrer.fullName,
+        username: referrer.userName,
+        contact: referrer.phoneNumber,
+      };
     }
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      data: { user: user.toDto() , referrer: referrerObj },
+      data: { user: user.toDto(), referrer: referrerObj },
       message: ResponseMessage.SUCCESS,
     });
   }

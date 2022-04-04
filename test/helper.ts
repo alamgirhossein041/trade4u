@@ -202,6 +202,7 @@ export class Helper {
         const user = await this.getUserByEmail(email);
         const depositCompletedEvent = new DepositCompletedEvent();
         depositCompletedEvent.bonusType = BonusType.LISENCE;
+        depositCompletedEvent.txHash = '0xadasdf32descscdfsd434rfdcsdfsdsade';
         depositCompletedEvent.user = user; 
         return depositCompletedEvent;
     }
