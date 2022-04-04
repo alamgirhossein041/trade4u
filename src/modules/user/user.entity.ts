@@ -55,7 +55,7 @@ export class User {
   @Column({ length: 150, nullable: true })
   klayWallet: string;
 
-  @Column({ default: 0,type: 'double precision' })
+  @Column({ default: 0, type: 'double precision' })
   balance: number;
 
   @Column({ type: 'boolean', default: false })

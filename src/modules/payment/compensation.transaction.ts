@@ -15,6 +15,7 @@ import { Events } from '../scheduler/commons/scheduler.enum';
 import { DepositCompletedEvent } from '../scheduler/deposit.complete.event';
 import { UserStats } from '../user/user-stats.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
+import { Deposit } from './deposit.entity';
 
 @Injectable()
 export class CompensationTransaction {
@@ -30,6 +31,8 @@ export class CompensationTransaction {
     private readonly licenseRepository: Repository<LicenseFee>,
     @InjectRepository(PerformanceFee)
     private readonly performanceRepository: Repository<PerformanceFee>,
+    @InjectRepository(Deposit)
+    private readonly depositRepository: Repository<Deposit>,
     private readonly userService: UsersService,
     private readonly telegramService: TelegramService,
     private readonly loggerService: LoggerService,
@@ -38,17 +41,15 @@ export class CompensationTransaction {
   }
 
   /**
-   * Distribute License Bonus Among Parents Of User
-   * @param user
+   * Distribute Bonus Among Parents Of User
+   * @param depositCompletedEvent
    * @returns
    */
   @OnEvent(Events.DEPOSIT_COMPLETED, { async: true })
   public async initCompensationTransaction(
     depositCompletedEvent: DepositCompletedEvent,
   ) {
-    this.loggerService.log(
-              `Compensation Transaction Started`,
-            );
+    this.loggerService.log(`Compensation Transaction Started`);
     return new Promise<void>(async (resolve, reject) => {
       // get a connection and create a new query runner
       const connection = getConnection();
@@ -73,21 +74,21 @@ export class CompensationTransaction {
           depositCompletedEvent.bonusType,
           queryRunner,
         );
+        await this.updateDepositProcessing(
+          depositCompletedEvent.txHash,
+          queryRunner,
+        );
         await queryRunner.commitTransaction();
       } catch (err) {
         // since we have errors let's rollback changes we made
         await queryRunner.rollbackTransaction();
         await queryRunner.release();
-        this.loggerService.error(
-              `Error In Compensation Transaction`,
-            );
+        this.loggerService.error(`Error In Compensation Transaction`);
         reject(err);
       } finally {
         // you need to release query runner which is manually created:
         await queryRunner.release();
-        this.loggerService.log(
-              `Compensation Transaction Completed`,
-            );
+        this.loggerService.log(`Compensation Transaction Completed`);
         resolve();
       }
     });
@@ -110,6 +111,7 @@ export class CompensationTransaction {
       try {
         await Promise.all(
           parenTree.map(async (parent: any) => {
+            const parentToUpdate = await this.userService.get(parent.uuid);
             const bonusPercentage = await this.getBonusPercentage(
               bonusType,
               planName,
@@ -117,7 +119,6 @@ export class CompensationTransaction {
               parent.parent_depth_level,
             );
             let amount = this.getBonusAmount(bonusPercentage, planAmount);
-            const parentToUpdate = await this.userService.get(parent.uuid);
             await this.updateParentStats(
               parentToUpdate.userStats,
               amount,
@@ -213,6 +214,28 @@ export class CompensationTransaction {
             .getValue(),
         );
         await queryRunner.manager.save(userStats);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * Update Deposit Processing
+   * @param txHash
+   * @param queryRunner
+   * @returns
+   */
+  private async updateDepositProcessing(
+    txHash: string,
+    queryRunner: QueryRunner,
+  ) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        const deposit = await this.depositRepository.findOne({ txHash });
+        deposit.processed = true;
+        await queryRunner.manager.save(deposit);
         resolve();
       } catch (err) {
         reject(err);

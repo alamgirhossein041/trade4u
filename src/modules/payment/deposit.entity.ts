@@ -1,5 +1,13 @@
 import { Account } from '../klaytn/account.entity';
-import { Column, Entity, JoinColumn, PrimaryColumn, ManyToOne } from 'typeorm';
+import { Payment } from '../payment/payment.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  PrimaryColumn,
+  ManyToOne,
+  OneToOne,
+} from 'typeorm';
 import { TransactionReceipt } from 'caver-js';
 
 @Entity({
@@ -19,6 +27,13 @@ export class Deposit {
 
   @Column()
   blockHeight: number;
+
+  @Column({ type: 'boolean', default: false })
+  processed: boolean;
+
+  @OneToOne(() => Payment)
+  @JoinColumn({ name: 'payment' })
+  payment: Payment;
 
   @ManyToOne(() => Account)
   @JoinColumn({ name: 'account' })

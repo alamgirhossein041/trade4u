@@ -54,11 +54,11 @@ export class DepositTransaction {
       try {
         const resultObj = await this.getPaymentByAddress(tx.to);
         this.payment = await this.getPaymentWithDetail(resultObj.paymentId);
-        await this.saveDeposit(tx, queryRunner);
         const isValidated = await this.validatePlanActivation();
         if (isValidated) {
+          await this.saveDeposit(tx, queryRunner);
           await this.updateStateOfAccount(tx.to, queryRunner);
-          await this.detachAccountFromPayment(this.payment, queryRunner);
+          await this.detachAccountFromPayment(queryRunner);
           await this.updateUserPlan(
             this.payment.user,
             this.payment.plan,
@@ -85,8 +85,6 @@ export class DepositTransaction {
 
   /**
    * Verify The Required Klay Amount
-   * @param required
-   * @param received
    * @returns
    */
   private validatePlanActivation(): Promise<boolean> {
@@ -148,14 +146,16 @@ export class DepositTransaction {
   }
 
   /**
-   * SAve Deposit Coming From Webhook
-   * @param webhookObject
+   * Save Deposit Transaction Coming From Klaytn BlockChain
+   * @param tx
+   * @param queryRunner
    * @returns
    */
   private async saveDeposit(tx: TransactionReceipt, queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const deposit = new Deposit().fromTransaction(tx);
+        deposit.payment = this.payment;
         deposit.account = this.payment.account;
         await queryRunner.manager.save(deposit);
         resolve();
@@ -188,19 +188,16 @@ export class DepositTransaction {
 
   /**
    * Detach Account From Payment Object
-   * @param payment
+   * @param queryRunner
    * @returns
    */
-  private async detachAccountFromPayment(
-    payment: Payment,
-    queryRunner: QueryRunner,
-  ) {
+  private async detachAccountFromPayment(queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        payment.account = null;
-        payment.status = PaymentStatus.COMPLETED;
-        payment.paidAt = moment().unix();
-        await queryRunner.manager.save(payment);
+        this.payment.account = null;
+        this.payment.status = PaymentStatus.COMPLETED;
+        this.payment.paidAt = moment().unix();
+        await queryRunner.manager.save(this.payment);
         resolve();
       } catch (err) {
         reject(err);

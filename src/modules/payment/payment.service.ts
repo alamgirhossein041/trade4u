@@ -2,7 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SeedService } from '../../modules/seed/seed.service';
 import { getConnection, Repository, LessThanOrEqual } from 'typeorm';
-import { PaymentStatus } from './commons/payment.enum';
+import { BonusType, PaymentStatus } from './commons/payment.enum';
 import { Payment } from './payment.entity';
 import moment from 'moment';
 import { PriceService } from '../price/price.service';
@@ -20,12 +20,18 @@ import { Account } from '../klaytn/account.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { JOB } from '../../utils/enum/index';
 import { LoggerService } from '../../utils/logger/logger.service';
+import { Deposit } from './deposit.entity';
+import { CompensationTransaction } from './compensation.transaction';
+import { DepositCompletedEvent } from '../scheduler/deposit.complete.event';
 
 @Injectable()
 export class PaymentService {
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
+    @InjectRepository(Deposit)
+    private readonly depositRepository: Repository<Deposit>,
+    private readonly compensationTransaction: CompensationTransaction,
     private readonly seedService: SeedService,
     private readonly klaytnService: KlaytnService,
     private readonly loggerServce: LoggerService,
@@ -214,6 +220,43 @@ export class PaymentService {
       return;
     } catch (err) {
       this.loggerServce.log(`Payment Expiry Job Failed`);
+      return;
+    }
+  }
+
+  @Cron(CronExpression.EVERY_5_MINUTES, {
+    name: JOB.PROCESS_DEPOSIT,
+  })
+  public async processDeposit(): Promise<number> {
+    try {
+      this.loggerServce.log(
+        `Process Deposit Job started at: ${moment().unix()}`,
+      );
+      const deposits = await this.depositRepository.find({
+        where: {
+          processed: false,
+        },
+        relations: ['payment', 'payment.user'],
+      });
+
+      await Promise.all(
+        deposits.map(async (d) => {
+          const depositEvent = new DepositCompletedEvent();
+          depositEvent.bonusType = BonusType.LISENCE;
+          depositEvent.txHash = d.txHash;
+          depositEvent.user = d.payment.user;
+          await this.compensationTransaction.initCompensationTransaction(
+            depositEvent,
+          );
+        }),
+      ).then(() => {
+        this.loggerServce.log(
+          `Process Deposit Job Completed at: ${moment().unix()}`,
+        );
+      });
+      return;
+    } catch (err) {
+      this.loggerServce.log(`Process Deposit Job Failed`);
       return;
     }
   }

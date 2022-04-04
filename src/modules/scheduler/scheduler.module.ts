@@ -10,7 +10,7 @@ import { EventEmitter } from './event.emitter';
 @Module({
   imports: [LoggerModule, PaymentModule, KlaytnModule],
   controllers: [SchedulerController],
-  providers: [SchedulerService, BlockProcessor,EventEmitter],
-  exports: [SchedulerService, BlockProcessor,EventEmitter],
+  providers: [SchedulerService, BlockProcessor, EventEmitter],
+  exports: [SchedulerService, BlockProcessor, EventEmitter],
 })
 export class SchedulerModule {}
