@@ -163,14 +163,10 @@ export class TelegramService {
     userTelegram: UserTelegram,
     content: any,
   ) {
-    let message = `Hi ${userTelegram.name}!
-                \nYou Received Bonus Of <b>${content}</b> KLAY.
-                \nAmount in Dollars : <b>$${content}</b> USD.
-                \nBinancePlus Team`;
     const resObj: BotResponse = {
       chat_id: userTelegram.chat_id,
       parse_mode: 'HTML',
-      text: message,
+      text: content,
     };
     await this.sendResponseToUser(resObj);
     return;

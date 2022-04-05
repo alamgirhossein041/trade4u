@@ -117,8 +117,8 @@ describe('BinancePlus User test', () => {
         it(`Test get user/parents of bnp user 2  API`, async () => {
             await helper.login('bnptestuser2@yopmail.com', 'Rnssol@21');
             const expectedParents = [
-                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, parent_depth_level: 7, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, parent_depth_level: 7, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, plan_is_active: true, parent_depth_level: 7, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, plan_is_active: true, parent_depth_level: 7, plan_name: 'Silver' }
             ];
             await request(server)
                 .get('/api/user/parents')
@@ -132,8 +132,8 @@ describe('BinancePlus User test', () => {
         });
         it(`Test get user/parents of bnp user 2 after plan purchase to verify balance  API`, async () => {
             const expectedParents = [
-                { level: 1, fullName: `bnp user`, parent_depth_level: 7, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, parent_depth_level: 7, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`, parent_depth_level: 7,plan_is_active: true, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, parent_depth_level: 7,plan_is_active: true, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
             ];
             await request(server)
                 .get('/api/user/parents')

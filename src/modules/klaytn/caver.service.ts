@@ -127,6 +127,16 @@ export class CaverService {
     return klay;
   }
 
+  /**
+   *
+   * @param klayAmount
+   * @returns
+   */
+  public toPeb(klayAmount: number | string) {
+    const value = this.caver.utils.toPeb(klayAmount);
+    return value.toString();
+  }
+
   public isAddress(address: string) {
     return this.caver.utils.isAddress(address);
   }
@@ -143,6 +153,51 @@ export class CaverService {
         const tx = this.caver.transaction.feeDelegatedValueTransfer.create({
           from: address,
           to: process.env.KLAY_MASTER_WALLET_ADDRESS,
+          value: await this.caver.rpc.klay.getBalance(address),
+          feePayer: process.env.KLAY_FEE_WALLET_ADDRESS,
+          gasPrice: await this.caver.klay.getGasPrice(),
+          gas: 0,
+          nonce: Number(await this.caver.klay.getTransactionCount(address)),
+        });
+
+        const gasLimit = await this.caver.klay.estimateGas(tx);
+        tx.gas = gasLimit;
+        const sender = this.caver.wallet.getKeyring(address);
+        const exist = this.wallet.isExisted(
+          process.env.KLAY_FEE_WALLET_ADDRESS,
+        );
+        feepayer = exist
+          ? this.caver.wallet.getKeyring(process.env.KLAY_FEE_WALLET_ADDRESS)
+          : this.caver.wallet.newKeyring(
+              process.env.KLAY_FEE_WALLET_ADDRESS,
+              process.env.KLAY_FEE_WALLET_SECRET,
+            );
+
+        await tx.sign(sender);
+        await tx.signAsFeePayer(feepayer);
+        await this.caver.klay.sendSignedTransaction(tx.getRawTransaction());
+        this.loggerService.debug(
+          `Successfully moved: ${address} => ${process.env.KLAY_MASTER_WALLET_ADDRESS} `,
+        );
+        return resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   *
+   * @param address
+   * @returns
+   */
+  public async moveToUserWallet(address: string): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        let feepayer: Keyring;
+        const tx = this.caver.transaction.feeDelegatedValueTransfer.create({
+          from: process.env.KLAY_MASTER_WALLET_ADDRESS,
+          to: address,
           value: await this.caver.rpc.klay.getBalance(address),
           feePayer: process.env.KLAY_FEE_WALLET_ADDRESS,
           gasPrice: await this.caver.klay.getGasPrice(),

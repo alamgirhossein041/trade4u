@@ -63,14 +63,12 @@ export class CompensationTransaction {
           depositCompletedEvent.user.uuid,
         );
         const planAmount = userWithPlan.plan.price;
-        const planName = userWithPlan.plan.planName;
         const userParentTree = await this.userService.getUserParentsTree(
           userWithPlan,
         );
         await this.distBonusInParents(
           userParentTree,
           planAmount,
-          planName,
           depositCompletedEvent.bonusType,
           queryRunner,
         );
@@ -103,7 +101,6 @@ export class CompensationTransaction {
   private async distBonusInParents(
     parenTree: any,
     planAmount: number,
-    planName: string,
     bonusType: string,
     queryRunner: QueryRunner,
   ) {
@@ -112,24 +109,26 @@ export class CompensationTransaction {
         await Promise.all(
           parenTree.map(async (parent: any) => {
             const parentToUpdate = await this.userService.get(parent.uuid);
-            const bonusPercentage = await this.getBonusPercentage(
-              bonusType,
-              planName,
-              parent.level,
-              parent.parent_depth_level,
-            );
-            let amount = this.getBonusAmount(bonusPercentage, planAmount);
-            await this.updateParentStats(
-              parentToUpdate.userStats,
-              amount,
-              queryRunner,
-            );
-            parentToUpdate.balance = Number(
-              new bigDecimal(amount)
-                .add(new bigDecimal(parent.balance))
-                .getValue(),
-            );
-            await queryRunner.manager.save(parentToUpdate);
+            if (parent.plan_is_active) {
+              const bonusPercentage = await this.getBonusPercentage(
+                bonusType,
+                parent.plan_name,
+                parent.level,
+                parent.parent_depth_level,
+              );
+              let amount = this.getBonusAmount(bonusPercentage, planAmount);
+              await this.updateParentStats(
+                parentToUpdate.userStats,
+                amount,
+                queryRunner,
+              );
+              parentToUpdate.balance = Number(
+                new bigDecimal(amount)
+                  .add(new bigDecimal(parent.balance))
+                  .getValue(),
+              );
+              await queryRunner.manager.save(parentToUpdate);
+            }
           }),
         );
         resolve();
@@ -146,11 +145,11 @@ export class CompensationTransaction {
    */
   private async getBonusPercentage(
     bonusType: string,
-    planName: string,
-    level: number,
+    parentPlanName: string,
+    parentLevel: number,
     parentDepthLevel: number,
   ) {
-    if (level > parentDepthLevel) {
+    if (parentLevel > parentDepthLevel) {
       return 0;
     }
     let percentage: number;
@@ -159,8 +158,8 @@ export class CompensationTransaction {
       repository = this.performanceRepository;
     else repository = this.licenseRepository;
     let row: LicenseFee | PerformanceFee;
-    row = await repository.findOne({ levelNo: level });
-    switch (planName) {
+    row = await repository.findOne({ levelNo: parentLevel });
+    switch (parentPlanName) {
       case PlanNameEnum.Silver:
         percentage = row.silverPercentage;
         break;
@@ -192,6 +191,51 @@ export class CompensationTransaction {
         .getValue(),
     );
     return originalAmount;
+  }
+
+  /**
+   * Check whether the consumption percentage of parent does not exceed defined limit
+   * @param userStats
+   * @param amount
+   */
+  private async checkParentConsumption(parent: User, amount: number) {
+    const newConsumed = Number(
+      new bigDecimal(parent.userStats.consumed_amount)
+        .add(new bigDecimal(amount))
+        .getValue(),
+    );
+    const amountToMultiplyWith = Number(
+      new bigDecimal(newConsumed)
+        .divide(new bigDecimal(parent.userStats.earning_limit), 4)
+        .getValue(),
+    );
+    const originalPercentage = Number(
+      new bigDecimal(amountToMultiplyWith)
+        .multiply(new bigDecimal(100))
+        .getValue(),
+    );
+    if (originalPercentage < 90) {
+      return true;
+    } else if (originalPercentage >= 90 && originalPercentage < 95) {
+      if (parent.userTelegram && parent.userTelegram.isActive) {
+        const parentTelegram = parent.userTelegram;
+        if (parentTelegram.systemNotificationsActive) {
+          let message = `Hi ${parentTelegram.name}!
+                \nYour Plan Limit is About To End.
+                \nPlease Update Your Plan To Continue Trading With Binance Plus.
+                \nThanks
+                \nBinancePlus Team`;
+          await this.telegramService.sendSystemNotifications(
+            parentTelegram,
+            message,
+          );
+          return true;
+        }
+      }
+      return true;
+    } else if (originalPercentage >= 95) {
+      return false;
+    }
   }
 
   /**

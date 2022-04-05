@@ -18,10 +18,10 @@ import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 import { MailService } from '../../utils/mailer/mail.service';
 import { KlaytnService } from '../klaytn/klaytn.service';
 import { Hash } from '../../utils/Hash';
-import otpGenerator from 'otp-generator';
 import speakeasy from 'speakeasy';
 import { UserDataDto } from '.';
 import { Crypto } from '../../utils/crypto';
+import { MaxLevels } from './commons/user.constants';
 
 @Injectable()
 export class UsersService {
@@ -173,18 +173,18 @@ export class UsersService {
     const sql = `WITH RECURSIVE ReverseMlmTree AS 
               (
                     (
-                        SELECT h.uuid,h."balance",h."refereeUuid",h."planPlanId", h."fullName",h."userName" ,0 AS level
+                        SELECT h.uuid,h."planIsActive",h."balance",h."refereeUuid",h."planPlanId", h."fullName",h."userName" ,0 AS level
                         FROM users h
                         WHERE h.uuid = $1
                     )
                       UNION ALL
                     (
-                      SELECT u.uuid,u."balance",u."refereeUuid",u."planPlanId",u."fullName",u."userName", h.level + 1 as level
+                      SELECT u.uuid,u."planIsActive",u."balance",u."refereeUuid",u."planPlanId",u."fullName",u."userName", h.level + 1 as level
                       FROM users u
                       INNER JOIN ReverseMlmTree h ON u.uuid = h."refereeUuid" 
                     )
             ) 
-             SELECT uuid,"fullName","balance","userName",p."planName" as plan_name,p."levels" as parent_depth_level,level FROM ReverseMlmTree
+             SELECT uuid,"fullName","balance","userName","planIsActive" as plan_is_active,p."planName" as plan_name,p."levels" as parent_depth_level,level FROM ReverseMlmTree
              INNER JOIN plans p ON "planPlanId" = p."planId"
              WHERE level > 0 AND level <= $2 AND "refereeUuid" IS NOT NULL
              ORDER BY level;
@@ -192,7 +192,7 @@ export class UsersService {
     try {
       const parentsResult = await this.userRepository.query(sql, [
         user.uuid,
-        user.plan.levels,
+        MaxLevels,
       ]);
       return parentsResult;
     } catch (err) {

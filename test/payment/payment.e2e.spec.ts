@@ -107,8 +107,8 @@ describe('BinancePlus payment test', () => {
             const parent1 = await helper.getUserByEmail('bnptestuser2@yopmail.com');
             const parent2 = await helper.getUserByEmail('bnptestuser1@yopmail.com');
             const parent3 = await helper.getUserByEmail('bnptestuser@yopmail.com');
-            expect(parent1.balance).toEqual(30)
-            expect(parent1.userStats.consumed_amount).toEqual(30);
+            expect(parent1.balance).toEqual(20)
+            expect(parent1.userStats.consumed_amount).toEqual(20);
             expect(parent2.balance).toEqual(10)
             expect(parent2.userStats.consumed_amount).toEqual(10);
             expect(parent3.balance).toEqual(8)
