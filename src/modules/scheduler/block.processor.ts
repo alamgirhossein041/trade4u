@@ -60,15 +60,15 @@ export class BlockProcessor {
             const user = await this.depositTransaction.initDepositTransaction(
               tx,
             );
-            const depositCompletedEvent = new DepositCompletedEvent();
-            depositCompletedEvent.bonusType = BonusType.LISENCE;
-            depositCompletedEvent.user = user;
-            depositCompletedEvent.txHash = tx.transactionHash;
-            this.eventEmitter.emit(
-              Events.DEPOSIT_COMPLETED,
-              depositCompletedEvent,
-            );
-            this.loggerService.log(`Deposit complete event emitted`);
+            // const depositCompletedEvent = new DepositCompletedEvent();
+            // depositCompletedEvent.bonusType = BonusType.LISENCE;
+            // depositCompletedEvent.user = user;
+            // depositCompletedEvent.txHash = tx.transactionHash;
+            // this.eventEmitter.emit(
+            //   Events.DEPOSIT_COMPLETED,
+            //   depositCompletedEvent,
+            // );
+            // this.loggerService.log(`Deposit complete event emitted`);
           }),
         );
         this.loggerService.debug(
