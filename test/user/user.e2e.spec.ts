@@ -6,7 +6,7 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock, TelegramBotMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock, TelegramBotMock, MockBotServer } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
 import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
@@ -19,6 +19,7 @@ describe('BinancePlus User test', () => {
     let helper: Helper;
     let token: string;
     let server: any;
+    let botServer: MockBotServer;
     const regDto = {
         userName: "bnptestuser32",
         fullName: "bnp user",
@@ -53,6 +54,11 @@ describe('BinancePlus User test', () => {
         helper = new Helper(app);
         token = await helper.init();
         server = app.getHttpServer();
+        (async () => {
+            return new Promise<void>((resolve, reject) => {
+                botServer = new MockBotServer(3340, resolve);
+            })
+        })();
     });
 
     describe(`bnp user`, () => {

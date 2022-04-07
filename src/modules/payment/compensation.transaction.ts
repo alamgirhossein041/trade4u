@@ -73,7 +73,7 @@ export class CompensationTransaction {
           queryRunner,
         );
         await this.updateDepositProcessing(
-          depositCompletedEvent.txHash,
+          depositCompletedEvent.deposit,
           queryRunner,
         );
         await queryRunner.commitTransaction();
@@ -194,51 +194,6 @@ export class CompensationTransaction {
   }
 
   /**
-   * Check whether the consumption percentage of parent does not exceed defined limit
-   * @param userStats
-   * @param amount
-   */
-  private async checkParentConsumption(parent: User, amount: number) {
-    const newConsumed = Number(
-      new bigDecimal(parent.userStats.consumed_amount)
-        .add(new bigDecimal(amount))
-        .getValue(),
-    );
-    const amountToMultiplyWith = Number(
-      new bigDecimal(newConsumed)
-        .divide(new bigDecimal(parent.userStats.earning_limit), 4)
-        .getValue(),
-    );
-    const originalPercentage = Number(
-      new bigDecimal(amountToMultiplyWith)
-        .multiply(new bigDecimal(100))
-        .getValue(),
-    );
-    if (originalPercentage < 90) {
-      return true;
-    } else if (originalPercentage >= 90 && originalPercentage < 95) {
-      if (parent.userTelegram && parent.userTelegram.isActive) {
-        const parentTelegram = parent.userTelegram;
-        if (parentTelegram.systemNotificationsActive) {
-          let message = `Hi ${parentTelegram.name}!
-                \nYour Plan Limit is About To End.
-                \nPlease Update Your Plan To Continue Trading With Binance Plus.
-                \nThanks
-                \nBinancePlus Team`;
-          await this.telegramService.sendSystemNotifications(
-            parentTelegram,
-            message,
-          );
-          return true;
-        }
-      }
-      return true;
-    } else if (originalPercentage >= 95) {
-      return false;
-    }
-  }
-
-  /**
    * Update Stats of PArent
    * @param userStats
    * @param consumedAmount
@@ -272,12 +227,11 @@ export class CompensationTransaction {
    * @returns
    */
   private async updateDepositProcessing(
-    txHash: string,
+    deposit: Deposit,
     queryRunner: QueryRunner,
   ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        const deposit = await this.depositRepository.findOne({ txHash });
         deposit.processed = true;
         await queryRunner.manager.save(deposit);
         resolve();

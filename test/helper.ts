@@ -10,16 +10,16 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { BonusType } from "../src/modules/payment/commons/payment.enum";
 import { DepositCompletedEvent } from "../src/modules/scheduler/deposit.complete.event";
 import { Events } from "../src/modules/scheduler/commons/scheduler.enum";
+import { UserStats } from "../src/modules/user/user-stats.entity";
+import { Deposit } from "../src/modules/payment/deposit.entity";
 
 export class Helper {
     private app: INestApplication;
     private testWebSocketServer: WebSocketServer;
-    private eventEmitter: EventEmitter2;
     private token: string;
 
     constructor(app) {
         this.app = app;
-        this.eventEmitter = new EventEmitter2();
     }
 
     /**
@@ -114,7 +114,7 @@ export class Helper {
     */
     public async getUserByEmail(email: string) {
         const repository = getConnection().getRepository(User);
-        return await repository.findOne({ email },{relations:['userStats']});
+        return await repository.findOne({ email }, { relations: ['userStats'] });
     }
 
     /**
@@ -136,21 +136,30 @@ export class Helper {
             });
     }
 
+    async updateUserStats(email: string) {
+        const repository = getConnection().getRepository(User);
+        const stats = await repository.findOne({ email }, { relations: ['userStats'] });
+        stats.userStats.earning_limit = 500;
+        const statsRepo = getConnection().getRepository(UserStats);
+        await statsRepo.save(stats.userStats);
+        return;
+    }
+
     /**
      * Login a test user
      * @returns 
      */
     public async insertUserTree() {
         const regDto = {
-        userName: "bnptestuser32",
-        fullName: "bnp user",
-        country: "United States",
-        email: "bnptestuser@yopmail.com",
-        phoneNumber: "+14842918831",
-        password: "Rnssol@21",
-        passwordConfirmation: "Rnssol@21",
-        profileCode: "123456"
-    }
+            userName: "bnptestuser32",
+            fullName: "bnp user",
+            country: "United States",
+            email: "bnptestuser@yopmail.com",
+            phoneNumber: "+14842918831",
+            password: "Rnssol@21",
+            passwordConfirmation: "Rnssol@21",
+            profileCode: "123456"
+        }
         await request(this.app.getHttpServer())
             .post('/api/auth/register?referrer=john58')
             .send(regDto)
@@ -160,6 +169,8 @@ export class Helper {
             });
         await this.updateEmailConfirmation(`bnptestuser@yopmail.com`);
         await this.updateUserPlan(`bnptestuser@yopmail.com`);
+        await this.updateUserStats('bnptestuser@yopmail.com');
+
 
         regDto.userName = `testuser1`;
         regDto.email = `bnptestuser1@yopmail.com`;
@@ -173,6 +184,7 @@ export class Helper {
 
         await this.updateEmailConfirmation(`bnptestuser1@yopmail.com`);
         await this.updateUserPlan(`bnptestuser1@yopmail.com`);
+        await this.updateUserStats('bnptestuser1@yopmail.com');
 
         regDto.userName = `testuser2`;
         regDto.email = `bnptestuser2@yopmail.com`;
@@ -185,6 +197,7 @@ export class Helper {
             });
         await this.updateEmailConfirmation(`bnptestuser2@yopmail.com`);
         await this.updateUserPlan(`bnptestuser2@yopmail.com`);
+        await this.updateUserStats('bnptestuser2@yopmail.com');
 
         regDto.userName = `testuser3`;
         regDto.email = `bnptestuser3@yopmail.com`;
@@ -198,12 +211,17 @@ export class Helper {
         await this.updateEmailConfirmation(`bnptestuser3@yopmail.com`);
     }
 
+    async getDepositBytxHash() {
+        const repository = getConnection().getRepository(Deposit);
+        return await repository.findOne({txHash: '0xadasdf32descscdfsd434rfdcsdfsdsade'});
+    }
+
     public async getEventObject(email: string) {
         const user = await this.getUserByEmail(email);
         const depositCompletedEvent = new DepositCompletedEvent();
         depositCompletedEvent.bonusType = BonusType.LISENCE;
-        depositCompletedEvent.txHash = '0xadasdf32descscdfsd434rfdcsdfsdsade';
-        depositCompletedEvent.user = user; 
+        depositCompletedEvent.deposit = await this.getDepositBytxHash();
+        depositCompletedEvent.user = user;
         return depositCompletedEvent;
     }
 

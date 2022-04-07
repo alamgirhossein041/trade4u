@@ -1,5 +1,5 @@
-import { EventEmitter2 } from "@nestjs/event-emitter";
-import { event } from "eventemitter2";
+import * as http from "http";
+import express, { Request, Response } from "express";
 import { TxType } from "../../src/modules/scheduler/commons/scheduler.enum";
 
 export const MailerMock = {
@@ -50,7 +50,7 @@ export const TelegramBotMock = {
     sendAlreadyActivatedMessage: jest.fn(() => {
         return;
     }),
-    sendReferralNotification: jest.fn(()=> {
+    sendReferralNotification: jest.fn(() => {
         return;
     }),
     sendBonusNotification: jest.fn(() => {
@@ -150,6 +150,53 @@ export class CaverMock {
         }
     }
 };
+
+export class MockBotServer {
+    private server: http.Server;
+
+    private app: express.Application;
+
+    constructor(port: number, done: () => void) {
+        this.app = express();
+        this.server = http.createServer(this.app);
+        this.server.listen(port, () => {
+            done();
+        });
+
+        this.app.post('/api/bot/create', (req: Request, res: Response) => {
+            const success = {
+                "success": true,
+                "code": 1000,
+                "message": "successfully created bot",
+                "data": {
+                    "botId": "c8osjqqn29gvroogkdi0",
+                    "botName": "Jeffrey The Colossal Barnacle",
+                    "uid": "c8osjqqn29gvroogkdi0",
+                    "pid": -1,
+                    "strategy": "BUYSELL",
+                    "status": "stopped",
+                    "exchange": "BINANCE",
+                    "apiKey": "9cIbTxgbQW3xDLBk8xgTRiIjmkhEvbHqiBS9YepNYdYIOX07aq94Vatvw1N6GBTK",
+                    "apiSecret": "ztEWCq6NocEjCJ6tYiX93TAaNeJOHx2euT0FU1pErIwjXdnAxnzdVlAm7gbtnioM",
+                    "riskLevel": "LOW",
+                    "baseAsset": "USDT",
+                    "quoteAsset": "BTC"
+                }
+            }
+            return res.status(200).send(success);
+        });
+
+        this.app.get('/api/bot/:id/start', (req: Request, res: Response) => {
+            const success = {
+                "success": true,
+                "code": 1000,
+                "message": "successfully started bot",
+                "data": null
+            }
+            return res.status(200).send(success);
+        })
+    }
+}
 
 export const KlaytnServiceMock = {
     validateKlaytnAddress: jest.fn((val) => {

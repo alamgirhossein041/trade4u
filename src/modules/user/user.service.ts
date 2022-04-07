@@ -21,10 +21,15 @@ import { Hash } from '../../utils/Hash';
 import speakeasy from 'speakeasy';
 import { UserDataDto } from '.';
 import { Crypto } from '../../utils/crypto';
-import { MaxLevels } from './commons/user.constants';
+import { botConstants, MaxLevels } from './commons/user.constants';
+import { BOTClient } from "botclient";
+import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
+import { TradingSystem } from './commons/user.enums';
+import { Bot } from '../bot/bot.entity';
 
 @Injectable()
 export class UsersService {
+  private botclient: BOTClient;
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -32,12 +37,16 @@ export class UsersService {
     private readonly userStatsRepository: Repository<UserStats>,
     @InjectRepository(UserTelegram)
     private readonly userTelegramRepository: Repository<UserTelegram>,
+    @InjectRepository(Bot)
+    private readonly tradingBotRepository: Repository<Bot>,
     private readonly seedService: SeedService,
     private readonly binanceService: BinanceService,
     private readonly telegramService: TelegramService,
     private readonly mailerservice: MailService,
     private readonly klaytnService: KlaytnService,
-  ) {}
+  ) {
+    this.botclient = new BOTClient(process.env.BINANCE_BOT_ADDRESS);
+  }
 
   /**
    * Get user by id
@@ -76,6 +85,15 @@ export class UsersService {
    */
   async getByUserName(userName: string): Promise<User> {
     return await this.userRepository.findOne({ userName });
+  }
+
+  /**
+   * Get user by userName
+   * @param username
+   * @returns
+   */
+  async getByUserStats(userStats: UserStats): Promise<User> {
+    return await this.userRepository.findOne({ userStats }, { relations: ['userTelegram'] });
   }
 
   /**
@@ -270,10 +288,62 @@ export class UsersService {
       binanceDto.apiKey,
       binanceDto.apiSecret,
     );
-    user.apiKey = Crypto.encrypt(binanceDto.apiKey);
-    user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
-    user.tradingSystem = binanceDto.tradingSystem;
-    return await this.userRepository.save(user);
+    try {
+      user.apiKey = Crypto.encrypt(binanceDto.apiKey);
+      user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
+      user.tradingSystem = binanceDto.tradingSystem;
+      const botData: ICreateBot = {
+        apiKey: binanceDto.apiKey, apiSecret: binanceDto.apiSecret, baseAsset: '', quoteAsset: '',
+        exchange: botConstants.exchange, strategy: botConstants.strategy, riskLevel: botConstants.riskLevel
+      };
+      const userBots = await this.iniateUserBot(binanceDto.tradingSystem, botData);
+      userBots.map(async bot => await this.tradingBotRepository.update({ botid: bot.data.botId }, { userid: user.uuid }));
+      return await this.userRepository.save(user);
+    } catch (err) {
+      throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
+    }
+  }
+
+  async iniateUserBot(tradingSystem: string, botData: ICreateBot): Promise<IBotResponse[]> {
+    let botResponseArr: IBotResponse[] = [];
+    switch (tradingSystem) {
+      case TradingSystem.USDT:
+        botData.baseAsset = 'USDT';
+        botData.quoteAsset = 'BTC';
+        botResponseArr[0] = await this.botclient.createBot(botData);
+        await this.botclient.startBot(botResponseArr[0].data.botId);
+        return botResponseArr;
+      case TradingSystem.BTC:
+        botData.baseAsset = 'BTC';
+        botData.quoteAsset = 'ETH';
+        botResponseArr[0] = await this.botclient.createBot(botData);
+        await this.botclient.startBot(botResponseArr[0].data.botId);
+        return botResponseArr;
+      case TradingSystem.BOTH:
+        botData.baseAsset = 'USDT';
+        botData.quoteAsset = 'BTC';
+        const bot1 = await this.botclient.createBot(botData);
+        await this.botclient.startBot(bot1.data.botId);
+        botData.baseAsset = 'BTC';
+        botData.quoteAsset = 'ETH';
+        const bot2 = await this.botclient.createBot(botData);
+        await this.botclient.startBot(bot2.data.botId);
+        botResponseArr.push(bot1, bot2);
+        return botResponseArr;
+    }
+  }
+
+  async getBotByUserId(user: User): Promise<Bot> {
+    return await this.tradingBotRepository.findOne({ userid: user.uuid });
+  }
+
+  async stopUserBot(botId: string): Promise<void> {
+    try {
+      await this.botclient.stopBot(botId);
+      return;
+    } catch (err) {
+      throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
+    }
   }
 
   /**

@@ -10,6 +10,9 @@ import { BlockProcess } from '../../utils/enum';
 import { BonusType } from '../payment/commons/payment.enum';
 import { DepositCompletedEvent } from './deposit.complete.event';
 import { EventEmitter } from './event.emitter';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Deposit } from '../payment/deposit.entity';
+import { Repository } from 'typeorm';
 
 @Processor(BlockQueue.BLOCK)
 export class BlockProcessor {
@@ -18,6 +21,8 @@ export class BlockProcessor {
   constructor(
     private readonly depositTransaction: DepositTransaction,
     private eventEmitter: EventEmitter,
+    @InjectRepository(Deposit)
+    private readonly depositRepository: Repository<Deposit>,
     private readonly loggerService: LoggerService,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
@@ -60,15 +65,18 @@ export class BlockProcessor {
             const user = await this.depositTransaction.initDepositTransaction(
               tx,
             );
-            // const depositCompletedEvent = new DepositCompletedEvent();
-            // depositCompletedEvent.bonusType = BonusType.LISENCE;
-            // depositCompletedEvent.user = user;
-            // depositCompletedEvent.txHash = tx.transactionHash;
-            // this.eventEmitter.emit(
-            //   Events.DEPOSIT_COMPLETED,
-            //   depositCompletedEvent,
-            // );
-            // this.loggerService.log(`Deposit complete event emitted`);
+            const deposit = await this.depositRepository.findOne({ txHash: tx.transactionHash });
+            if (deposit) {
+              const depositCompletedEvent = new DepositCompletedEvent();
+              depositCompletedEvent.bonusType = BonusType.LISENCE;
+              depositCompletedEvent.user = user;
+              depositCompletedEvent.deposit = deposit;
+              this.eventEmitter.emit(
+                Events.DEPOSIT_COMPLETED,
+                depositCompletedEvent,
+              );
+              this.loggerService.log(`Deposit complete event emitted`);
+            }
           }),
         );
         this.loggerService.debug(
