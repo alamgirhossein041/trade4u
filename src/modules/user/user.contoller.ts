@@ -87,7 +87,7 @@ export class UserContoller {
     await this.userService.updateUserBinanceCreds(user, body);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      message: ResponseMessage.SUCCESS,
+      message: ResponseMessage.BINANCE_BOT_STARTED
     });
   }
 
@@ -270,6 +270,7 @@ export class UserContoller {
         name: referrer.fullName,
         username: referrer.userName,
         contact: referrer.phoneNumber,
+        email: referrer.email
       };
     }
     return res.status(ResponseCode.SUCCESS).send({

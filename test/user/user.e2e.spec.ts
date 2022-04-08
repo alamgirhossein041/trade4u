@@ -6,7 +6,7 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock, TelegramBotMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock, TelegramBotMock, MockBotServer } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
 import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
@@ -19,6 +19,7 @@ describe('BinancePlus User test', () => {
     let helper: Helper;
     let token: string;
     let server: any;
+    let botServer: MockBotServer;
     const regDto = {
         userName: "bnptestuser32",
         fullName: "bnp user",
@@ -53,6 +54,11 @@ describe('BinancePlus User test', () => {
         helper = new Helper(app);
         token = await helper.init();
         server = app.getHttpServer();
+        (async () => {
+            return new Promise<void>((resolve, reject) => {
+                botServer = new MockBotServer(3340, resolve);
+            })
+        })();
     });
 
     describe(`bnp user`, () => {
@@ -117,8 +123,8 @@ describe('BinancePlus User test', () => {
         it(`Test get user/parents of bnp user 2  API`, async () => {
             await helper.login('bnptestuser2@yopmail.com', 'Rnssol@21');
             const expectedParents = [
-                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, parent_depth_level: 7, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, parent_depth_level: 7, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, plan_is_active: true, parent_depth_level: 7, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, plan_is_active: true, parent_depth_level: 7, plan_name: 'Silver' }
             ];
             await request(server)
                 .get('/api/user/parents')
@@ -132,8 +138,8 @@ describe('BinancePlus User test', () => {
         });
         it(`Test get user/parents of bnp user 2 after plan purchase to verify balance  API`, async () => {
             const expectedParents = [
-                { level: 1, fullName: `bnp user`, parent_depth_level: 7, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, parent_depth_level: 7, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
+                { level: 1, fullName: `bnp user`, parent_depth_level: 7,plan_is_active: true, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
+                { level: 2, fullName: `bnp user`, parent_depth_level: 7,plan_is_active: true, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
             ];
             await request(server)
                 .get('/api/user/parents')

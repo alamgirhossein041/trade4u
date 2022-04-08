@@ -15,6 +15,7 @@ import { LoggerModule } from '../../utils/logger/logger.module';
 import { BullModule } from '@nestjs/bull';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SchedulerModule } from '../../modules/scheduler/scheduler.module';
+import { ObserverModule } from '../observers/observers.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { SchedulerModule } from '../../modules/scheduler/scheduler.module';
     PaymentModule,
     PriceModule,
     SchedulerModule,
+    ObserverModule
   ],
   controllers: [AppController],
   providers: [AppService],

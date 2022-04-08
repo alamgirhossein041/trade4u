@@ -63,19 +63,17 @@ export class CompensationTransaction {
           depositCompletedEvent.user.uuid,
         );
         const planAmount = userWithPlan.plan.price;
-        const planName = userWithPlan.plan.planName;
         const userParentTree = await this.userService.getUserParentsTree(
           userWithPlan,
         );
         await this.distBonusInParents(
           userParentTree,
           planAmount,
-          planName,
           depositCompletedEvent.bonusType,
           queryRunner,
         );
         await this.updateDepositProcessing(
-          depositCompletedEvent.txHash,
+          depositCompletedEvent.deposit,
           queryRunner,
         );
         await queryRunner.commitTransaction();
@@ -103,7 +101,6 @@ export class CompensationTransaction {
   private async distBonusInParents(
     parenTree: any,
     planAmount: number,
-    planName: string,
     bonusType: string,
     queryRunner: QueryRunner,
   ) {
@@ -112,24 +109,26 @@ export class CompensationTransaction {
         await Promise.all(
           parenTree.map(async (parent: any) => {
             const parentToUpdate = await this.userService.get(parent.uuid);
-            const bonusPercentage = await this.getBonusPercentage(
-              bonusType,
-              planName,
-              parent.level,
-              parent.parent_depth_level,
-            );
-            let amount = this.getBonusAmount(bonusPercentage, planAmount);
-            await this.updateParentStats(
-              parentToUpdate.userStats,
-              amount,
-              queryRunner,
-            );
-            parentToUpdate.balance = Number(
-              new bigDecimal(amount)
-                .add(new bigDecimal(parent.balance))
-                .getValue(),
-            );
-            await queryRunner.manager.save(parentToUpdate);
+            if (parent.plan_is_active) {
+              const bonusPercentage = await this.getBonusPercentage(
+                bonusType,
+                parent.plan_name,
+                parent.level,
+                parent.parent_depth_level,
+              );
+              let amount = this.getBonusAmount(bonusPercentage, planAmount);
+              await this.updateParentStats(
+                parentToUpdate.userStats,
+                amount,
+                queryRunner,
+              );
+              parentToUpdate.balance = Number(
+                new bigDecimal(amount)
+                  .add(new bigDecimal(parent.balance))
+                  .getValue(),
+              );
+              await queryRunner.manager.save(parentToUpdate);
+            }
           }),
         );
         resolve();
@@ -146,11 +145,11 @@ export class CompensationTransaction {
    */
   private async getBonusPercentage(
     bonusType: string,
-    planName: string,
-    level: number,
+    parentPlanName: string,
+    parentLevel: number,
     parentDepthLevel: number,
   ) {
-    if (level > parentDepthLevel) {
+    if (parentLevel > parentDepthLevel) {
       return 0;
     }
     let percentage: number;
@@ -159,8 +158,8 @@ export class CompensationTransaction {
       repository = this.performanceRepository;
     else repository = this.licenseRepository;
     let row: LicenseFee | PerformanceFee;
-    row = await repository.findOne({ levelNo: level });
-    switch (planName) {
+    row = await repository.findOne({ levelNo: parentLevel });
+    switch (parentPlanName) {
       case PlanNameEnum.Silver:
         percentage = row.silverPercentage;
         break;
@@ -228,12 +227,11 @@ export class CompensationTransaction {
    * @returns
    */
   private async updateDepositProcessing(
-    txHash: string,
+    deposit: Deposit,
     queryRunner: QueryRunner,
   ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        const deposit = await this.depositRepository.findOne({ txHash });
         deposit.processed = true;
         await queryRunner.manager.save(deposit);
         resolve();

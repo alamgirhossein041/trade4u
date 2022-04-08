@@ -13,6 +13,7 @@ import { UserTelegram } from './telegram.entity';
 import { MailModule } from '../../utils/mailer/mail.module';
 import { Account } from '../klaytn/account.entity';
 import { KlaytnModule } from '../../modules/klaytn/klaytn.module';
+import { Bot } from '../bot/bot.entity';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { KlaytnModule } from '../../modules/klaytn/klaytn.module';
       LicenseFee,
       UserTelegram,
       Account,
+      Bot
     ]),
     SeedModule,
     LoggerModule,

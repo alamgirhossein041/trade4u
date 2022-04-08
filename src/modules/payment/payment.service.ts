@@ -224,7 +224,7 @@ export class PaymentService {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES, {
+  @Cron(CronExpression.EVERY_10_MINUTES, {
     name: JOB.PROCESS_DEPOSIT,
   })
   public async processDeposit(): Promise<number> {
@@ -243,7 +243,7 @@ export class PaymentService {
         deposits.map(async (d) => {
           const depositEvent = new DepositCompletedEvent();
           depositEvent.bonusType = BonusType.LISENCE;
-          depositEvent.txHash = d.txHash;
+          depositEvent.deposit = d;
           depositEvent.user = d.payment.user;
           await this.compensationTransaction.initCompensationTransaction(
             depositEvent,

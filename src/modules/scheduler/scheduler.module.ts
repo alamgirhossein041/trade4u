@@ -6,9 +6,11 @@ import { PaymentModule } from '../../modules/payment/payment.module';
 import { BlockProcessor } from './block.processor';
 import { KlaytnModule } from '../../modules/klaytn/klaytn.module';
 import { EventEmitter } from './event.emitter';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Deposit } from '../payment/deposit.entity';
 
 @Module({
-  imports: [LoggerModule, PaymentModule, KlaytnModule],
+  imports: [TypeOrmModule.forFeature([Deposit]),LoggerModule, PaymentModule, KlaytnModule],
   controllers: [SchedulerController],
   providers: [SchedulerService, BlockProcessor, EventEmitter],
   exports: [SchedulerService, BlockProcessor, EventEmitter],
