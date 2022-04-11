@@ -6,14 +6,13 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { JOB } from '../../utils/enum/index';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { Level } from 'level';
-import WebSocket, { WebSocketServer } from 'ws';
+import WebSocket from 'ws';
 import { Attempts, BlockQueue } from '../scheduler/commons/scheduler.enum';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Information } from './information.entity';
 import { InformationEnum } from './commons/klaytn.enum';
 import { CaverService } from './caver.service';
-import { async } from 'rxjs';
 
 @Injectable()
 export class KlaytnService {
@@ -26,6 +25,9 @@ export class KlaytnService {
    * Websocket client
    */
   public wsClient: WebSocket;
+
+
+  public spareWsClient: WebSocket;
 
   /**
    * Listners of transaction
@@ -44,6 +46,11 @@ export class KlaytnService {
   ) {
     KlaytnService.keyStore = new Level(process.env.KEY_STORE_PATH);
     this.wsClient = new WebSocket(process.env.KLAYTN_NODE_WS);
+    this.wsClient.on('open', async () => {
+      await this.wsClient.send(
+        '{"jsonrpc":"2.0", "id": 1, "method": "klay_subscribe", "params": ["newHeads"]}',
+      );
+    });
     (async () => {
       let promises = [];
       await this.syncWallet();
@@ -52,6 +59,16 @@ export class KlaytnService {
       promises.push(this.subscribeNewHead());
       return await Promise.all(promises);
     })();
+  }
+
+  @Cron('0 */3 * * * *')
+  public makeWebSocketConnection() {
+    this.spareWsClient = new WebSocket(process.env.KLAYTN_NODE_WS);
+    this.spareWsClient.on('open', async () => {
+      await this.spareWsClient.send(
+        '{"jsonrpc":"2.0", "id": 1, "method": "klay_subscribe", "params": ["newHeads"]}',
+      );
+    });
   }
 
   /**
@@ -180,25 +197,28 @@ export class KlaytnService {
    * Subscribe newHead event of klaytn network
    */
   public async subscribeNewHead() {
-    this.wsClient.on('open', async () => {
-      await this.wsClient.send(
-        '{"jsonrpc":"2.0", "id": 1, "method": "klay_subscribe", "params": ["newHeads"]}',
-      );
-    });
-
     this.wsClient.on('message', async (data) => {
       const parsed = JSON.parse(data);
       if (!parsed.params) return;
-
+      const blockHeight = this.caverService.hexToNumber(
+        parsed.params.result.number,
+      );
       if (this.listeners.length) {
-        const blockHeight = this.caverService.hexToNumber(
-          parsed.params.result.number,
-        );
         this.loggerService.log(`Block recieved: ${blockHeight}`);
         await this.addBlock(parsed.params?.result);
-        await this.updateBlockHeight(Number(blockHeight));
       }
+      await this.updateBlockHeight(Number(blockHeight));
       return;
+    });
+    this.wsClient.on('close', async () => {
+      this.wsClient = this.spareWsClient;
+      await this.subscribeNewHead();
+      // let promiseArr = [];
+      // this.loggerService.warn(
+      //   `Socket Connection Restarted`,
+      // );
+      // promiseArr.push(this.syncDeposits(), this.subscribeNewHead());
+      // await Promise.all(promiseArr);
     });
   }
 

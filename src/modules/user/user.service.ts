@@ -26,6 +26,7 @@ import { BOTClient } from "botclient";
 import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
 import { TradingSystem } from './commons/user.enums';
 import { Bot } from '../bot/bot.entity';
+import bigDecimal from 'js-big-decimal';
 
 @Injectable()
 export class UsersService {
@@ -139,22 +140,21 @@ export class UsersService {
                   MlmTree
                 LEFT JOIN plans p ON "planPlanId" = p."planId"
               WHERE
-                  level > 0 AND level <= $2
+                  level > 0
               ORDER BY level;`;
     const affliatesCountLevelWise = ` SELECT level,COUNT(level) as total_affiliates
               FROM
                   MlmTree
               WHERE
-                  level > 0 AND level <= $2
+                  level > 0
               GROUP BY level 
               ORDER BY level;`;
     const affiliatesResult = await this.userRepository.query(sql + affiliates, [
-      user.uuid,
-      user.plan.levels,
+      user.uuid
     ]);
     const affiliatesCountResult = await this.userRepository.query(
       sql + affliatesCountLevelWise,
-      [user.uuid, user.plan.levels],
+      [user.uuid],
     );
     affiliatesCountResult.map(
       (count) => (count.total_affiliates = Number(count.total_affiliates)),
@@ -262,6 +262,7 @@ export class UsersService {
   public async initializeStats(): Promise<UserStats> {
     let userStats: UserStats;
     userStats = new UserStats();
+    userStats.earning_limit = 500;
     return this.userStatsRepository.save(userStats);
   }
 
@@ -274,6 +275,37 @@ export class UsersService {
     user.planIsActive = true;
     user.plan = plan;
     return await this.userRepository.save(user);
+  }
+
+  /**
+   * Get user Bonus Earning cap
+   * @param user
+   * @returns
+   */
+  public getBonusEarningCap(userStats: UserStats): number {
+    const amountToMultiplyWith = Number(
+      new bigDecimal(userStats.consumed_amount)
+        .divide(new bigDecimal(userStats.earning_limit), 4)
+        .getValue(),
+    );
+    const originalPercentage = Number(
+      new bigDecimal(amountToMultiplyWith)
+        .multiply(new bigDecimal(100))
+        .getValue(),
+    );
+    return originalPercentage;
+  }
+
+  /**
+   * Update user plan
+   * @returns
+   */
+  public async getTotalAffiliatesWithDepth(user: User): Promise<{ total_affiliates: number, depth: number }> {
+    const levels = await this.getUserAffiliates(user);
+    const depth = levels.length;
+    let total_affiliates: number = 0;
+    levels.map(level => total_affiliates += level.total_affiliates);
+    return {total_affiliates,depth};
   }
 
   /**
