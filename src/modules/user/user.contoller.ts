@@ -182,6 +182,36 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('earning_cap')
+  public async getUserEarningCap(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
+    this.loggerService.log(`Get user/earning_cap ${LoggerMessages.API_CALLED}`);
+    const percentage = this.userService.getBonusEarningCap(user.userStats);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: { consumed_percentage: percentage, consumed_amount: user.userStats.consumed_amount, total_amount: user.userStats.earning_limit },
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('affiliates_depth')
+  public async getUSerAffiliatesAndDepth(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
+    this.loggerService.log(`Get user/affiliates_depth ${LoggerMessages.API_CALLED}`);
+    const affiliatesAndDepth = await this.userService.getTotalAffiliatesWithDepth(user);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: affiliatesAndDepth,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('parents')
   public async getUserParents(
     @CurrentUser() user: User,

@@ -112,9 +112,10 @@ export class CompensationTransaction {
             if (parent.plan_is_active) {
               const bonusPercentage = await this.getBonusPercentage(
                 bonusType,
+                parentToUpdate.userStats,
                 parent.plan_name,
                 parent.level,
-                parent.parent_depth_level,
+                parent.parent_depth_level
               );
               let amount = this.getBonusAmount(bonusPercentage, planAmount);
               await this.updateParentStats(
@@ -145,11 +146,22 @@ export class CompensationTransaction {
    */
   private async getBonusPercentage(
     bonusType: string,
+    parentStats: UserStats,
     parentPlanName: string,
     parentLevel: number,
     parentDepthLevel: number,
   ) {
-    if (parentLevel > parentDepthLevel) {
+    const amountToMultiplyWith = Number(
+      new bigDecimal(parentStats.consumed_amount)
+        .divide(new bigDecimal(parentStats.earning_limit), 4)
+        .getValue(),
+    );
+    const originalPercentage = Number(
+      new bigDecimal(amountToMultiplyWith)
+        .multiply(new bigDecimal(100))
+        .getValue(),
+    );
+    if (parentLevel > parentDepthLevel || originalPercentage >= 95) {
       return 0;
     }
     let percentage: number;
