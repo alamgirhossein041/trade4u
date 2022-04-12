@@ -8,6 +8,7 @@ import {
 import { Bot } from './bot.entity';
 import { Band } from './band.entity';
 import { Timeframe } from './timeframe.entity';
+import { Tradethreshold } from './tradethreshold.entity';
 
 @Entity({
   name: 'slots',
@@ -31,16 +32,6 @@ export class Slot {
   })
   consumed: boolean;
 
-  @Column({
-    type: 'double precision',
-  })
-  buythreshold: number;
-
-  @Column({
-    type: 'double precision',
-  })
-  sellthreshold: number;
-
   @ManyToOne(() => Bot)
   @JoinColumn({ name: 'botid' })
   bot: Bot;
@@ -52,4 +43,8 @@ export class Slot {
   @ManyToOne(() => Timeframe)
   @JoinColumn({ name: 'tfid' })
   timeframe: Timeframe;
+
+  @ManyToOne(() => Timeframe)
+  @JoinColumn({ name: 'ttid' })
+  tradethreshold: Tradethreshold;
 }
