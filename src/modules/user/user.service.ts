@@ -1,4 +1,4 @@
-import { ConsoleLogger, HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
 import { Repository } from 'typeorm';
@@ -7,6 +7,9 @@ import {
   ResponseMessage,
   TelergramBotMessages,
 } from '../../utils/enum';
+import {
+  IPaginationOptions,
+} from 'nestjs-typeorm-paginate';
 import { UserStats } from './user-stats.entity';
 import { AffliatesInterface } from './commons/user.types';
 import { User } from './user.entity';
@@ -27,6 +30,8 @@ import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
 import { TradingSystem } from './commons/user.enums';
 import { Bot } from '../bot/bot.entity';
 import bigDecimal from 'js-big-decimal';
+import { UserCommision } from './user-commision.entity';
+import moment from 'moment';
 
 @Injectable()
 export class UsersService {
@@ -40,6 +45,8 @@ export class UsersService {
     private readonly userTelegramRepository: Repository<UserTelegram>,
     @InjectRepository(Bot)
     private readonly tradingBotRepository: Repository<Bot>,
+    @InjectRepository(UserCommision)
+    private readonly userCommisionRepository: Repository<UserCommision>,
     private readonly seedService: SeedService,
     private readonly binanceService: BinanceService,
     private readonly telegramService: TelegramService,
@@ -95,6 +102,107 @@ export class UsersService {
    */
   async getByUserStats(userStats: UserStats): Promise<User> {
     return await this.userRepository.findOne({ userStats }, { relations: ['userTelegram'] });
+  }
+
+  /**
+   * Get user commisions of last week and last month
+   * @param user
+   * @returns
+   */
+  async getUserFinancials(user: User): Promise<{ weekAmount: number, monthAmount: number }> {
+    try {
+      const lastweekdate = moment().subtract(1, 'week').unix();
+      const lastmonthdate = moment().subtract(1, 'month').unix();
+      const sql = `SELECT SUM("amount") as total_amount
+            FROM
+                users_commisions
+            WHERE
+                "userId" = $1 AND "createdAt" >= $2 AND "createdAt" <= $3;
+    `;
+      const week = await this.userCommisionRepository.query(sql, [user.uuid, lastweekdate, moment().unix()]);
+      const weekAmount = Number(week[0].total_amount);
+      const month = await this.userCommisionRepository.query(sql, [user.uuid, lastmonthdate, moment().unix()]);
+      const monthAmount = Number(month[0].total_amount);
+      return { weekAmount, monthAmount };
+    } catch (err) {
+      throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
+    }
+  }
+
+  /**
+  * Get all user commisions
+  * @param user
+  * @returns
+  */
+  async getUserGraph(user: User): Promise<{ trades: any, commisions: UserCommision[] }> {
+    let trades: any[] = [];
+    const userBot = await this.getBotByUserId(user);
+    if (userBot) {
+      try {
+        let sql = `SELECT b."botid",t."date",CAST(t."profit" AS double precision),s."slotid"
+        FROM
+            bots b
+          INNER JOIN slots s ON b."botid" = s."botid"
+          INNER JOIN trades t ON s."slotid" = t."slotid"
+        WHERE
+          b."botid" = $1; 
+      `;
+        trades = await this.tradingBotRepository.query(sql, [userBot.botid]);
+      } catch (err) {
+        throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
+      }
+    }
+    const commisions = await this.userCommisionRepository.find({ user });
+    return { trades, commisions };
+  }
+
+  /**
+   * Get user trade orders
+   * @param user
+   * @returns
+   */
+  async getTrades(user: User, paginationOption: IPaginationOptions, filter: string): Promise<void> {
+    const limit = Number(paginationOption.limit);
+    const page = Number(paginationOption.page);
+    const userBot = await this.getBotByUserId(user);
+    if (!userBot) throw new HttpException(ResponseMessage.NO_ACTIVE_BOT, ResponseCode.BAD_REQUEST);
+    let sql = `SELECT COUNT(t."tid") as total_trades,b."botid",t."date",t."amount",t."profit",t."profitpercentage",t."status",s."slotid",
+        FROM
+            bots b
+          INNER JOIN slots s ON b."botid" = s."botid"
+          INNER JOIN trades t ON s."slotid" = t."slotid"
+        WHERE
+          b."botid" = $1 ${filter}
+        LIMIT $2 OFFSET $3; 
+      `;
+    const result = await this.tradingBotRepository.query(sql, [userBot.botid, limit, limit * (page - 1)]);
+    if (!result.length) throw new HttpException(ResponseMessage.CONTENT_NOT_FOUND, ResponseCode.CONTENT_NOT_FOUND);
+    return result;
+  }
+
+  /**
+   * Get user trade orders
+   * @param user
+   * @returns
+   */
+  async getTradesResult(user: User, paginationOption: IPaginationOptions, filter: string): Promise<void> {
+    const limit = Number(paginationOption.limit);
+    const page = Number(paginationOption.page);
+    const userBot = await this.getBotByUserId(user);
+    if (!userBot) throw new HttpException(ResponseMessage.NO_ACTIVE_BOT, ResponseCode.BAD_REQUEST);
+    let sql = `SELECT COUNT(t."tid") as total_trades,b."botid",t."date",t."profit",
+                      t."profitpercentage",SUM(CAST(t."profitpercentage" AS double precision)) OVER(ORDER BY t."tid" ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS Accumulated
+        FROM
+            bots b
+          INNER JOIN slots s ON b."botid" = s."botid"
+          INNER JOIN trades t ON s."slotid" = t."slotid"
+        WHERE
+          b."botid" = $1 ${filter}
+        LIMIT $2 OFFSET $3; 
+      `;
+    const result = await this.tradingBotRepository.query(sql, [userBot.botid, limit, limit * (page - 1)]);
+    if (!result.length) throw new HttpException(ResponseMessage.CONTENT_NOT_FOUND, ResponseCode.CONTENT_NOT_FOUND);
+    return result;
   }
 
   /**
@@ -305,7 +413,7 @@ export class UsersService {
     const depth = levels.length;
     let total_affiliates: number = 0;
     levels.map(level => total_affiliates += level.total_affiliates);
-    return {total_affiliates,depth};
+    return { total_affiliates, depth };
   }
 
   /**
@@ -324,6 +432,7 @@ export class UsersService {
       user.apiKey = Crypto.encrypt(binanceDto.apiKey);
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
       user.tradingSystem = binanceDto.tradingSystem;
+      user.apiActivationDate = moment().unix();
       const botData: ICreateBot = {
         apiKey: binanceDto.apiKey, apiSecret: binanceDto.apiSecret, baseAsset: '', quoteAsset: '',
         exchange: botConstants.exchange, strategy: botConstants.strategy, riskLevel: botConstants.riskLevel
@@ -707,4 +816,5 @@ export class UsersService {
     exist.country = data.country;
     return await this.userRepository.save(exist);
   }
+
 }

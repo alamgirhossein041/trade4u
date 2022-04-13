@@ -26,6 +26,8 @@ import { EarningLimit } from './commons/user.constants';
 import { isPositiveInteger } from '../../utils/methods';
 import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
 import { UserDataDto } from './user.entity';
+import { IPaginationOptions } from 'nestjs-typeorm-paginate';
+import { Pagination } from '../../utils/paginate';
 
 @Controller('api/user')
 export class UserContoller {
@@ -182,6 +184,52 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get(`trades`)
+  public async getTradeOrders(
+    @CurrentUser() user: User,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    this.loggerService.log(
+      `GET payment/trades_list ${LoggerMessages.API_CALLED}`,
+    );
+    let filter =``;
+    if(req.query && req.query.startDate && req.query.endDate) {
+      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate}`
+    }
+    const pagination: IPaginationOptions = await Pagination.paginate(req, res);
+    const payment = await this.userService.getTrades(user, pagination,filter);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: payment,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(`trades_result`)
+  public async getTradesResult(
+    @CurrentUser() user: User,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    this.loggerService.log(
+      `GET payment/trades_result ${LoggerMessages.API_CALLED}`,
+    );
+    let filter =``;
+    if(req.query && req.query.startDate && req.query.endDate) {
+      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate}`
+    }
+    const pagination: IPaginationOptions = await Pagination.paginate(req, res);
+    const payment = await this.userService.getTrades(user, pagination,filter);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: payment,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('earning_cap')
   public async getUserEarningCap(
     @CurrentUser() user: User,
@@ -197,8 +245,38 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('financials')
+  public async getUserFinancials(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
+    this.loggerService.log(`Get user/financials ${LoggerMessages.API_CALLED}`);
+    const amounts = await this.userService.getUserFinancials(user);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: amounts,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('graph_data')
+  public async getUserCommisionData(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
+    this.loggerService.log(`Get user/commision-graph ${LoggerMessages.API_CALLED}`);
+    const trades_commisions = await this.userService.getUserGraph(user);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: trades_commisions,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('affiliates_depth')
-  public async getUSerAffiliatesAndDepth(
+  public async getUserAffiliatesAndDepth(
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
