@@ -213,12 +213,6 @@ export class KlaytnService {
     this.wsClient.on('close', async () => {
       this.wsClient = this.spareWsClient;
       await this.subscribeNewHead();
-      // let promiseArr = [];
-      // this.loggerService.warn(
-      //   `Socket Connection Restarted`,
-      // );
-      // promiseArr.push(this.syncDeposits(), this.subscribeNewHead());
-      // await Promise.all(promiseArr);
     });
   }
 
