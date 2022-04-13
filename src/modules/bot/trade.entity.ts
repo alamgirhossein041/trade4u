@@ -9,17 +9,21 @@ export class Trade {
   @PrimaryColumn()
   tid: string;
 
-  @Column()
-  date: string;
+    @Column()
+    date: number;
 
   @Column()
   amount: string;
 
-  @Column()
-  profit: string;
+    @Column({
+        type: 'double precision'
+    })
+    profit: string;
 
-  @Column()
-  profitpercentage: string;
+    @Column({
+        type: 'double precision'
+    })
+    profitpercentage: string;
 
   @Column()
   status: string;

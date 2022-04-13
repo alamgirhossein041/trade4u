@@ -152,7 +152,7 @@ export class UsersService {
     const userBot = await this.getBotByUserId(user);
     if (userBot) {
       try {
-        let sql = `SELECT b."botid",t."date",CAST(t."profit" AS double precision),s."slotid"
+        let sql = `SELECT b."botid",t."date",t."profit",s."slotid"
         FROM
             bots b
           INNER JOIN slots s ON b."botid" = s."botid"
@@ -228,7 +228,7 @@ export class UsersService {
         ResponseCode.BAD_REQUEST,
       );
     let sql = `SELECT COUNT(t."tid") as total_trades,b."botid",t."date",t."profit",
-                      t."profitpercentage",SUM(CAST(t."profitpercentage" AS double precision)) OVER(ORDER BY t."tid" ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS Accumulated
+              t."profitpercentage",SUM(t."profit") OVER(ORDER BY t."tid" ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS Accumulated
         FROM
             bots b
           INNER JOIN slots s ON b."botid" = s."botid"
@@ -485,6 +485,7 @@ export class UsersService {
         apiSecret: binanceDto.apiSecret,
         baseAsset: '',
         quoteAsset: '',
+        userId: user.uuid,
         exchange: botConstants.exchange,
         strategy: botConstants.strategy,
         riskLevel: botConstants.riskLevel,

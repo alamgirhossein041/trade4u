@@ -32,8 +32,6 @@ export class CompensationTransaction {
     private readonly licenseRepository: Repository<LicenseFee>,
     @InjectRepository(PerformanceFee)
     private readonly performanceRepository: Repository<PerformanceFee>,
-    @InjectRepository(Deposit)
-    private readonly depositRepository: Repository<Deposit>,
     private readonly userService: UsersService,
     private readonly telegramService: TelegramService,
     private readonly loggerService: LoggerService,
@@ -113,24 +111,43 @@ export class CompensationTransaction {
             if (parent.plan_is_active) {
               const bonusPercentage = await this.getBonusPercentage(
                 bonusType,
-                parentToUpdate.userStats,
                 parent.plan_name,
                 parent.level,
                 parent.parent_depth_level,
               );
               let amount = this.getBonusAmount(bonusPercentage, planAmount);
-              await this.updateParentStats(
-                parentToUpdate.userStats,
-                amount,
-                queryRunner,
-              );
-              await this.createCommision(parentToUpdate, amount, queryRunner);
-              parentToUpdate.balance = Number(
-                new bigDecimal(amount)
-                  .add(new bigDecimal(parent.balance))
-                  .getValue(),
-              );
-              await queryRunner.manager.save(parentToUpdate);
+              const isEarningLimitExceed = this.isLimitExceed(amount, parentToUpdate.userStats);
+              if (isEarningLimitExceed) {
+                await this.createCommision(
+                  parentToUpdate,
+                  amount,
+                  queryRunner,
+                  false
+                );
+                parentToUpdate.userStats.unconsumed_amount = Number(
+                  new bigDecimal(amount)
+                    .add(new bigDecimal(parentToUpdate.userStats.unconsumed_amount))
+                    .getValue(),
+                );
+                await queryRunner.manager.save(parentToUpdate.userStats);
+              } else {
+                await this.updateParentStats(
+                  parentToUpdate.userStats,
+                  amount,
+                  queryRunner,
+                );
+                await this.createCommision(
+                  parentToUpdate,
+                  amount,
+                  queryRunner
+                );
+                parentToUpdate.balance = Number(
+                  new bigDecimal(amount)
+                    .add(new bigDecimal(parent.balance))
+                    .getValue(),
+                );
+                await queryRunner.manager.save(parentToUpdate);
+              }
             }
           }),
         );
@@ -148,22 +165,11 @@ export class CompensationTransaction {
    */
   private async getBonusPercentage(
     bonusType: string,
-    parentStats: UserStats,
     parentPlanName: string,
     parentLevel: number,
     parentDepthLevel: number,
   ) {
-    const amountToMultiplyWith = Number(
-      new bigDecimal(parentStats.consumed_amount)
-        .divide(new bigDecimal(parentStats.earning_limit), 4)
-        .getValue(),
-    );
-    const originalPercentage = Number(
-      new bigDecimal(amountToMultiplyWith)
-        .multiply(new bigDecimal(100))
-        .getValue(),
-    );
-    if (parentLevel > parentDepthLevel || originalPercentage >= 95) {
+    if (parentLevel > parentDepthLevel) {
       return 0;
     }
     let percentage: number;
@@ -195,16 +201,41 @@ export class CompensationTransaction {
    * @param percentage
    * @param amount
    */
-  private getBonusAmount(percentage: number, amount: number) {
+  private getBonusAmount(percentage: number, planAmount: number) {
     const amountToMultiplyWith = Number(
       new bigDecimal(percentage).divide(new bigDecimal(100), 4).getValue(),
     );
     const originalAmount = Number(
       new bigDecimal(amountToMultiplyWith)
-        .multiply(new bigDecimal(amount))
+        .multiply(new bigDecimal(planAmount))
         .getValue(),
     );
     return originalAmount;
+  }
+
+  /**
+   * Check If Earing Limit Exceeds After adding this bonus
+   * @param parentStats 
+   * @param amount 
+   */
+  private isLimitExceed(amount: number, parentStats: UserStats) {
+    const newConsumed = Number(
+                  new bigDecimal(amount)
+                    .add(new bigDecimal(parentStats.consumed_amount))
+                    .getValue(),
+                );
+    const amountToMultiplyWith = Number(
+      new bigDecimal(newConsumed)
+        .divide(new bigDecimal(parentStats.earning_limit), 4)
+        .getValue(),
+    );
+    const originalPercentage = Number(
+      new bigDecimal(amountToMultiplyWith)
+        .multiply(new bigDecimal(100))
+        .getValue(),
+    );
+    if (originalPercentage >= 95) { return true; }
+    else { return false; }
   }
 
   /**
@@ -245,12 +276,14 @@ export class CompensationTransaction {
     parent: User,
     amount: number,
     queryRunner: QueryRunner,
+    consumed: boolean = true
   ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const commision = new UserCommision();
         commision.amount = amount;
         commision.user = parent;
+        commision.consumed = consumed;
         await queryRunner.manager.save(commision);
         resolve();
       } catch (err) {

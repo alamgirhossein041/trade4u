@@ -24,4 +24,10 @@ export class UserStats extends BaseEntity {
     type: 'double precision',
   })
   consumed_amount: number;
+
+  @Column({
+    default: 0,
+    type: 'double precision',
+  })
+  unconsumed_amount: number;
 }

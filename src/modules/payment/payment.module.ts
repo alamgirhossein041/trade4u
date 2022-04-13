@@ -15,6 +15,7 @@ import { CompensationTransaction } from './compensation.transaction';
 import { LicenseFee } from '../seed/licensefee.entity';
 import { PerformanceFee } from '../seed/preformaceFee.entity';
 import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
+import { UserCommision } from '../user/user-commision.entity';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
       Deposit,
       LicenseFee,
       PerformanceFee,
+      UserCommision
     ]),
     SeedModule,
     LoggerModule,
