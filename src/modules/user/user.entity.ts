@@ -52,6 +52,9 @@ export class User {
   @Column({ length: 255, nullable: true })
   apiSecret: string;
 
+  @Column({ nullable: true })
+  apiActivationDate: number;
+
   @Column({ length: 150, nullable: true })
   klayWallet: string;
 
@@ -60,6 +63,9 @@ export class User {
 
   @Column({ type: 'boolean', default: false })
   planIsActive: boolean;
+
+  @Column({ nullable: true })
+  planExpiry: number;
 
   @Column({ type: 'boolean', default: false })
   emailConfirmed: boolean;

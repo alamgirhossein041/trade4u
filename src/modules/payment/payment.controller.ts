@@ -5,30 +5,28 @@ import {
   Post,
   Req,
   Res,
-  Body,
   UseGuards,
   HttpException,
-  Query,
-  Injectable,
+  Query
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { Request, response, Response } from 'express';
+import { Request, Response } from 'express';
 import { ResponseCode, ResponseMessage } from '../../utils/enum';
 import { CurrentUser } from '../../modules/common/decorator/current-user.decorator';
 import { User } from '../../modules/user';
 import { AuthGuard } from '@nestjs/passport';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { Pagination } from '../../utils/paginate';
-import { DepositWebHook } from './commons/payment.dtos';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { LoggerMessages } from '../../utils/enum';
+import { isPositiveInteger } from '../../utils/methods';
 
 @Controller('api/payment')
 export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
     private readonly loggerService: LoggerService,
-  ) {}
+  ) { }
 
   @Post(`order_plan/:planId`)
   @UseGuards(AuthGuard('jwt'))
@@ -36,12 +34,18 @@ export class PaymentController {
     @CurrentUser() user: User,
     @Req() req: Request,
     @Res() res: Response,
-    @Param() params,
+    @Param('planId') planId: number,
   ) {
     this.loggerService.log(
       `POST payment/order_plan ${LoggerMessages.API_CALLED}`,
     );
-    const order = await this.paymentService.orderPlan(user, params.planId);
+    const isPosInt = isPositiveInteger(planId.toString());
+    if (!isPosInt)
+      throw new HttpException(
+        `Parameter planId ${ResponseMessage.IS_INVALID}`,
+        ResponseCode.BAD_REQUEST,
+      );
+    const order = await this.paymentService.orderPlan(user, planId);
     return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
       statusCode: ResponseCode.CREATED_SUCCESSFULLY,
       data: order,
@@ -49,8 +53,8 @@ export class PaymentController {
     });
   }
 
-  @Get(`payment_list`)
   @UseGuards(AuthGuard('jwt'))
+  @Get(`payment_list`)
   public async getPayments(
     @CurrentUser() user: User,
     @Req() req: Request,

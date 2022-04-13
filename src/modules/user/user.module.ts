@@ -14,6 +14,7 @@ import { MailModule } from '../../utils/mailer/mail.module';
 import { Account } from '../klaytn/account.entity';
 import { KlaytnModule } from '../../modules/klaytn/klaytn.module';
 import { Bot } from '../bot/bot.entity';
+import { UserCommision } from './user-commision.entity';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { Bot } from '../bot/bot.entity';
       LicenseFee,
       UserTelegram,
       Account,
-      Bot
+      Bot,
+      UserCommision
     ]),
     SeedModule,
     LoggerModule,

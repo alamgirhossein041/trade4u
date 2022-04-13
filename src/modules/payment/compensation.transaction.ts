@@ -16,6 +16,7 @@ import { DepositCompletedEvent } from '../scheduler/deposit.complete.event';
 import { UserStats } from '../user/user-stats.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { Deposit } from './deposit.entity';
+import { UserCommision } from '../user/user-commision.entity';
 
 @Injectable()
 export class CompensationTransaction {
@@ -123,6 +124,11 @@ export class CompensationTransaction {
                 amount,
                 queryRunner,
               );
+              await this.createCommision(
+                parentToUpdate,
+                amount,
+                queryRunner
+              );
               parentToUpdate.balance = Number(
                 new bigDecimal(amount)
                   .add(new bigDecimal(parent.balance))
@@ -225,6 +231,31 @@ export class CompensationTransaction {
             .getValue(),
         );
         await queryRunner.manager.save(userStats);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * Create A Commision For Parent User
+   * @param parent 
+   * @param amount 
+   * @param queryRunner 
+   * @returns 
+   */
+  private async createCommision(
+    parent: User,
+    amount: number,
+    queryRunner: QueryRunner,
+  ) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        const commision = new UserCommision();
+        commision.amount = amount;
+        commision.user = parent;
+        await queryRunner.manager.save(commision);
         resolve();
       } catch (err) {
         reject(err);

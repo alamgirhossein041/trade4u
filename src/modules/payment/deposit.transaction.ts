@@ -226,6 +226,7 @@ export class DepositTransaction {
           queryRunner,
         );
         if (!user.planIsActive) user.planIsActive = true;
+        user.planExpiry = moment().add(1,'year').unix();
         await queryRunner.manager.save(user);
         resolve();
       } catch (err) {
