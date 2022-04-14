@@ -116,17 +116,24 @@ export class CompensationTransaction {
                 parent.parent_depth_level,
               );
               let amount = this.getBonusAmount(bonusPercentage, planAmount);
-              const isEarningLimitExceed = this.isLimitExceed(amount, parentToUpdate.userStats);
+              const isEarningLimitExceed = this.isLimitExceed(
+                amount,
+                parentToUpdate.userStats,
+              );
               if (isEarningLimitExceed) {
                 await this.createCommision(
                   parentToUpdate,
                   amount,
                   queryRunner,
-                  false
+                  false,
                 );
                 parentToUpdate.userStats.unconsumed_amount = Number(
                   new bigDecimal(amount)
-                    .add(new bigDecimal(parentToUpdate.userStats.unconsumed_amount))
+                    .add(
+                      new bigDecimal(
+                        parentToUpdate.userStats.unconsumed_amount,
+                      ),
+                    )
                     .getValue(),
                 );
                 await queryRunner.manager.save(parentToUpdate.userStats);
@@ -136,11 +143,7 @@ export class CompensationTransaction {
                   amount,
                   queryRunner,
                 );
-                await this.createCommision(
-                  parentToUpdate,
-                  amount,
-                  queryRunner
-                );
+                await this.createCommision(parentToUpdate, amount, queryRunner);
                 parentToUpdate.balance = Number(
                   new bigDecimal(amount)
                     .add(new bigDecimal(parent.balance))
@@ -215,15 +218,15 @@ export class CompensationTransaction {
 
   /**
    * Check If Earing Limit Exceeds After adding this bonus
-   * @param parentStats 
-   * @param amount 
+   * @param parentStats
+   * @param amount
    */
   private isLimitExceed(amount: number, parentStats: UserStats) {
     const newConsumed = Number(
-                  new bigDecimal(amount)
-                    .add(new bigDecimal(parentStats.consumed_amount))
-                    .getValue(),
-                );
+      new bigDecimal(amount)
+        .add(new bigDecimal(parentStats.consumed_amount))
+        .getValue(),
+    );
     const amountToMultiplyWith = Number(
       new bigDecimal(newConsumed)
         .divide(new bigDecimal(parentStats.earning_limit), 4)
@@ -234,8 +237,11 @@ export class CompensationTransaction {
         .multiply(new bigDecimal(100))
         .getValue(),
     );
-    if (originalPercentage >= 95) { return true; }
-    else { return false; }
+    if (originalPercentage >= 95) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -276,7 +282,7 @@ export class CompensationTransaction {
     parent: User,
     amount: number,
     queryRunner: QueryRunner,
-    consumed: boolean = true
+    consumed: boolean = true,
   ) {
     return new Promise<void>(async (resolve, reject) => {
       try {

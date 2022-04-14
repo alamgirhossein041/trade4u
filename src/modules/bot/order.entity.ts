@@ -5,7 +5,7 @@ import { Slot } from './slot.entity';
   name: 'orders',
 })
 export class Order {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   id: string;
 
   @Column()

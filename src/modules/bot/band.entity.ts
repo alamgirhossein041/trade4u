@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
   name: 'bands',
 })
 export class Band {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   bandid: string;
 
   @Column({
@@ -21,8 +21,8 @@ export class Band {
   slotpercentage: string;
 
   @Column()
-  baseasset: number;
+  baseasset: string;
 
   @Column()
-  quoteasset: number;
+  quoteasset: string;
 }

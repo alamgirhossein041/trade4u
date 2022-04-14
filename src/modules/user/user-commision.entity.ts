@@ -21,7 +21,7 @@ export class UserCommision {
   @Column({ default: moment().unix() })
   createdAt: number;
 
-  @Column({default: true})
+  @Column({ default: true })
   consumed: boolean;
 
   @ManyToOne(() => User)

@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
   name: 'portfoliozones',
 })
 export class Portfoliozone {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   pfid: string;
 
   @Column()

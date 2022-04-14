@@ -190,9 +190,7 @@ export class UserContoller {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    this.loggerService.log(
-      `GET payment/trades_list ${LoggerMessages.API_CALLED}`,
-    );
+    this.loggerService.log(`GET user/trades_list ${LoggerMessages.API_CALLED}`);
     let filter = ``;
     if (req.query && req.query.startDate && req.query.endDate) {
       filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate}`;
@@ -214,17 +212,51 @@ export class UserContoller {
     @Res() res: Response,
   ) {
     this.loggerService.log(
-      `GET payment/trades_result ${LoggerMessages.API_CALLED}`,
+      `GET user/trades_result ${LoggerMessages.API_CALLED}`,
     );
     let filter = ``;
-    if (req.query && req.query.startDate && req.query.endDate) {
-      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate}`;
+    if (
+      req.query &&
+      req.query.startDate &&
+      req.query.endDate &&
+      req.query.system
+    ) {
+      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate} AND b."baseasset" = ${req.query.system}`;
     }
     const pagination: IPaginationOptions = await Pagination.paginate(req, res);
     const payment = await this.userService.getTrades(user, pagination, filter);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: payment,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(`history_general`)
+  public async getTradesGeneralHistory(@Res() res: Response) {
+    this.loggerService.log(
+      `GET user/trades_history_general ${LoggerMessages.API_CALLED}`,
+    );
+    const history = await this.userService.getTradesGeneralHistory();
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: history,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(`bank_usage`)
+  public async getUserBankUsage(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ) {
+    this.loggerService.log(`GET user/bank_usage ${LoggerMessages.API_CALLED}`);
+    const history = await this.userService.getBankUSage(user);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: history,
       message: ResponseMessage.SUCCESS,
     });
   }
@@ -265,13 +297,11 @@ export class UserContoller {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('graph_data')
-  public async getUserCommisionData(
+  public async getUserGraphData(
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
-    this.loggerService.log(
-      `Get user/commision-graph ${LoggerMessages.API_CALLED}`,
-    );
+    this.loggerService.log(`Get user/graph_data ${LoggerMessages.API_CALLED}`);
     const trades_commisions = await this.userService.getUserGraph(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,

@@ -26,7 +26,7 @@ import { UserCommision } from '../user/user-commision.entity';
       Deposit,
       LicenseFee,
       PerformanceFee,
-      UserCommision
+      UserCommision,
     ]),
     SeedModule,
     LoggerModule,

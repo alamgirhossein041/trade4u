@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
   name: 'exchanges',
 })
 export class Exchange {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   exchangeid: string;
 
   @Column()
@@ -13,7 +13,7 @@ export class Exchange {
   @Column({
     type: 'double precision',
   })
-  comission: number;
+  commission: number;
 
   @Column({
     type: 'double precision',

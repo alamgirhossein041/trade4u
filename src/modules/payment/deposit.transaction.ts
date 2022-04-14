@@ -255,7 +255,7 @@ export class DepositTransaction {
             .add(new bigDecimal(user.balance))
             .getValue(),
         );
-        await this.commisionRepository.update({user},{consumed: true});
+        await this.commisionRepository.update({ user }, { consumed: true });
         await queryRunner.manager.save(user);
         resolve();
       } catch (err) {
@@ -303,9 +303,15 @@ export class DepositTransaction {
         } else {
           userStats.earning_limit = earningLimit;
         }
-        const isEarningLimitExceed = this.isLimitExceed(userStats.unconsumed_amount, userStats);
+        const isEarningLimitExceed = this.isLimitExceed(
+          userStats.unconsumed_amount,
+          userStats,
+        );
         if (!isEarningLimitExceed) {
-          await this.addUnconsumedAmountToBalance(this.payment.user, queryRunner);
+          await this.addUnconsumedAmountToBalance(
+            this.payment.user,
+            queryRunner,
+          );
           userStats.consumed_amount = Number(
             new bigDecimal(userStats.unconsumed_amount)
               .add(new bigDecimal(userStats.consumed_amount))
@@ -325,8 +331,8 @@ export class DepositTransaction {
 
   /**
    * Check If Earing Limit Exceeds After adding this bonus
-   * @param parentStats 
-   * @param amount 
+   * @param parentStats
+   * @param amount
    */
   private isLimitExceed(amount: number, userStats: UserStats) {
     const newConsumed = Number(
@@ -344,7 +350,10 @@ export class DepositTransaction {
         .multiply(new bigDecimal(100))
         .getValue(),
     );
-    if (originalPercentage >= 95) { return true; }
-    else { return false; }
+    if (originalPercentage >= 95) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
