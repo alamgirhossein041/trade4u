@@ -89,6 +89,7 @@ export enum JOB {
   EXPIRE_PAYMENT = `expire payment`,
   WALLET_SYNC = `wallet sync`,
   PROCESS_DEPOSIT = `process deposit`,
+  WITHDRAWAL = `withdrawal`
 }
 
 export enum BlockProcess {
