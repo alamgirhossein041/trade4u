@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import {
   ResponseCode,
   ResponseMessage,
@@ -817,4 +817,12 @@ export class UsersService {
     return await this.userRepository.save(exist);
   }
 
+  /**
+   * Get user for withdrawal
+   * @param limit 
+   * @returns 
+   */
+  public async getUsersForWithDrawal(limit: number) {
+    return await this.userRepository.find({ where: { balance: MoreThanOrEqual(limit) } });
+  }
 }

@@ -169,9 +169,9 @@ export class CaverService {
         feepayer = exist
           ? this.caver.wallet.getKeyring(process.env.KLAY_FEE_WALLET_ADDRESS)
           : this.caver.wallet.newKeyring(
-              process.env.KLAY_FEE_WALLET_ADDRESS,
-              process.env.KLAY_FEE_WALLET_SECRET,
-            );
+            process.env.KLAY_FEE_WALLET_ADDRESS,
+            process.env.KLAY_FEE_WALLET_SECRET,
+          );
 
         await tx.sign(sender);
         await tx.signAsFeePayer(feepayer);
@@ -191,38 +191,47 @@ export class CaverService {
    * @param address
    * @returns
    */
-  public async moveToUserWallet(address: string): Promise<void> {
+  public async moveToUserWallet(address: string, amount: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
         let feepayer: Keyring;
+        let sender: Keyring;
         const tx = this.caver.transaction.feeDelegatedValueTransfer.create({
           from: process.env.KLAY_MASTER_WALLET_ADDRESS,
           to: address,
-          value: await this.caver.rpc.klay.getBalance(address),
+          value: this.toPeb(amount),
           feePayer: process.env.KLAY_FEE_WALLET_ADDRESS,
           gasPrice: await this.caver.klay.getGasPrice(),
           gas: 0,
-          nonce: Number(await this.caver.klay.getTransactionCount(address)),
+          nonce: Number(await this.caver.klay.getTransactionCount(process.env.KLAY_MASTER_WALLET_ADDRESS)),
         });
 
         const gasLimit = await this.caver.klay.estimateGas(tx);
         tx.gas = gasLimit;
-        const sender = this.caver.wallet.getKeyring(address);
-        const exist = this.wallet.isExisted(
-          process.env.KLAY_FEE_WALLET_ADDRESS,
-        );
-        feepayer = exist
+        
+        const senderExist = this.wallet.isExisted(process.env.KLAY_MASTER_WALLET_ADDRESS);
+        sender = senderExist
+          ? this.caver.wallet.getKeyring(process.env.KLAY_MASTER_WALLET_ADDRESS)
+          : this.caver.wallet.newKeyring(
+            process.env.KLAY_MASTER_WALLET_ADDRESS,
+            process.env.KLAY_MASTER_WALLET_SECRET,
+          );
+
+        const feepayerExist = this.wallet.isExisted(
+            process.env.KLAY_FEE_WALLET_ADDRESS,
+          );
+        feepayer = feepayerExist
           ? this.caver.wallet.getKeyring(process.env.KLAY_FEE_WALLET_ADDRESS)
           : this.caver.wallet.newKeyring(
-              process.env.KLAY_FEE_WALLET_ADDRESS,
-              process.env.KLAY_FEE_WALLET_SECRET,
-            );
+            process.env.KLAY_FEE_WALLET_ADDRESS,
+            process.env.KLAY_FEE_WALLET_SECRET,
+          );
 
         await tx.sign(sender);
         await tx.signAsFeePayer(feepayer);
         await this.caver.klay.sendSignedTransaction(tx.getRawTransaction());
         this.loggerService.debug(
-          `Successfully moved: ${address} => ${process.env.KLAY_MASTER_WALLET_ADDRESS} `,
+          `Successfully moved: ${process.env.KLAY_MASTER_WALLET_ADDRESS} => ${address} `,
         );
         return resolve();
       } catch (err) {
