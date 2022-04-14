@@ -17,6 +17,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SchedulerModule } from '../../modules/scheduler/scheduler.module';
 import { ObserverModule } from '../observers/observers.module';
 import { WithdrawalModule } from '../../modules/withdrawal/withdrawal.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -25,6 +27,10 @@ import { WithdrawalModule } from '../../modules/withdrawal/withdrawal.module';
       useFactory: async () => {
         return await AppService.createConnection();
       },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      exclude: ['/api*'],
     }),
     ConfigModule.forRoot({
       envFilePath: [AppService.envConfiguration()],
@@ -53,4 +59,4 @@ import { WithdrawalModule } from '../../modules/withdrawal/withdrawal.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
