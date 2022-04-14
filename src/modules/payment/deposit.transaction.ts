@@ -93,7 +93,7 @@ export class DepositTransaction {
         const balance = await this.klaytnService.getAccountBalance(
           this.payment.account.address,
         );
-        Number(balance) > this.payment.amountKLAY
+        Number(balance) >= this.payment.amountKLAY
           ? resolve(true)
           : resolve(false);
       } catch (err) {
