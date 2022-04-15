@@ -13,6 +13,7 @@ import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
 import { BinanceService } from '../../src/utils/binance/binance.service';
 import { TelegramService } from '../../src/utils/telegram/telegram-bot.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
+import { User } from '../../src/modules/user/user.entity';
 
 describe('BinancePlus User test', () => {
     let app: INestApplication;
@@ -20,6 +21,7 @@ describe('BinancePlus User test', () => {
     let token: string;
     let server: any;
     let botServer: MockBotServer;
+    let user: User;
     const regDto = {
         userName: "bnptestuser32",
         fullName: "bnp user",
@@ -241,6 +243,40 @@ describe('BinancePlus User test', () => {
                     expect(body.message).toEqual(ResponseMessage.PROFILE_UPDATED_SUCCESSFULLY);
                 });
         });
+
+        it(`Test /me user info`, async () => {
+            await request(server)
+                .get('/api/user/me')
+                .set('Authorization', helper.getAccessToken())
+                .expect(({ body }) => {
+                    expect(body.statusCode).toEqual(200);
+                    expect(body.data).toBeDefined();
+                    user = body.data.user;
+                });
+        });
+
+        it(`Test /trades get user trades`, async () => {
+            await helper.insertBotData(user.uuid);
+            await request(server)
+                .get('/api/user/trades?startDate=1649999102&endDate=1649999108')
+                .set('Authorization', helper.getAccessToken())
+                .expect(204)
+        });
+
+        it(`Test /trades get user trades_result`, async () => {
+            await request(server)
+                .get('/api/user/trades_result?startDate=1649999102&endDate=1649999108&system=USDT')
+                .set('Authorization', helper.getAccessToken())
+                .expect(204)
+        });
+
+        it(`Test /general_history get trades_general_history`, async () => {
+            await request(server)
+                .get('/api/user/history_general')
+                .set('Authorization', helper.getAccessToken())
+                .expect(204)
+        });
+
     });
     afterAll(async () => {
         await helper.clearDB();

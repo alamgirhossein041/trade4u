@@ -289,6 +289,11 @@ export class UsersService {
         ORDER BY t."date" DESC
         LIMIT $1;`;
     const trades = await this.tradingBotRepository.query(sql, [HistoryLimit]);
+    if (!trades.length)
+      throw new HttpException(
+        ResponseMessage.CONTENT_NOT_FOUND,
+        ResponseCode.CONTENT_NOT_FOUND,
+      );
     return trades;
   }
 
