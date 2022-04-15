@@ -65,7 +65,9 @@ export class BlockProcessor {
             const user = await this.depositTransaction.initDepositTransaction(
               tx,
             );
-            const deposit = await this.depositRepository.findOne({ txHash: tx.transactionHash });
+            const deposit = await this.depositRepository.findOne({
+              txHash: tx.transactionHash,
+            });
             if (deposit) {
               const depositCompletedEvent = new DepositCompletedEvent();
               depositCompletedEvent.bonusType = BonusType.LISENCE;

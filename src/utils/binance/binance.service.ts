@@ -14,21 +14,26 @@ export class BinanceService {
    * @returns
    */
   public async verifyApiKey(apiKey: string, secret: string) {
-    this.binanceExchannge = new binance({ apiKey, secret, defaultType: 'future' });
+    this.binanceExchannge = new binance({
+      apiKey,
+      secret,
+      defaultType: 'future',
+    });
     this.binanceExchannge.setSandboxMode(true);
     try {
-      this.binanceExchannge.checkRequiredCredentials() // throw AuthenticationError
-      await this.binanceExchannge.fetchBalance()
+      this.binanceExchannge.checkRequiredCredentials(); // throw AuthenticationError
+      await this.binanceExchannge.fetchBalance();
     } catch (error) {
-      if (error.message.includes('-2014') ||
+      if (
+        error.message.includes('-2014') ||
         error.message.includes('-2015') ||
-        error.message.includes('-1022')) {
+        error.message.includes('-1022')
+      ) {
         throw new HttpException(
           ResponseMessage.INVALID_BINANCE_CREDENTIALS,
           ResponseCode.BAD_REQUEST,
         );
-      }
-      else {
+      } else {
         throw new HttpException(
           ResponseMessage.INTERNAL_SERVER_ERROR,
           ResponseCode.INTERNAL_ERROR,

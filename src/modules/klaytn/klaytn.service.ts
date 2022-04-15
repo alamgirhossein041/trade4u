@@ -26,7 +26,6 @@ export class KlaytnService {
    */
   public wsClient: WebSocket;
 
-
   public spareWsClient: WebSocket;
 
   /**
@@ -106,7 +105,7 @@ export class KlaytnService {
    * @returns
    */
   public async freeAccount(account: Account) {
-    await this.removeListener(account.address)
+    await this.removeListener(account.address);
     account.isHalt = false;
     return await this.accountRepository.save(account);
   }

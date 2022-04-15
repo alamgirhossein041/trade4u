@@ -3,7 +3,5 @@ import { WithdrawalService } from './withdrawal.service';
 
 @Controller('withdrawal')
 export class WithdrawalController {
-  
-  constructor(private readonly withdrawalService: WithdrawalService) {
-  }
+  constructor(private readonly withdrawalService: WithdrawalService) {}
 }

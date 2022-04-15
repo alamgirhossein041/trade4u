@@ -116,7 +116,7 @@ export class CompensationTransaction {
                 parentToUpdate.userStats,
                 parent.plan_name,
                 parent.level,
-                parent.parent_depth_level
+                parent.parent_depth_level,
               );
               let amount = this.getBonusAmount(bonusPercentage, planAmount);
               await this.updateParentStats(
@@ -124,11 +124,7 @@ export class CompensationTransaction {
                 amount,
                 queryRunner,
               );
-              await this.createCommision(
-                parentToUpdate,
-                amount,
-                queryRunner
-              );
+              await this.createCommision(parentToUpdate, amount, queryRunner);
               parentToUpdate.balance = Number(
                 new bigDecimal(amount)
                   .add(new bigDecimal(parent.balance))
@@ -240,10 +236,10 @@ export class CompensationTransaction {
 
   /**
    * Create A Commision For Parent User
-   * @param parent 
-   * @param amount 
-   * @param queryRunner 
-   * @returns 
+   * @param parent
+   * @param amount
+   * @param queryRunner
+   * @returns
    */
   private async createCommision(
     parent: User,

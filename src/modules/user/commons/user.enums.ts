@@ -5,8 +5,8 @@ export enum TradingSystem {
 }
 
 export enum BotStatus {
-  CREATED=`created`,
+  CREATED = `created`,
   STOPPING = `stopping`,
   STOPPED = `stopped`,
-  RUNNING = `running`
+  RUNNING = `running`,
 }

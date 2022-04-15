@@ -1,10 +1,4 @@
-import {
-  Column,
-  PrimaryColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne
-} from 'typeorm';
+import { Column, PrimaryColumn, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Slot } from './slot.entity';
 
 @Entity({
@@ -40,7 +34,7 @@ export class Order {
 
   @Column()
   timeinforce: string;
- 
+
   @Column()
   type: string;
 
@@ -66,6 +60,6 @@ export class Order {
   origquoteorderquantity: string;
 
   @ManyToOne(() => Slot)
-  @JoinColumn({name: 'slotid'})
+  @JoinColumn({ name: 'slotid' })
   slot: Slot;
 }

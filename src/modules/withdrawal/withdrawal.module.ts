@@ -9,11 +9,6 @@ import { LoggerModule } from '../../utils/logger/logger.module';
 @Module({
   controllers: [WithdrawalController],
   providers: [WithdrawalService],
-  imports: [
-    UserModule,
-    PriceModule,
-    KlaytnModule,
-    LoggerModule
-  ]
+  imports: [UserModule, PriceModule, KlaytnModule, LoggerModule],
 })
 export class WithdrawalModule {}

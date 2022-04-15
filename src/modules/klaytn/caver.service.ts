@@ -169,9 +169,9 @@ export class CaverService {
         feepayer = exist
           ? this.caver.wallet.getKeyring(process.env.KLAY_FEE_WALLET_ADDRESS)
           : this.caver.wallet.newKeyring(
-            process.env.KLAY_FEE_WALLET_ADDRESS,
-            process.env.KLAY_FEE_WALLET_SECRET,
-          );
+              process.env.KLAY_FEE_WALLET_ADDRESS,
+              process.env.KLAY_FEE_WALLET_SECRET,
+            );
 
         await tx.sign(sender);
         await tx.signAsFeePayer(feepayer);
@@ -191,7 +191,10 @@ export class CaverService {
    * @param address
    * @returns
    */
-  public async moveToUserWallet(address: string, amount: string): Promise<void> {
+  public async moveToUserWallet(
+    address: string,
+    amount: string,
+  ): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
         let feepayer: Keyring;
@@ -203,29 +206,35 @@ export class CaverService {
           feePayer: process.env.KLAY_FEE_WALLET_ADDRESS,
           gasPrice: await this.caver.klay.getGasPrice(),
           gas: 0,
-          nonce: Number(await this.caver.klay.getTransactionCount(process.env.KLAY_MASTER_WALLET_ADDRESS)),
+          nonce: Number(
+            await this.caver.klay.getTransactionCount(
+              process.env.KLAY_MASTER_WALLET_ADDRESS,
+            ),
+          ),
         });
 
         const gasLimit = await this.caver.klay.estimateGas(tx);
         tx.gas = gasLimit;
-        
-        const senderExist = this.wallet.isExisted(process.env.KLAY_MASTER_WALLET_ADDRESS);
+
+        const senderExist = this.wallet.isExisted(
+          process.env.KLAY_MASTER_WALLET_ADDRESS,
+        );
         sender = senderExist
           ? this.caver.wallet.getKeyring(process.env.KLAY_MASTER_WALLET_ADDRESS)
           : this.caver.wallet.newKeyring(
-            process.env.KLAY_MASTER_WALLET_ADDRESS,
-            process.env.KLAY_MASTER_WALLET_SECRET,
-          );
+              process.env.KLAY_MASTER_WALLET_ADDRESS,
+              process.env.KLAY_MASTER_WALLET_SECRET,
+            );
 
         const feepayerExist = this.wallet.isExisted(
-            process.env.KLAY_FEE_WALLET_ADDRESS,
-          );
+          process.env.KLAY_FEE_WALLET_ADDRESS,
+        );
         feepayer = feepayerExist
           ? this.caver.wallet.getKeyring(process.env.KLAY_FEE_WALLET_ADDRESS)
           : this.caver.wallet.newKeyring(
-            process.env.KLAY_FEE_WALLET_ADDRESS,
-            process.env.KLAY_FEE_WALLET_SECRET,
-          );
+              process.env.KLAY_FEE_WALLET_ADDRESS,
+              process.env.KLAY_FEE_WALLET_SECRET,
+            );
 
         await tx.sign(sender);
         await tx.signAsFeePayer(feepayer);

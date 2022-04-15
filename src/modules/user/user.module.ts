@@ -25,7 +25,7 @@ import { UserCommision } from './user-commision.entity';
       UserTelegram,
       Account,
       Bot,
-      UserCommision
+      UserCommision,
     ]),
     SeedModule,
     LoggerModule,

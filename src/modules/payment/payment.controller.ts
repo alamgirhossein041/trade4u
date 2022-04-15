@@ -7,7 +7,7 @@ import {
   Res,
   UseGuards,
   HttpException,
-  Query
+  Query,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { Request, Response } from 'express';
@@ -26,7 +26,7 @@ export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
     private readonly loggerService: LoggerService,
-  ) { }
+  ) {}
 
   @Post(`order_plan/:planId`)
   @UseGuards(AuthGuard('jwt'))

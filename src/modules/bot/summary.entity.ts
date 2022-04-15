@@ -1,48 +1,42 @@
-import {
-    Column,
-    Entity,
-    PrimaryColumn,
-    OneToOne,
-    JoinColumn
-} from 'typeorm';
+import { Column, Entity, PrimaryColumn, OneToOne, JoinColumn } from 'typeorm';
 import { Bot } from './bot.entity';
 
 @Entity({
-    name: 'summary',
+  name: 'summary',
 })
 export class Summary {
-    @PrimaryColumn()
-    sid: string;
+  @PrimaryColumn()
+  sid: string;
 
-    @Column()
-    totaltrades: number;
+  @Column()
+  totaltrades: number;
 
-    @Column({
-        type: 'double precision'
-    })
-    totalprofits: number;
+  @Column({
+    type: 'double precision',
+  })
+  totalprofits: number;
 
-    @Column({
-        type: 'double precision'
-    })
-    lastmonthprofits: number;
+  @Column({
+    type: 'double precision',
+  })
+  lastmonthprofits: number;
 
-    @Column({
-        type: 'double precision'
-    })
-    lastthreemonthsprofit: number;
+  @Column({
+    type: 'double precision',
+  })
+  lastthreemonthsprofit: number;
 
-    @Column({
-        type: 'double precision'
-    })
-    lastsixmonthsprofit: number;
+  @Column({
+    type: 'double precision',
+  })
+  lastsixmonthsprofit: number;
 
-    @Column({
-        type: 'double precision'
-    })
-    lastyearprofit: number;
+  @Column({
+    type: 'double precision',
+  })
+  lastyearprofit: number;
 
-    @OneToOne(() => Bot)
-    @JoinColumn({ name: 'botid' })
-    bot: Bot;
+  @OneToOne(() => Bot)
+  @JoinColumn({ name: 'botid' })
+  bot: Bot;
 }

@@ -89,7 +89,7 @@ export class UserContoller {
     await this.userService.updateUserBinanceCreds(user, body);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      message: ResponseMessage.BINANCE_BOT_STARTED
+      message: ResponseMessage.BINANCE_BOT_STARTED,
     });
   }
 
@@ -188,17 +188,17 @@ export class UserContoller {
   public async getTradeOrders(
     @CurrentUser() user: User,
     @Req() req: Request,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     this.loggerService.log(
       `GET payment/trades_list ${LoggerMessages.API_CALLED}`,
     );
-    let filter =``;
-    if(req.query && req.query.startDate && req.query.endDate) {
-      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate}`
+    let filter = ``;
+    if (req.query && req.query.startDate && req.query.endDate) {
+      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate}`;
     }
     const pagination: IPaginationOptions = await Pagination.paginate(req, res);
-    const payment = await this.userService.getTrades(user, pagination,filter);
+    const payment = await this.userService.getTrades(user, pagination, filter);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: payment,
@@ -211,17 +211,17 @@ export class UserContoller {
   public async getTradesResult(
     @CurrentUser() user: User,
     @Req() req: Request,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     this.loggerService.log(
       `GET payment/trades_result ${LoggerMessages.API_CALLED}`,
     );
-    let filter =``;
-    if(req.query && req.query.startDate && req.query.endDate) {
-      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate}`
+    let filter = ``;
+    if (req.query && req.query.startDate && req.query.endDate) {
+      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate}`;
     }
     const pagination: IPaginationOptions = await Pagination.paginate(req, res);
-    const payment = await this.userService.getTrades(user, pagination,filter);
+    const payment = await this.userService.getTrades(user, pagination, filter);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: payment,
@@ -239,7 +239,11 @@ export class UserContoller {
     const percentage = this.userService.getBonusEarningCap(user.userStats);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      data: { consumed_percentage: percentage, consumed_amount: user.userStats.consumed_amount, total_amount: user.userStats.earning_limit },
+      data: {
+        consumed_percentage: percentage,
+        consumed_amount: user.userStats.consumed_amount,
+        total_amount: user.userStats.earning_limit,
+      },
       message: ResponseMessage.SUCCESS,
     });
   }
@@ -265,7 +269,9 @@ export class UserContoller {
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
-    this.loggerService.log(`Get user/commision-graph ${LoggerMessages.API_CALLED}`);
+    this.loggerService.log(
+      `Get user/commision-graph ${LoggerMessages.API_CALLED}`,
+    );
     const trades_commisions = await this.userService.getUserGraph(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
@@ -280,8 +286,11 @@ export class UserContoller {
     @CurrentUser() user: User,
     @Res() res: Response,
   ): Promise<Response> {
-    this.loggerService.log(`Get user/affiliates_depth ${LoggerMessages.API_CALLED}`);
-    const affiliatesAndDepth = await this.userService.getTotalAffiliatesWithDepth(user);
+    this.loggerService.log(
+      `Get user/affiliates_depth ${LoggerMessages.API_CALLED}`,
+    );
+    const affiliatesAndDepth =
+      await this.userService.getTotalAffiliatesWithDepth(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: affiliatesAndDepth,
@@ -378,7 +387,7 @@ export class UserContoller {
         name: referrer.fullName,
         username: referrer.userName,
         contact: referrer.phoneNumber,
-        email: referrer.email
+        email: referrer.email,
       };
     }
     return res.status(ResponseCode.SUCCESS).send({
