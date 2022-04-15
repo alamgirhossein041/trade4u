@@ -285,7 +285,7 @@ export class UsersService {
             bots b
           INNER JOIN slots s ON b."botid" = s."botid"
           INNER JOIN trades t ON s."slotid" = t."slotid"
-          INNER JOIN users u ON b."userid" = CAST(u."uuid" as varchar)
+          INNER JOIN users u ON CAST(b."userid" as uuid) = u."uuid"
         ORDER BY t."date" DESC
         LIMIT $1;`;
     const trades = await this.tradingBotRepository.query(sql, [HistoryLimit]);

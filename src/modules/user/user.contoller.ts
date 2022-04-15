@@ -193,6 +193,13 @@ export class UserContoller {
     this.loggerService.log(`GET user/trades_list ${LoggerMessages.API_CALLED}`);
     let filter = ``;
     if (req.query && req.query.startDate && req.query.endDate) {
+      const isPosIntStart = isPositiveInteger(req.query.startDate.toString());
+      const isPosIntEnd = isPositiveInteger(req.query.endDate.toString());
+      if (!isPosIntStart || !isPosIntEnd)
+        throw new HttpException(
+          `Query Parameter startDate or endDate ${ResponseMessage.IS_INVALID}`,
+          ResponseCode.BAD_REQUEST,
+        );
       filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate}`;
     }
     const pagination: IPaginationOptions = await Pagination.paginate(req, res);
@@ -221,10 +228,21 @@ export class UserContoller {
       req.query.endDate &&
       req.query.system
     ) {
-      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate} AND b."baseasset" = ${req.query.system}`;
+      const isPosIntStart = isPositiveInteger(req.query.startDate.toString());
+      const isPosIntEnd = isPositiveInteger(req.query.endDate.toString());
+      if (!isPosIntStart || !isPosIntEnd)
+        throw new HttpException(
+          `Query Parameter startDate or endDate ${ResponseMessage.IS_INVALID}`,
+          ResponseCode.BAD_REQUEST,
+        );
+      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate} AND b."baseasset" = '${req.query.system}'`;
     }
     const pagination: IPaginationOptions = await Pagination.paginate(req, res);
-    const payment = await this.userService.getTrades(user, pagination, filter);
+    const payment = await this.userService.getTradesResult(
+      user,
+      pagination,
+      filter,
+    );
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: payment,
