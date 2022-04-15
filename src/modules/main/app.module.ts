@@ -54,9 +54,9 @@ import { join } from 'path';
     PriceModule,
     SchedulerModule,
     ObserverModule,
-    WithdrawalModule
+    WithdrawalModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

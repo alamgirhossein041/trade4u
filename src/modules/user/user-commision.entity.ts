@@ -1,5 +1,11 @@
 import moment from 'moment';
-import { Entity, Column, ManyToOne, PrimaryGeneratedColumn,JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity({
@@ -9,13 +15,13 @@ export class UserCommision {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'double precision'})
+  @Column({ type: 'double precision' })
   amount: number;
 
-  @Column({default: moment().unix()})
+  @Column({ default: moment().unix() })
   createdAt: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({name: 'userId'})
+  @JoinColumn({ name: 'userId' })
   user: User;
 }

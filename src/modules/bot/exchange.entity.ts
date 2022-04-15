@@ -1,8 +1,4 @@
-import {
-  Column,
-  Entity,
-  PrimaryColumn,
-} from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({
   name: 'exchanges',
@@ -15,17 +11,17 @@ export class Exchange {
   name: string;
 
   @Column({
-      type: 'double precision'
+    type: 'double precision',
   })
   comission: number;
 
   @Column({
-      type: 'double precision'
+    type: 'double precision',
   })
   slippagetolerance: number;
 
   @Column({
-      type: 'double precision'
+    type: 'double precision',
   })
   bsr: number;
 }

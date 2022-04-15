@@ -1,8 +1,4 @@
-import {
-  Column,
-  Entity,
-  PrimaryColumn,
-} from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({
   name: 'portfoliozones',
@@ -15,12 +11,12 @@ export class Portfoliozone {
   asset: string;
 
   @Column({
-      type: 'double precision'
+    type: 'double precision',
   })
   minbalance: number;
 
   @Column({
-      type: 'double precision'
+    type: 'double precision',
   })
   maxbalance: number;
 

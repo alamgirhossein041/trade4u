@@ -4,15 +4,9 @@ import { UserStatsSubscriber } from './subscribers/user-stats.subscriber';
 import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 
 @Module({
-    imports: [
-        UserModule,
-        TelegramModule
-    ],
-    providers: [
-        UserStatsSubscriber
-    ],
-    controllers: [],
-    exports: []
+  imports: [UserModule, TelegramModule],
+  providers: [UserStatsSubscriber],
+  controllers: [],
+  exports: [],
 })
-export class ObserverModule {
-}
+export class ObserverModule {}

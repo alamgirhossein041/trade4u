@@ -41,8 +41,8 @@ export enum ResponseMessage {
 
   PURCHASE_PLAN = `Purchase plan from available plans first`,
   BINANCE_SERVER_ERROR = `Binance server error`,
-  BINANCE_BOT_STARTED=`Binance trading bot has been started successfully`,
-  NO_ACTIVE_BOT=`No Active Bot Found`,
+  BINANCE_BOT_STARTED = `Binance trading bot has been started successfully`,
+  NO_ACTIVE_BOT = `No Active Bot Found`,
   INTERNAL_SERVER_ERROR = `Internal server error`,
   CHECK_INTERNET_CONNECTION = `Error while sending email please check internet connection`,
   UNABLE_TO_PING_COINMARKET = `Unable to ping coin-gecko market`,
@@ -89,7 +89,7 @@ export enum JOB {
   EXPIRE_PAYMENT = `expire payment`,
   WALLET_SYNC = `wallet sync`,
   PROCESS_DEPOSIT = `process deposit`,
-  WITHDRAWAL = `withdrawal`
+  WITHDRAWAL = `withdrawal`,
 }
 
 export enum BlockProcess {

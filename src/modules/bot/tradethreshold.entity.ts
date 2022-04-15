@@ -1,8 +1,4 @@
-import {
-  Column,
-  Entity,
-  PrimaryColumn,
-} from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({
   name: 'tradethresholds',
@@ -12,12 +8,12 @@ export class Tradethreshold {
   ttid: string;
 
   @Column({
-      type: 'double precision'
+    type: 'double precision',
   })
   buythreshold: number;
 
   @Column({
-      type: 'double precision'
+    type: 'double precision',
   })
   sellthreshold: number;
 }

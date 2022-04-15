@@ -10,7 +10,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Deposit } from '../payment/deposit.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Deposit]),LoggerModule, PaymentModule, KlaytnModule],
+  imports: [
+    TypeOrmModule.forFeature([Deposit]),
+    LoggerModule,
+    PaymentModule,
+    KlaytnModule,
+  ],
   controllers: [SchedulerController],
   providers: [SchedulerService, BlockProcessor, EventEmitter],
   exports: [SchedulerService, BlockProcessor, EventEmitter],
