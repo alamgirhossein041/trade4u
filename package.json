@@ -36,7 +36,7 @@
     "@nestjs/typeorm": "^8.0.2",
     "@types/express": "^4.17.13",
     "bcrypt": "^5.0.1",
-    "botclient": "^0.0.5",
+    "botclient": "^0.0.6",
     "caver-js": "^1.8.0",
     "ccxt": "^1.76.31",
     "class-transformer": "^0.4.0",

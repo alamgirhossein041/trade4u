@@ -14,6 +14,7 @@ import { CaverService } from '../../modules/klaytn/caver.service';
 import bigDecimal from 'js-big-decimal';
 import { UserStats } from '../user/user-stats.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
+import { UserCommision } from '../user/user-commision.entity';
 
 @Injectable()
 export class DepositTransaction {
@@ -29,6 +30,8 @@ export class DepositTransaction {
     private readonly accountRepository: Repository<Account>,
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
+    @InjectRepository(UserCommision)
+    private readonly commisionRepository: Repository<UserCommision>,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
     private readonly loggerService: LoggerService,
@@ -236,6 +239,32 @@ export class DepositTransaction {
   }
 
   /**
+   * Update Plan Of User
+   * @param user
+   * @param plan
+   * @returns
+   */
+  private async addUnconsumedAmountToBalance(
+    user: User,
+    queryRunner: QueryRunner,
+  ) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        user.balance = Number(
+          new bigDecimal(user.userStats.unconsumed_amount)
+            .add(new bigDecimal(user.balance))
+            .getValue(),
+        );
+        await this.commisionRepository.update({ user }, { consumed: true });
+        await queryRunner.manager.save(user);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
    * Update Stats Of User
    * @param userStats
    * @param plan
@@ -266,15 +295,65 @@ export class DepositTransaction {
               .add(new bigDecimal(earningLimit))
               .getValue(),
           );
-          userStats.earning_limit = newEarningLimit;
+          userStats.earning_limit = Number(
+            new bigDecimal(newEarningLimit)
+              .add(new bigDecimal(userStats.earning_limit))
+              .getValue(),
+          );
         } else {
           userStats.earning_limit = earningLimit;
         }
-        await queryRunner.manager.save(userStats);
+        const isEarningLimitExceed = this.isLimitExceed(
+          userStats.unconsumed_amount,
+          userStats,
+        );
+        if (!isEarningLimitExceed) {
+          await this.addUnconsumedAmountToBalance(
+            this.payment.user,
+            queryRunner,
+          );
+          userStats.consumed_amount = Number(
+            new bigDecimal(userStats.unconsumed_amount)
+              .add(new bigDecimal(userStats.consumed_amount))
+              .getValue(),
+          );
+          userStats.unconsumed_amount = 0;
+          await queryRunner.manager.save(userStats);
+        } else {
+          await queryRunner.manager.save(userStats);
+        }
         resolve();
       } catch (err) {
         reject(err);
       }
     });
+  }
+
+  /**
+   * Check If Earing Limit Exceeds After adding this bonus
+   * @param parentStats
+   * @param amount
+   */
+  private isLimitExceed(amount: number, userStats: UserStats) {
+    const newConsumed = Number(
+      new bigDecimal(amount)
+        .add(new bigDecimal(userStats.consumed_amount))
+        .getValue(),
+    );
+    const amountToMultiplyWith = Number(
+      new bigDecimal(newConsumed)
+        .divide(new bigDecimal(userStats.earning_limit), 4)
+        .getValue(),
+    );
+    const originalPercentage = Number(
+      new bigDecimal(amountToMultiplyWith)
+        .multiply(new bigDecimal(100))
+        .getValue(),
+    );
+    if (originalPercentage >= 95) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

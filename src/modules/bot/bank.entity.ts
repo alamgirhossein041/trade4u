@@ -2,39 +2,31 @@ import { Column, Entity, PrimaryColumn, OneToOne, JoinColumn } from 'typeorm';
 import { Bot } from './bot.entity';
 
 @Entity({
-  name: 'summary',
+  name: 'bank',
 })
-export class Summary {
+export class Bank {
   @PrimaryColumn({ type: 'varchar' })
-  sid: string;
-
-  @Column()
-  totaltrades: number;
+  bid: string;
 
   @Column({
     type: 'double precision',
   })
-  totalprofits: number;
+  total: number;
 
   @Column({
     type: 'double precision',
   })
-  lastmonthprofits: number;
+  available: number;
 
   @Column({
     type: 'double precision',
   })
-  lastthreemonthprofits: number;
+  hold: number;
 
   @Column({
     type: 'double precision',
   })
-  lastsixmonthprofits: number;
-
-  @Column({
-    type: 'double precision',
-  })
-  lastyearprofits: number;
+  usage: number;
 
   @OneToOne(() => Bot)
   @JoinColumn({ name: 'botid' })

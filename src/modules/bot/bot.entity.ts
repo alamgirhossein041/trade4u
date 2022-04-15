@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
   name: 'bots',
 })
 export class Bot {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   botid: string;
 
   @Column()

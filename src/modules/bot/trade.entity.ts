@@ -1,25 +1,28 @@
 import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Bot } from './bot.entity';
 import { Slot } from './slot.entity';
 
 @Entity({
   name: 'trades',
 })
 export class Trade {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   tid: string;
 
   @Column()
-  date: string;
+  date: number;
 
   @Column()
   amount: string;
 
-  @Column()
-  profit: string;
+  @Column({
+    type: 'double precision',
+  })
+  profit: number;
 
-  @Column()
-  profitpercentage: string;
+  @Column({
+    type: 'double precision',
+  })
+  profitpercentage: number;
 
   @Column()
   status: string;

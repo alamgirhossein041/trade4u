@@ -5,3 +5,4 @@ export const botConstants = {
   strategy: 'BUYSELL',
   riskLevel: 'LOW',
 };
+export const HistoryLimit = 20;

@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
   name: 'tradethresholds',
 })
 export class Tradethreshold {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   ttid: string;
 
   @Column({

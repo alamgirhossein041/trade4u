@@ -8,7 +8,7 @@ import { Tradethreshold } from './tradethreshold.entity';
   name: 'slots',
 })
 export class Slot {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   slotid: string;
 
   @Column({
@@ -38,7 +38,7 @@ export class Slot {
   @JoinColumn({ name: 'tfid' })
   timeframe: Timeframe;
 
-  @ManyToOne(() => Timeframe)
+  @ManyToOne(() => Tradethreshold)
   @JoinColumn({ name: 'ttid' })
   tradethreshold: Tradethreshold;
 }

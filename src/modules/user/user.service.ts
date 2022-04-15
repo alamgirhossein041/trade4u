@@ -22,7 +22,11 @@ import { Hash } from '../../utils/Hash';
 import speakeasy from 'speakeasy';
 import { UserDataDto } from '.';
 import { Crypto } from '../../utils/crypto';
-import { botConstants, MaxLevels } from './commons/user.constants';
+import {
+  botConstants,
+  HistoryLimit,
+  MaxLevels,
+} from './commons/user.constants';
 import { BOTClient } from 'botclient';
 import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
 import { TradingSystem } from './commons/user.enums';
@@ -152,7 +156,7 @@ export class UsersService {
     const userBot = await this.getBotByUserId(user);
     if (userBot) {
       try {
-        let sql = `SELECT b."botid",t."date",CAST(t."profit" AS double precision),s."slotid"
+        let sql = `SELECT t."date",t."profit"
         FROM
             bots b
           INNER JOIN slots s ON b."botid" = s."botid"
@@ -170,6 +174,25 @@ export class UsersService {
   }
 
   /**
+   * Get total count of user trade orders
+   * @param botId
+   * @returns
+   */
+  async getTotalTradesCount(botId: string): Promise<number> {
+    let sql = `SELECT COUNT(*) as total_trades
+        FROM
+            bots b
+          INNER JOIN slots s ON b."botid" = s."botid"
+          INNER JOIN trades t ON s."slotid" = t."slotid"
+        WHERE
+          b."botid" = $1
+      `;
+    const result = await this.tradingBotRepository.query(sql, [botId]);
+    const tradesCount = Number(result[0].total_trades);
+    return tradesCount;
+  }
+
+  /**
    * Get user trade orders
    * @param user
    * @returns
@@ -178,7 +201,7 @@ export class UsersService {
     user: User,
     paginationOption: IPaginationOptions,
     filter: string,
-  ): Promise<void> {
+  ): Promise<{ trades: any; tradesCount: number }> {
     const limit = Number(paginationOption.limit);
     const page = Number(paginationOption.page);
     const userBot = await this.getBotByUserId(user);
@@ -187,7 +210,7 @@ export class UsersService {
         ResponseMessage.NO_ACTIVE_BOT,
         ResponseCode.BAD_REQUEST,
       );
-    let sql = `SELECT COUNT(t."tid") as total_trades,b."botid",t."date",t."amount",t."profit",t."profitpercentage",t."status",s."slotid",
+    let sql = `SELECT t."date",t."amount",t."profit",t."profitpercentage",t."status",b."baseasset"
         FROM
             bots b
           INNER JOIN slots s ON b."botid" = s."botid"
@@ -196,17 +219,18 @@ export class UsersService {
           b."botid" = $1 ${filter}
         LIMIT $2 OFFSET $3; 
       `;
-    const result = await this.tradingBotRepository.query(sql, [
+    const trades = await this.tradingBotRepository.query(sql, [
       userBot.botid,
       limit,
       limit * (page - 1),
     ]);
-    if (!result.length)
+    if (!trades.length)
       throw new HttpException(
         ResponseMessage.CONTENT_NOT_FOUND,
         ResponseCode.CONTENT_NOT_FOUND,
       );
-    return result;
+    const tradesCount = await this.getTotalTradesCount(userBot.botid);
+    return { trades, tradesCount };
   }
 
   /**
@@ -218,7 +242,7 @@ export class UsersService {
     user: User,
     paginationOption: IPaginationOptions,
     filter: string,
-  ): Promise<void> {
+  ): Promise<{ trades: any; tradesCount: number }> {
     const limit = Number(paginationOption.limit);
     const page = Number(paginationOption.page);
     const userBot = await this.getBotByUserId(user);
@@ -227,8 +251,8 @@ export class UsersService {
         ResponseMessage.NO_ACTIVE_BOT,
         ResponseCode.BAD_REQUEST,
       );
-    let sql = `SELECT COUNT(t."tid") as total_trades,b."botid",t."date",t."profit",
-                      t."profitpercentage",SUM(CAST(t."profitpercentage" AS double precision)) OVER(ORDER BY t."tid" ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS Accumulated
+    let sql = `SELECT t."date",t."profit",
+              t."profitpercentage",b."baseasset",SUM(t."profit") OVER(ORDER BY t."tid" ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS accumulated
         FROM
             bots b
           INNER JOIN slots s ON b."botid" = s."botid"
@@ -237,22 +261,62 @@ export class UsersService {
           b."botid" = $1 ${filter}
         LIMIT $2 OFFSET $3; 
       `;
-    const result = await this.tradingBotRepository.query(sql, [
+    const trades = await this.tradingBotRepository.query(sql, [
       userBot.botid,
       limit,
       limit * (page - 1),
     ]);
-    if (!result.length)
+    if (!trades.length)
       throw new HttpException(
         ResponseMessage.CONTENT_NOT_FOUND,
         ResponseCode.CONTENT_NOT_FOUND,
       );
-    return result;
+    const tradesCount = await this.getTotalTradesCount(userBot.botid);
+    return { trades, tradesCount };
+  }
+
+  /**
+   * Get Last 20 trades data
+   * @param user
+   */
+  async getTradesGeneralHistory() {
+    let sql = `SELECT t."date",t."amount",t."profit",t."profitpercentage",t."status",b."baseasset",b."quoteasset",u."userName" as username
+        FROM
+            bots b
+          INNER JOIN slots s ON b."botid" = s."botid"
+          INNER JOIN trades t ON s."slotid" = t."slotid"
+          INNER JOIN users u ON CAST(b."userid" as uuid) = u."uuid"
+        ORDER BY t."date" DESC
+        LIMIT $1;`;
+    const trades = await this.tradingBotRepository.query(sql, [HistoryLimit]);
+    return trades;
+  }
+
+  /**
+   * Get Last 20 trades data
+   * @param user
+   */
+  async getBankUSage(user: User) {
+    const userBot = await this.getBotByUserId(user);
+    if (!userBot)
+      throw new HttpException(
+        ResponseMessage.NO_ACTIVE_BOT,
+        ResponseCode.BAD_REQUEST,
+      );
+    let sql = `SELECT bn."total",bn."available",bn."hold",bn."usage"
+        FROM
+            bots b
+          INNER JOIN bank bn ON b."botid" = bn."botid"
+        WHERE
+          b."botid" = $1
+      `;
+    const bank = await this.tradingBotRepository.query(sql, [userBot.botid]);
+    return bank;
   }
 
   /**
    * Get user by userName
-   * @param username
+   * @param userName
    * @returns
    */
   async checkReferrer(userName: string): Promise<User> {
@@ -488,18 +552,9 @@ export class UsersService {
         exchange: botConstants.exchange,
         strategy: botConstants.strategy,
         riskLevel: botConstants.riskLevel,
+        userId: user.uuid,
       };
-      const userBots = await this.iniateUserBot(
-        binanceDto.tradingSystem,
-        botData,
-      );
-      userBots.map(
-        async (bot) =>
-          await this.tradingBotRepository.update(
-            { botid: bot.data.botId },
-            { userid: user.uuid },
-          ),
-      );
+      await this.iniateUserBot(binanceDto.tradingSystem, botData);
       return await this.userRepository.save(user);
     } catch (err) {
       throw new HttpException(err.message, ResponseCode.BAD_REQUEST);

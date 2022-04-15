@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
   name: 'timeframes',
 })
 export class Timeframe {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   tfid: string;
 
   @Column()

@@ -2479,10 +2479,10 @@
   "resolved" "https://registry.npmjs.org/boolbase/-/boolbase-1.0.0.tgz"
   "version" "1.0.0"
 
-"botclient@^0.0.5":
-  "integrity" "sha512-t+juZxBdRpFCneDY5pZOp7IPp5IvPOViX9YFuyh9DurloNgsiIaTDExJEr88qBWymxrIGwjp8sIjA3vWV8I67Q=="
-  "resolved" "https://registry.npmjs.org/botclient/-/botclient-0.0.5.tgz"
-  "version" "0.0.5"
+"botclient@^0.0.6":
+  "integrity" "sha512-h3w4n3MSSI8MKqdwWvviR9DXX/pfgLyaBS6pzWZrY+LDL1/vx3xC+5lhZuyv0tgvC+8KyzcRmnlnljMW1jamxg=="
+  "resolved" "https://registry.npmjs.org/botclient/-/botclient-0.0.6.tgz"
+  "version" "0.0.6"
   dependencies:
     "@nestjs/core" "^8.4.3"
     "@types/express" "^4.17.13"
