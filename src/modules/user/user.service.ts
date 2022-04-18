@@ -856,7 +856,7 @@ export class UsersService {
       let token = speakeasy.totp({
         secret: process.env.OTP_KEY,
         digits: 6,
-        step: 60,
+        step: 1800,
       });
       return await this.mailerservice.sendEmailProfileVerificationCode(
         user,
@@ -886,7 +886,7 @@ export class UsersService {
     const verified = speakeasy.totp.verify({
       secret: process.env.OTP_KEY,
       token: code,
-      step: 60,
+      step: 1800,
     });
     if (verified) {
       await this.userRepository.update(
