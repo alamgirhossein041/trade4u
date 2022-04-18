@@ -265,7 +265,8 @@ describe('BinancePlus User test', () => {
 
         it(`Test /trades get user trades_result`, async () => {
             await request(server)
-                .get('/api/user/trades_result?startDate=1649999102&endDate=1649999108&system=USDT')
+                .post('/api/user/trades_result?startDate=1649999102&endDate=1649999108')
+                .send({system: 'usdt'})
                 .set('Authorization', helper.getAccessToken())
                 .expect(204)
         });

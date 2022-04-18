@@ -20,6 +20,11 @@ export class BinanceTradingDto {
   tradingSystem: string;
 }
 
+export class SystemDto {
+  @IsEnum(TradingSystem)
+  system: string;
+}
+
 export class TelegramNotifyDto {
   @IsPositive()
   code: number;

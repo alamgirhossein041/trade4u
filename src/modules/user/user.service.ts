@@ -153,10 +153,12 @@ export class UsersService {
     user: User,
   ): Promise<{ trades: any; commisions: UserCommision[] }> {
     let trades: any[] = [];
-    const userBot = await this.getBotByUserId(user);
-    if (userBot) {
+    const userBots = await this.getBotsByUserId(user);
+    if (userBots.length > 0) {
       try {
-        let sql = `SELECT t."date",t."profit"
+        await Promise.all(
+          userBots.map(async (bot) => {
+            let sql = `SELECT t."date",t."profit",b."baseasset"
         FROM
             bots b
           INNER JOIN slots s ON b."botid" = s."botid"
@@ -164,7 +166,12 @@ export class UsersService {
         WHERE
           b."botid" = $1; 
       `;
-        trades = await this.tradingBotRepository.query(sql, [userBot.botid]);
+            const result = await this.tradingBotRepository.query(sql, [
+              bot.botid,
+            ]);
+            trades = trades.concat(result);
+          }),
+        );
       } catch (err) {
         throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
       }
@@ -202,15 +209,19 @@ export class UsersService {
     paginationOption: IPaginationOptions,
     filter: string,
   ): Promise<{ trades: any; tradesCount: number }> {
+    let trades: any[] = [];
+    let tradesCount: number = 0;
     const limit = Number(paginationOption.limit);
     const page = Number(paginationOption.page);
-    const userBot = await this.getBotByUserId(user);
-    if (!userBot)
+    const userBots = await this.getBotsByUserId(user);
+    if (!userBots.length)
       throw new HttpException(
         ResponseMessage.NO_ACTIVE_BOT,
         ResponseCode.BAD_REQUEST,
       );
-    let sql = `SELECT t."date",t."amount",t."profit",t."profitpercentage",t."status",b."baseasset"
+    await Promise.all(
+      userBots.map(async (bot) => {
+        let sql = `SELECT t."date",t."amount",t."profit",t."profitpercentage",t."status",b."baseasset"
         FROM
             bots b
           INNER JOIN slots s ON b."botid" = s."botid"
@@ -219,17 +230,21 @@ export class UsersService {
           b."botid" = $1 ${filter}
         LIMIT $2 OFFSET $3; 
       `;
-    const trades = await this.tradingBotRepository.query(sql, [
-      userBot.botid,
-      limit,
-      limit * (page - 1),
-    ]);
+        const result = await this.tradingBotRepository.query(sql, [
+          bot.botid,
+          limit,
+          limit * (page - 1),
+        ]);
+        trades = trades.concat(result);
+        const count = await this.getTotalTradesCount(bot.botid);
+        tradesCount += count;
+      }),
+    );
     if (!trades.length)
       throw new HttpException(
         ResponseMessage.CONTENT_NOT_FOUND,
         ResponseCode.CONTENT_NOT_FOUND,
       );
-    const tradesCount = await this.getTotalTradesCount(userBot.botid);
     return { trades, tradesCount };
   }
 
@@ -240,12 +255,16 @@ export class UsersService {
    */
   async getTradesResult(
     user: User,
+    system: string,
     paginationOption: IPaginationOptions,
     filter: string,
   ): Promise<{ trades: any; tradesCount: number }> {
     const limit = Number(paginationOption.limit);
     const page = Number(paginationOption.page);
-    const userBot = await this.getBotByUserId(user);
+    const userBot = await this.getBotByUserIdAndBaseAsset(
+      user,
+      system.toUpperCase(),
+    );
     if (!userBot)
       throw new HttpException(
         ResponseMessage.NO_ACTIVE_BOT,
@@ -302,21 +321,27 @@ export class UsersService {
    * @param user
    */
   async getBankUSage(user: User) {
-    const userBot = await this.getBotByUserId(user);
-    if (!userBot)
+    const userBots = await this.getBotsByUserId(user);
+    let banks: any[] = [];
+    if (!userBots.length)
       throw new HttpException(
         ResponseMessage.NO_ACTIVE_BOT,
         ResponseCode.BAD_REQUEST,
       );
-    let sql = `SELECT bn."total",bn."available",bn."hold",bn."usage"
+    await Promise.all(
+      userBots.map(async (bot) => {
+        let sql = `SELECT bn."total",bn."available",bn."hold",bn."usage",b."baseasset"
         FROM
             bots b
           INNER JOIN bank bn ON b."botid" = bn."botid"
         WHERE
           b."botid" = $1
       `;
-    const bank = await this.tradingBotRepository.query(sql, [userBot.botid]);
-    return bank;
+        const bank = await this.tradingBotRepository.query(sql, [bot.botid]);
+        banks = banks.concat(bank);
+      }),
+    );
+    return banks;
   }
 
   /**
@@ -598,8 +623,18 @@ export class UsersService {
     }
   }
 
-  async getBotByUserId(user: User): Promise<Bot> {
-    return await this.tradingBotRepository.findOne({ userid: user.uuid });
+  async getBotsByUserId(user: User): Promise<Bot[]> {
+    return await this.tradingBotRepository.find({ userid: user.uuid });
+  }
+
+  async getBotByUserIdAndBaseAsset(
+    user: User,
+    baseasset: string,
+  ): Promise<Bot> {
+    return await this.tradingBotRepository.findOne({
+      userid: user.uuid,
+      baseasset,
+    });
   }
 
   async stopUserBot(botId: string): Promise<void> {
