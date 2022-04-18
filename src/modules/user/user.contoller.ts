@@ -275,7 +275,7 @@ export class UserContoller {
     @Res() res: Response,
   ) {
     this.loggerService.log(`GET user/bank_usage ${LoggerMessages.API_CALLED}`);
-    const history = await this.userService.getBankUSage(user);
+    const history = await this.userService.getBankUsage(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: history,

@@ -158,14 +158,16 @@ export class UsersService {
       try {
         await Promise.all(
           userBots.map(async (bot) => {
-            let sql = `SELECT t."date",t."profit",b."baseasset"
-        FROM
-            bots b
-          INNER JOIN slots s ON b."botid" = s."botid"
-          INNER JOIN trades t ON s."slotid" = t."slotid"
-        WHERE
-          b."botid" = $1; 
-      `;
+            let sql = `SELECT 
+                        t."date",
+                        t."profit",
+                        b."baseasset"
+                      FROM
+                        bots b
+                        INNER JOIN slots s ON b."botid" = s."botid"
+                        INNER JOIN trades t ON s."slotid" = t."slotid"
+                      WHERE
+                        b."botid" = $1; `;
             const result = await this.tradingBotRepository.query(sql, [
               bot.botid,
             ]);
@@ -186,14 +188,14 @@ export class UsersService {
    * @returns
    */
   async getTotalTradesCount(botId: string): Promise<number> {
-    let sql = `SELECT COUNT(*) as total_trades
-        FROM
-            bots b
-          INNER JOIN slots s ON b."botid" = s."botid"
-          INNER JOIN trades t ON s."slotid" = t."slotid"
-        WHERE
-          b."botid" = $1
-      `;
+    let sql = `SELECT 
+                COUNT(*) as total_trades
+              FROM
+                bots b
+                INNER JOIN slots s ON b."botid" = s."botid"
+                INNER JOIN trades t ON s."slotid" = t."slotid"
+              WHERE
+                b."botid" = $1`;
     const result = await this.tradingBotRepository.query(sql, [botId]);
     const tradesCount = Number(result[0].total_trades);
     return tradesCount;
@@ -221,15 +223,19 @@ export class UsersService {
       );
     await Promise.all(
       userBots.map(async (bot) => {
-        let sql = `SELECT t."date",t."amount",t."profit",t."profitpercentage",t."status",b."baseasset"
-        FROM
-            bots b
-          INNER JOIN slots s ON b."botid" = s."botid"
-          INNER JOIN trades t ON s."slotid" = t."slotid"
-        WHERE
-          b."botid" = $1 ${filter}
-        LIMIT $2 OFFSET $3; 
-      `;
+        let sql = `SELECT 
+                    t."date",
+                    t."amount",
+                    t."profit",
+                    t."profitpercentage",
+                    t."status",
+                    b."baseasset"
+                  FROM
+                    bots b
+                    INNER JOIN slots s ON b."botid" = s."botid"
+                    INNER JOIN trades t ON s."slotid" = t."slotid"
+                  WHERE
+                    b."botid" = $1 ${filter} LIMIT $2 OFFSET $3;`;
         const result = await this.tradingBotRepository.query(sql, [
           bot.botid,
           limit,
@@ -270,16 +276,17 @@ export class UsersService {
         ResponseMessage.NO_ACTIVE_BOT,
         ResponseCode.BAD_REQUEST,
       );
-    let sql = `SELECT t."date",t."profit",
-              t."profitpercentage",b."baseasset",SUM(t."profit") OVER(ORDER BY t."tid" ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS accumulated
-        FROM
-            bots b
-          INNER JOIN slots s ON b."botid" = s."botid"
-          INNER JOIN trades t ON s."slotid" = t."slotid"
-        WHERE
-          b."botid" = $1 ${filter}
-        LIMIT $2 OFFSET $3; 
-      `;
+    let sql = `SELECT 
+                t."date",
+                t."profit",
+                t."profitpercentage",
+                b."baseasset",SUM(t."profit") OVER(ORDER BY t."tid" ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS accumulated
+              FROM
+                bots b
+                INNER JOIN slots s ON b."botid" = s."botid"
+                INNER JOIN trades t ON s."slotid" = t."slotid"
+              WHERE
+                b."botid" = $1 ${filter} LIMIT $2 OFFSET $3;`;
     const trades = await this.tradingBotRepository.query(sql, [
       userBot.botid,
       limit,
@@ -299,14 +306,22 @@ export class UsersService {
    * @param user
    */
   async getTradesGeneralHistory() {
-    let sql = `SELECT t."date",t."amount",t."profit",t."profitpercentage",t."status",b."baseasset",b."quoteasset",u."userName" as username
-        FROM
-            bots b
-          INNER JOIN slots s ON b."botid" = s."botid"
-          INNER JOIN trades t ON s."slotid" = t."slotid"
-          INNER JOIN users u ON CAST(b."userid" as uuid) = u."uuid"
-        ORDER BY t."date" DESC
-        LIMIT $1;`;
+    let sql = `SELECT 
+                  t."date",
+                  t."amount",
+                  t."profit",
+                  t."profitpercentage",
+                  t."status",
+                  b."baseasset",
+                  b."quoteasset",
+                  u."userName" as username
+              FROM
+                  bots b
+                  INNER JOIN slots s ON b."botid" = s."botid"
+                  INNER JOIN trades t ON s."slotid" = t."slotid"
+                  INNER JOIN users u ON CAST(b."userid" as uuid) = u."uuid"
+              ORDER BY 
+                  t."date" DESC LIMIT $1;`;
     const trades = await this.tradingBotRepository.query(sql, [HistoryLimit]);
     if (!trades.length)
       throw new HttpException(
@@ -330,13 +345,16 @@ export class UsersService {
       );
     await Promise.all(
       userBots.map(async (bot) => {
-        let sql = `SELECT bn."total",bn."available",bn."hold",bn."usage",b."baseasset"
-        FROM
-            bots b
-          INNER JOIN bank bn ON b."botid" = bn."botid"
-        WHERE
-          b."botid" = $1
-      `;
+        let sql = `SELECT 
+                    bn."total",
+                    bn."available",
+                    bn."hold",
+                    bn."usage",
+                    b."baseasset"
+                  FROM
+                    bots b
+                    INNER JOIN bank bn ON b."botid" = bn."botid"
+                  WHERE b."botid" = $1`;
         const bank = await this.tradingBotRepository.query(sql, [bot.botid]);
         banks = banks.concat(bank);
       }),
