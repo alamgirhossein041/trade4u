@@ -9,7 +9,7 @@ import {
 } from '../../utils/enum';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { UserStats } from './user-stats.entity';
-import { AffliatesInterface } from './commons/user.types';
+import { AffliatesInterface, TradesResultStats } from './commons/user.types';
 import { User } from './user.entity';
 import { SeedService } from '../seed/seed.service';
 import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
@@ -262,11 +262,9 @@ export class UsersService {
   async getTradesResult(
     user: User,
     system: string,
-    paginationOption: IPaginationOptions,
+    effectivePeriod: number,
     filter: string,
-  ): Promise<{ trades: any; tradesCount: number }> {
-    const limit = Number(paginationOption.limit);
-    const page = Number(paginationOption.page);
+  ): Promise<{ trades: any; stats: TradesResultStats }> {
     const userBot = await this.getBotByUserIdAndBaseAsset(
       user,
       system.toUpperCase(),
@@ -286,19 +284,35 @@ export class UsersService {
                 INNER JOIN slots s ON b."botid" = s."botid"
                 INNER JOIN trades t ON s."slotid" = t."slotid"
               WHERE
-                b."botid" = $1 ${filter} LIMIT $2 OFFSET $3;`;
+                b."botid" = $1 ${filter};`;
     const trades = await this.tradingBotRepository.query(sql, [
-      userBot.botid,
-      limit,
-      limit * (page - 1),
+      userBot.botid
     ]);
     if (!trades.length)
       throw new HttpException(
         ResponseMessage.CONTENT_NOT_FOUND,
         ResponseCode.CONTENT_NOT_FOUND,
       );
-    const tradesCount = await this.getTotalTradesCount(userBot.botid);
-    return { trades, tradesCount };
+    const stats = await this.getTradeResultStats(user, trades, effectivePeriod, system.toUpperCase());
+    return { trades, stats };
+  }
+
+
+  async getTradeResultStats(user: User, trades: any, effectivePeriod: number, system: string) {
+    let totalBalance: number;
+    const accumulated: number = trades.at(-1).accumulated;
+    const balances = await this.getBankUsage(user);
+    balances.map(balance => {
+      if (balance.baseasset === system) {
+        totalBalance = balance.total;
+      }
+    });
+    const periodResult = Number(new bigDecimal(accumulated).divide(new bigDecimal(totalBalance), 4).multiply(new bigDecimal(100)).getValue());
+    const totalResult = { accumulated, periodResult };
+    const dailyAccumulated = effectivePeriod === 0 ? accumulated : Number(new bigDecimal(accumulated).divide(new bigDecimal(effectivePeriod), 4).getValue());
+    const dailyPercentage = Number(new bigDecimal(dailyAccumulated).divide(new bigDecimal(totalBalance), 4).multiply(new bigDecimal(100)).getValue());
+    const dailyResult = { dailyAccumulated, dailyPercentage };
+    return { periodResult, totalResult, dailyResult,effectivePeriod };
   }
 
   /**

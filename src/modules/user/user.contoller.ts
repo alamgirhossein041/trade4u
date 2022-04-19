@@ -22,7 +22,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../common/decorator/current-user.decorator';
 import { User } from './user.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
-import { EarningLimit } from './commons/user.constants';
+import { EarningLimit, TradeResultDaysLimit } from './commons/user.constants';
 import { isPositiveInteger } from '../../utils/methods';
 import {
   BinanceTradingDto,
@@ -32,6 +32,7 @@ import {
 import { UserDataDto } from './user.entity';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { Pagination } from '../../utils/paginate';
+import moment from 'moment';
 
 @Controller('api/user')
 export class UserContoller {
@@ -228,6 +229,7 @@ export class UserContoller {
     );
     let filter = ``;
     let system = body.system;
+    let effectivePeriod: number = 0;
     if (req.query && req.query.startDate && req.query.endDate) {
       const isPosIntStart = isPositiveInteger(req.query.startDate.toString());
       const isPosIntEnd = isPositiveInteger(req.query.endDate.toString());
@@ -236,20 +238,32 @@ export class UserContoller {
           `Query Parameter startDate or endDate ${ResponseMessage.IS_INVALID}`,
           ResponseCode.BAD_REQUEST,
         );
-      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${
-        req.query.endDate
-      } AND b."baseasset" = '${system.toUpperCase()}'`;
+      const today = moment().unix();
+      const start = Number(req.query.startDate);
+      const end = Number(req.query.endDate);
+      if (start > today || end > today)
+        throw new HttpException(
+          `Query Parameter startDate or endDate ${ResponseMessage.IS_INVALID}, future date not allowed`,
+          ResponseCode.BAD_REQUEST,
+        );
+      effectivePeriod = moment.unix(end).startOf('day').diff(moment.unix(start).startOf('day'), 'days');
+      if (effectivePeriod > TradeResultDaysLimit)
+        throw new HttpException(
+          `Effective Period Limit ${ResponseMessage.IS_INVALID}, allowed 180 days , got ${effectivePeriod} days`,
+          ResponseCode.BAD_REQUEST,
+        );
+      filter = `AND t."date" >= ${moment.unix(start).startOf('day').unix()} AND t."date" <= ${moment.unix(end).endOf('day').unix()
+        } AND b."baseasset" = '${system.toUpperCase()}'`;
     }
-    const pagination: IPaginationOptions = await Pagination.paginate(req, res);
-    const payment = await this.userService.getTradesResult(
+    const tradesResult = await this.userService.getTradesResult(
       user,
       system,
-      pagination,
-      filter,
+      effectivePeriod,
+      filter
     );
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      data: payment,
+      data: tradesResult,
       message: ResponseMessage.SUCCESS,
     });
   }
@@ -275,6 +289,21 @@ export class UserContoller {
     @Res() res: Response,
   ) {
     this.loggerService.log(`GET user/bank_usage ${LoggerMessages.API_CALLED}`);
+    const history = await this.userService.getBankUsage(user);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: history,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(`commisions`)
+  public async getUserCommissions(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ) {
+    this.loggerService.log(`GET user/commisions ${LoggerMessages.API_CALLED}`);
     const history = await this.userService.getBankUsage(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,

@@ -6,3 +6,4 @@ export const botConstants = {
   riskLevel: 'LOW',
 };
 export const HistoryLimit = 20;
+export const TradeResultDaysLimit = 180;

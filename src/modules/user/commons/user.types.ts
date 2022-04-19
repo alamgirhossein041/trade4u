@@ -19,3 +19,10 @@ export interface BotResponse {
   text: string;
   parse_mode: string;
 }
+
+export interface TradesResultStats {
+  effectivePeriod: number,
+  periodResult: number,
+  totalResult: { accumulated: number,periodResult: number },
+  dailyResult: {dailyAccumulated: number, dailyPercentage: number}
+}
