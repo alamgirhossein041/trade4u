@@ -335,7 +335,7 @@ export class UsersService {
    * Get Last 20 trades data
    * @param user
    */
-  async getBankUSage(user: User) {
+  async getBankUsage(user: User) {
     const userBots = await this.getBotsByUserId(user);
     let banks: any[] = [];
     if (!userBots.length)
@@ -350,10 +350,12 @@ export class UsersService {
                     bn."available",
                     bn."hold",
                     bn."usage",
-                    b."baseasset"
+                    b."baseasset",
+                    u."apiActivationDate"
                   FROM
                     bots b
                     INNER JOIN bank bn ON b."botid" = bn."botid"
+                    INNER JOIN users u ON CAST(b."userid" as uuid) = u."uuid"
                   WHERE b."botid" = $1`;
         const bank = await this.tradingBotRepository.query(sql, [bot.botid]);
         banks = banks.concat(bank);
