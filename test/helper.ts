@@ -4,6 +4,9 @@ import { getConnection } from 'typeorm';
 import { Plan } from "../src/modules/seed/plan.entity";
 import { User } from "../src/modules/user/user.entity";
 import { Account } from "../src/modules/klaytn/account.entity";
+import { Bot } from "../src/modules/bot/bot.entity";
+import { Trade } from "../src/modules/bot/trade.entity";
+import { Slot } from "../src/modules/bot/slot.entity";
 import { WebSocketServer } from 'ws';
 import { ResponseMessage } from '../src/utils/enum';
 import { EventEmitter2 } from "@nestjs/event-emitter";
@@ -145,6 +148,26 @@ export class Helper {
         return;
     }
 
+
+    async insertBotData(uuid: string) {
+        const botRepo = getConnection().getRepository(Bot);
+        const bot = {
+            botid: 'c9cf2pqdk4hc73fpcup0',
+            botname: 'Debra The Ambitious Seahorse',
+            pid: 12,
+            strategy: 'BUYSELL',
+            status: 'running',
+            exchange: 'STABLE',
+            apikey: '23456543wdfghtrdxse5tyhbvfr45tgvbg',
+            apisecret: 'vfdvfe45t5543t543edfbvdfgvcdfvfcvv',
+            risklevel: 'LOW',
+            baseasset: 'USDT',
+            quoteasset: 'BTC',
+            userid: uuid
+        };
+        return await botRepo.save(bot);
+    }
+
     /**
      * Login a test user
      * @returns 
@@ -213,7 +236,7 @@ export class Helper {
 
     async getDepositBytxHash() {
         const repository = getConnection().getRepository(Deposit);
-        return await repository.findOne({txHash: '0xadasdf32descscdfsd434rfdcsdfsdsade'});
+        return await repository.findOne({ txHash: '0xadasdf32descscdfsd434rfdcsdfsdsade' });
     }
 
     public async getEventObject(email: string) {

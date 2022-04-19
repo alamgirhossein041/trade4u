@@ -24,7 +24,11 @@ import { User } from './user.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { EarningLimit } from './commons/user.constants';
 import { isPositiveInteger } from '../../utils/methods';
-import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
+import {
+  BinanceTradingDto,
+  TelegramNotifyDto,
+  SystemDto,
+} from './commons/user.dtos';
 import { UserDataDto } from './user.entity';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { Pagination } from '../../utils/paginate';
@@ -212,9 +216,10 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get(`trades_result`)
+  @Post(`trades_result`)
   public async getTradesResult(
     @CurrentUser() user: User,
+    @Body() body: SystemDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
@@ -222,12 +227,8 @@ export class UserContoller {
       `GET user/trades_result ${LoggerMessages.API_CALLED}`,
     );
     let filter = ``;
-    if (
-      req.query &&
-      req.query.startDate &&
-      req.query.endDate &&
-      req.query.system
-    ) {
+    let system = body.system;
+    if (req.query && req.query.startDate && req.query.endDate) {
       const isPosIntStart = isPositiveInteger(req.query.startDate.toString());
       const isPosIntEnd = isPositiveInteger(req.query.endDate.toString());
       if (!isPosIntStart || !isPosIntEnd)
@@ -235,11 +236,14 @@ export class UserContoller {
           `Query Parameter startDate or endDate ${ResponseMessage.IS_INVALID}`,
           ResponseCode.BAD_REQUEST,
         );
-      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${req.query.endDate} AND b."baseasset" = '${req.query.system}'`;
+      filter = `AND t."date" >= ${req.query.startDate} AND t."date" <= ${
+        req.query.endDate
+      } AND b."baseasset" = '${system.toUpperCase()}'`;
     }
     const pagination: IPaginationOptions = await Pagination.paginate(req, res);
     const payment = await this.userService.getTradesResult(
       user,
+      system,
       pagination,
       filter,
     );
