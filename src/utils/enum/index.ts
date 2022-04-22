@@ -90,8 +90,15 @@ export enum JOB {
   WALLET_SYNC = `wallet sync`,
   PROCESS_DEPOSIT = `process deposit`,
   WITHDRAWAL = `withdrawal`,
+  VALIDATETRADETIMESTAMP = `validate trade timestamp`
 }
 
 export enum BlockProcess {
   PROCESS_COMPLETED = `Block Processing Completed`,
+}
+
+export enum Time {
+  ONE_HOUR = 3600,
+  THIRTY_DAYS = 2592000,
+  TEN_DAYS = 864000,
 }

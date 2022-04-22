@@ -1,8 +1,8 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SeedService } from '../../modules/seed/seed.service';
-import { getConnection, Repository, LessThanOrEqual } from 'typeorm';
-import { BonusType, PaymentStatus } from './commons/payment.enum';
+import { getConnection, Repository, LessThanOrEqual, Like } from 'typeorm';
+import { BonusType, CryptoAsset, PaymentStatus, PaymentType } from './commons/payment.enum';
 import { Payment } from './payment.entity';
 import moment from 'moment';
 import { PriceService } from '../price/price.service';
@@ -14,7 +14,7 @@ import {
   Pagination,
   IPaginationOptions,
 } from 'nestjs-typeorm-paginate';
-import { ResponseCode, ResponseMessage } from '../../utils/enum';
+import { ResponseCode, ResponseMessage, Time } from '../../utils/enum';
 import { KlaytnService } from '../klaytn/klaytn.service';
 import { Account } from '../klaytn/account.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -23,9 +23,14 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { Deposit } from './deposit.entity';
 import { CompensationTransaction } from './compensation.transaction';
 import { DepositCompletedEvent } from '../scheduler/deposit.complete.event';
+import { UsersService } from 'modules/user';
+import { Bot } from 'modules/bot/bot.entity';
+import { SocketService } from './../socket/socket.service';
+import { Notifications } from 'modules/socket/commons/socket.enum';
 
 @Injectable()
 export class PaymentService {
+  
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
@@ -35,12 +40,10 @@ export class PaymentService {
     private readonly seedService: SeedService,
     private readonly klaytnService: KlaytnService,
     private readonly loggerServce: LoggerService,
-  ) {}
-
-  /**
-   * Make payment
-   */
-  public async makePayment() {}
+    private readonly userService: UsersService,
+    private readonly socketService: SocketService
+  ) {
+   }
 
   /**
    * Get user payments
@@ -82,10 +85,11 @@ export class PaymentService {
     const uid = new ShortUniqueId({ length: 10 });
     const payment = new Payment();
     payment.paymentId = uid();
+    payment.type = PaymentType.ACTIVATION + '-' + plan.planName;
     payment.amountUSD = plan.price;
     payment.status = PaymentStatus.PENDING;
     payment.createdAt = moment().unix();
-    payment.expireAt = payment.createdAt + 3600; // one hour after creation
+    payment.expireAt = payment.createdAt + Time.ONE_HOUR; // 1 hour after creation
     payment.amountKLAY = Number(
       new bigDecimal(payment.amountUSD)
         .divide(new bigDecimal(PriceService.klayPrice), 4)
@@ -260,6 +264,117 @@ export class PaymentService {
       return;
     }
   }
+
+  /**
+   * Notify the user for preformance fee payment dues
+   * @returns 
+   */
+   @Cron(CronExpression.EVERY_MINUTE, {
+    name: JOB.VALIDATETRADETIMESTAMP,
+  })
+  public async NotifyUsersForPreformanceFeePayment() {
+    this.loggerServce.log(
+      `Preformance fee notification job started: ${moment().unix()}`,
+    );
+    const users = await this.userService.validateTradeTimeStamp();
+    if (!users.length) {
+      this.loggerServce.log(
+        `Preformance fee notification job Completed: ${moment().unix()}`,
+      );
+      return;
+    }
+    else {
+      Promise.all(users.map(async m => {
+        try {
+          await this.socketService.emitNotification(m.email, Notifications.PERFORMANCE_FEE);
+        }
+        catch (err) {
+          this.loggerServce.error(err);
+        }
+      }))
+        .then(() => {
+          this.loggerServce.log(
+            `Preformance fee notification job Completed: ${moment().unix()}`,
+          );
+          return;
+        });
+    }
+  }
+
+  /**
+   * Create Preformance fee payment
+   * @returns 
+   */
+  public async createPreformanceFeePayment(user: User): Promise<Payment[]> {
+    return new Promise<Payment[]>(async (resolve, reject) => {
+      let payments: Payment[] = [];
+      const bots = await this.userService.getBotsByUserId(user);
+      await Promise.all(bots.map(async m => {
+        try {
+          const payment = await this.buildPayment(user, m);
+          payment ? payments.push(payment) : '';
+        }
+        catch (err) {
+          reject(err);
+        }
+      }));
+      return resolve(payments);
+    });
+  }
+
+  /**
+   * Build preformace fee payment for the given user and bot
+   * @param options 
+   * @param condition 
+   * @param relations 
+   * @returns 
+   */
+  public async buildPayment(user: User, bot: Bot): Promise<Payment | void> {
+    return new Promise<Payment | void>(async (resolve, reject) => {
+      try {
+        const profit = await this.userService.getBotProfit(bot.botid, user.tradeStartDate, user.tradeExpiryDate);
+        if (!profit) {
+          this.loggerServce.warn(`Profits not found for bot: ${bot.botid}`);
+          resolve();
+        }
+        else {
+          const uid = new ShortUniqueId({ length: 10 });
+          const payment = new Payment();
+          payment.paymentId = uid();
+          if (bot.baseasset === CryptoAsset.USDT) {
+            payment.type = PaymentType.TX_PREFORMANCE_USDT;
+            payment.amountUSD = Number(new bigDecimal(profit)
+              .multiply(new bigDecimal(user.plan.preformanceFeePercentage))
+              .divide(new bigDecimal(100), 4).getValue());
+          }
+          else {
+            payment.type = PaymentType.TX_PREFORMANCE_BTC;
+            payment.amountUSD = Number(new bigDecimal(profit)
+              .multiply(new bigDecimal(user.plan.preformanceFeePercentage))
+              .divide(new bigDecimal(100), 4).getValue());
+            //Fix: KLAY Price for BTC
+          }
+          payment.status = PaymentStatus.PENDING;
+          payment.createdAt = moment().unix();
+          payment.expireAt = payment.createdAt + Time.ONE_HOUR; //1 Hour after the payment creation
+          payment.amountKLAY = Number(
+            new bigDecimal(payment.amountUSD)
+              .divide(new bigDecimal(PriceService.klayPrice), 4)
+              .getValue(),
+          );
+          payment.plan = user.plan;
+          payment.user = user;
+          this.loggerServce.log(`Payment created = ${payment.paymentId}, bot: ${bot.botid}`);
+          resolve(await this.paymentRepository.save(payment));
+        }
+      }
+      catch (err) {
+        this.loggerServce.error(`Preformance Fee payment creation failed !`);
+        reject(err);
+      }
+    })
+  }
+
 
   /**
    * Paginate the payment list

@@ -1,11 +1,13 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import {
+  JOB,
   ResponseCode,
   ResponseMessage,
   TelergramBotMessages,
+  Time,
 } from '../../utils/enum';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { UserStats } from './user-stats.entity';
@@ -34,6 +36,8 @@ import { Bot } from '../bot/bot.entity';
 import bigDecimal from 'js-big-decimal';
 import { UserCommision } from './user-commision.entity';
 import moment from 'moment';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { CryptoAsset } from 'modules/payment/commons/payment.enum';
 
 @Injectable()
 export class UsersService {
@@ -608,6 +612,8 @@ export class UsersService {
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
       user.tradingSystem = binanceDto.tradingSystem;
       user.apiActivationDate = moment().unix();
+      user.tradeStartDate = moment().unix();
+      user.tradeExpiryDate = moment().unix() + Time.THIRTY_DAYS; //30 Days after the trading is started
       const botData: ICreateBot = {
         apiKey: binanceDto.apiKey,
         apiSecret: binanceDto.apiSecret,
@@ -632,24 +638,24 @@ export class UsersService {
     let botResponseArr: IBotResponse[] = [];
     switch (tradingSystem) {
       case TradingSystem.USDT:
-        botData.baseAsset = 'USDT';
-        botData.quoteAsset = 'BTC';
+        botData.baseAsset = CryptoAsset.USDT;
+        botData.quoteAsset = CryptoAsset.BTC;
         botResponseArr[0] = await this.botclient.createBot(botData);
         await this.botclient.startBot(botResponseArr[0].data.botId);
         return botResponseArr;
       case TradingSystem.BTC:
-        botData.baseAsset = 'BTC';
-        botData.quoteAsset = 'ETH';
+        botData.baseAsset = CryptoAsset.BTC;
+        botData.quoteAsset = CryptoAsset.ETH;
         botResponseArr[0] = await this.botclient.createBot(botData);
         await this.botclient.startBot(botResponseArr[0].data.botId);
         return botResponseArr;
       case TradingSystem.BOTH:
-        botData.baseAsset = 'USDT';
-        botData.quoteAsset = 'BTC';
+        botData.baseAsset = CryptoAsset.USDT;
+        botData.quoteAsset = CryptoAsset.BTC;
         const bot1 = await this.botclient.createBot(botData);
         await this.botclient.startBot(bot1.data.botId);
-        botData.baseAsset = 'BTC';
-        botData.quoteAsset = 'ETH';
+        botData.baseAsset = CryptoAsset.BTC;
+        botData.quoteAsset = CryptoAsset.ETH;
         const bot2 = await this.botclient.createBot(botData);
         await this.botclient.startBot(bot2.data.botId);
         botResponseArr.push(bot1, bot2);
@@ -1019,5 +1025,32 @@ export class UsersService {
     return await this.userRepository.find({
       where: { balance: MoreThanOrEqual(limit) },
     });
+  }
+
+  /**
+   * 
+   */
+  public async validateTradeTimeStamp() {
+    return await this.userRepository.find({
+      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()) },
+      relations: ['plan']
+    });
+  }
+
+  /**
+   * Get the profit of the bot
+   */
+  public async getBotProfit(botId: string, from: number, to: number) {
+    let sql = `SELECT 
+                COALESCE(SUM(T.amount :: double precision), 0) as profit
+              FROM
+                bots B
+                INNER JOIN slots S ON B."botid" = S."botid"
+                INNER JOIN trades T ON S."slotid" = T."slotid"
+              WHERE
+                B."botid" = $1 AND T.date Between $2 AND $3;`;
+
+    const trades = await this.tradingBotRepository.query(sql, [botId, from, to]);
+    return trades[0].profit;
   }
 }

@@ -16,7 +16,7 @@ export class WithdrawalService {
     private readonly loggerService: LoggerService,
   ) {}
 
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_5_MINUTES, {
     name: JOB.WITHDRAWAL,
   })
   public async withdrawal() {

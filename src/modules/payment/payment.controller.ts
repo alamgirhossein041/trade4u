@@ -26,7 +26,7 @@ export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
     private readonly loggerService: LoggerService,
-  ) {}
+  ) { }
 
   @Post(`order_plan/:planId`)
   @UseGuards(AuthGuard('jwt'))
@@ -91,6 +91,20 @@ export class PaymentController {
         data: data,
         message: ResponseMessage.CREATED_SUCCESSFULLY,
       });
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(`preformance_fee_payment`)
+  public async createPreformanceFeePayment(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ) {
+    const payments = await this.paymentService.createPreformanceFeePayment(user);
+    return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
+      statusCode: ResponseCode.CREATED_SUCCESSFULLY,
+      data: payments,
+      message: ResponseMessage.CREATED_SUCCESSFULLY,
     });
   }
 }
