@@ -8,7 +8,7 @@ export class Order {
   @PrimaryColumn({ type: 'varchar' })
   id: string;
 
-  @Column({ type: 'bigint' })
+  @Column({ type: 'bigint', nullable: true })
   orderid: number;
 
   @Column()

@@ -15,13 +15,13 @@ export class UserCommision {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   type: string;
 
   @Column({ type: 'double precision' })
   amount: number;
 
-  @Column({ type: 'double precision',nullable: true })
+  @Column({ type: 'double precision', nullable: true })
   amountKLAY: number;
 
   @Column({ default: moment().unix() })
