@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Timeframe } from './timeframe.entity';
 
 @Entity({
   name: 'tradethresholds',
@@ -16,4 +17,8 @@ export class Tradethreshold {
     type: 'double precision',
   })
   sellthreshold: number;
+
+  @ManyToOne(() => Timeframe)
+  @JoinColumn({ name: 'tfid' })
+  timeframe: Timeframe;
 }

@@ -6,6 +6,7 @@ import { ResponseCode, ResponseMessage } from '../../utils/enum';
 import { Hash } from '../../utils/Hash';
 import { User, UsersService } from './../user';
 import { LoginPayload } from './login.payload';
+import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
     private readonly mailerservice: MailService,
+    private readonly telegramService: TelegramService,
   ) {}
 
   /**
@@ -97,11 +99,24 @@ export class AuthService {
         .create(payload, referrer)
         .then(async (user: User) => {
           try {
+            const referrerDtl = await this.userService.getByUserName(referrer);
             const token = await this.createToken(user);
             await this.mailerservice.sendEmailConfirmation(
               user,
               token.accessToken,
             );
+            if (referrerDtl.userTelegram && referrerDtl.userTelegram.isActive) {
+              const telegram = referrerDtl.userTelegram;
+              if (
+                telegram.systemNotificationsActive &&
+                TelegramService.connected
+              ) {
+                await this.telegramService.sendReferralNotification(
+                  telegram,
+                  payload.userName,
+                );
+              }
+            }
             return resolve(user);
           } catch (err) {
             await this.userService.remove(user);

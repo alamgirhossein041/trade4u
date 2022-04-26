@@ -163,7 +163,9 @@ export class Helper {
             risklevel: 'LOW',
             baseasset: 'USDT',
             quoteasset: 'BTC',
-            userid: uuid
+            userid: uuid,
+            efficiencyoverall: 76.78,
+            efficiencytoday: 45.879
         };
         return await botRepo.save(bot);
     }

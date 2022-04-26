@@ -124,6 +124,7 @@ export class CompensationTransaction {
                 await this.createCommision(
                   parentToUpdate,
                   amount,
+                  bonusType,
                   queryRunner,
                   false,
                 );
@@ -143,12 +144,18 @@ export class CompensationTransaction {
                   amount,
                   queryRunner,
                 );
-                await this.createCommision(parentToUpdate, amount, queryRunner);
+                await this.createCommision(
+                  parentToUpdate,
+                  amount,
+                  bonusType,
+                  queryRunner,
+                );
                 parentToUpdate.balance = Number(
                   new bigDecimal(amount)
                     .add(new bigDecimal(parent.balance))
                     .getValue(),
                 );
+                await this.notifyParentOnTelegram(parentToUpdate, amount);
                 await queryRunner.manager.save(parentToUpdate);
               }
             }
@@ -163,8 +170,10 @@ export class CompensationTransaction {
 
   /**
    * Get License Bonus Percentage of Plan For Specific Level
-   * @param planName
-   * @param level
+   * @param bonusType
+   * @param parentPlanName
+   * @param parentLevel
+   * @param parentDepthLevel
    */
   private async getBonusPercentage(
     bonusType: string,
@@ -281,14 +290,22 @@ export class CompensationTransaction {
   private async createCommision(
     parent: User,
     amount: number,
+    type: string,
     queryRunner: QueryRunner,
     consumed: boolean = true,
   ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
+        const amountKLAY = Number(
+          new bigDecimal(amount)
+            .divide(new bigDecimal(PriceService.klayPrice), 8)
+            .getValue(),
+        );
         const commision = new UserCommision();
         commision.amount = amount;
         commision.user = parent;
+        commision.type = type;
+        commision.amountKLAY = amountKLAY;
         commision.consumed = consumed;
         await queryRunner.manager.save(commision);
         resolve();
@@ -324,18 +341,17 @@ export class CompensationTransaction {
    * @param parent
    * @returns
    */
-  private async notifyParentOnTelegram(
-    parent: User,
-    txHash: string,
-    amountUSD: number,
-  ) {
+  private async notifyParentOnTelegram(parent: User, amountUSD: number) {
     const parentWithDetail = await this.userService.get(parent.uuid);
     if (
       parentWithDetail.userTelegram &&
       parentWithDetail.userTelegram.isActive
     ) {
       const parentTelegram = parentWithDetail.userTelegram;
-      if (parentTelegram.bonusNotificationsActive) {
+      if (
+        parentTelegram.bonusNotificationsActive &&
+        TelegramService.connected
+      ) {
         const amountKLAY = Number(
           new bigDecimal(amountUSD)
             .divide(new bigDecimal(PriceService.klayPrice), 8)
@@ -343,7 +359,6 @@ export class CompensationTransaction {
         );
         await this.telegramService.sendBonusNotification(
           parentTelegram,
-          txHash,
           PriceService.klayPrice,
           amountKLAY,
           amountUSD,

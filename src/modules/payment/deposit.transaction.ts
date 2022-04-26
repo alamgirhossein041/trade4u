@@ -16,6 +16,8 @@ import { UserStats } from '../user/user-stats.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { UserCommision } from '../user/user-commision.entity';
 import { Time } from '../../utils/enum';
+import { TelegramService } from '../../utils/telegram/telegram-bot.service';
+import { UserTelegram } from 'modules/user/telegram.entity';
 
 @Injectable()
 export class DepositTransaction {
@@ -35,6 +37,7 @@ export class DepositTransaction {
     private readonly commisionRepository: Repository<UserCommision>,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
+    private readonly telegramService: TelegramService,
     private readonly loggerService: LoggerService,
   ) {
     this.loggerService.setContext('DepositTransaction');
@@ -77,6 +80,11 @@ export class DepositTransaction {
           }
           await this.caverService.moveToMasterWallet(tx.to);
           await this.klaytnService.removeListener(tx.to);
+          await this.notifyUserOnTelegram(
+            this.payment.user,
+            this.payment.user.userName,
+            this.payment.plan.planName,
+          );
         }
         await queryRunner.commitTransaction();
       } catch (err) {
@@ -158,7 +166,15 @@ export class DepositTransaction {
       try {
         const payment = await this.paymentRepository.findOne(
           { paymentId: id },
-          { relations: ['plan', 'user', 'user.userStats', 'account'] },
+          {
+            relations: [
+              'plan',
+              'user',
+              'user.userStats',
+              'user.userTelegram',
+              'account',
+            ],
+          },
         );
         resolve(payment);
       } catch (err) {
@@ -374,5 +390,31 @@ export class DepositTransaction {
     } else {
       return false;
     }
+  }
+
+  /**
+   * Notify Parent On Telegram if Parent Notifications are active
+   * @param parent
+   * @returns
+   */
+  private async notifyUserOnTelegram(
+    user: User,
+    userName: string,
+    planName: string,
+  ) {
+    if (user.userTelegram && user.userTelegram.isActive) {
+      const userTelegram = user.userTelegram;
+      if (userTelegram.systemNotificationsActive && TelegramService.connected) {
+        let message = `Hi ${userName}!
+                        \nThanks for purchasing ${planName}. Your plan has been activated.
+                        \nThanks
+                        \nBinancePlus Team`;
+        await this.telegramService.sendSystemNotifications(
+          userTelegram,
+          message,
+        );
+      }
+    }
+    return;
   }
 }

@@ -9,4 +9,7 @@ export class Timeframe {
 
   @Column()
   duration: string;
+
+  @Column({ type: 'double precision' })
+  slotprecentage: number;
 }

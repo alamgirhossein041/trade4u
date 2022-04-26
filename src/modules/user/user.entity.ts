@@ -17,6 +17,7 @@ import { IsNotEmpty, Matches } from 'class-validator';
 import { IsValidCountry } from '../../modules/common/validator/country.validator';
 import { IsValidPhoneNumber } from '../../modules/common/validator/phone.validator';
 import { ResponseMessage } from '../../utils/enum';
+import moment from 'moment';
 
 @Entity({
   name: 'users',
@@ -88,8 +89,8 @@ export class User {
   @Column({ default: null })
   profileCode: number;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @Column({ default: moment().unix() })
+  createdAt: number;
 
   @OneToOne(() => UserStats)
   @JoinColumn()

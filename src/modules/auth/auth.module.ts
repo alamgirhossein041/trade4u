@@ -7,12 +7,14 @@ import { JwtStrategy } from './jwt.strategy';
 import { AuthController } from './auth.controller';
 import { MailModule } from '../../utils/mailer/mail.module';
 import { LoggerModule } from '../../utils/logger/logger.module';
+import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 
 @Module({
   imports: [
     UserModule,
     MailModule,
     LoggerModule,
+    TelegramModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [],
