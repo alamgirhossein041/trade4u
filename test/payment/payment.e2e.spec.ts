@@ -63,14 +63,14 @@ describe('BinancePlus payment test', () => {
     });
 
     it(`Test /payment_list API`, async () => {
-        const expected = { amountUSD: 200, amountKLAY: 165.2893, status: 'pending' };
+        const expected = { amountUSD: 200, amountKLAY: 165.2893, status: 'pending', type: 'Activation-Gold' };
         await request(server)
             .get('/api/payment/payment_list')
             .set('Authorization', helper.getAccessToken())
             .expect(200)
             .expect(({ body }) => {
                 payment_Id = body.data.items[0].paymentId;
-                const { paymentId, createdAt, expireAt, paidAt, ...payment } = body.data.items[0];
+                const { paymentId, createdAt, expireAt, paidAt, pdf, ...payment } = body.data.items[0];
                 expect(payment).toEqual(expected);
             });
     });

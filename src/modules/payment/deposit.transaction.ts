@@ -15,7 +15,7 @@ import bigDecimal from 'js-big-decimal';
 import { UserStats } from '../user/user-stats.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { UserCommision } from '../user/user-commision.entity';
-import { Time } from 'utils/enum';
+import { Time } from '../../utils/enum';
 
 @Injectable()
 export class DepositTransaction {

@@ -34,6 +34,12 @@ export class Payment {
   @Column()
   type: string
 
+  @Column({
+    type: 'bytea',
+    nullable: true
+  })
+  pdf: Buffer
+
   @Column()
   createdAt: number;
 

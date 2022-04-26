@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
-import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import {
   JOB,
   ResponseCode,
@@ -28,6 +28,7 @@ import {
   botConstants,
   HistoryLimit,
   MaxLevels,
+  MaxProfitLimit,
 } from './commons/user.constants';
 import { BOTClient } from 'botclient';
 import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
@@ -35,9 +36,9 @@ import { TradingSystem } from './commons/user.enums';
 import { Bot } from '../bot/bot.entity';
 import bigDecimal from 'js-big-decimal';
 import { UserCommision } from './user-commision.entity';
-import moment from 'moment';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { CryptoAsset } from 'modules/payment/commons/payment.enum';
+import moment, { unix } from 'moment';
+import { CryptoAsset } from '../../modules/payment/commons/payment.enum';
+import { PriceService } from '../../modules/price/price.service';
 
 @Injectable()
 export class UsersService {
@@ -1031,10 +1032,70 @@ export class UsersService {
    * 
    */
   public async validateTradeTimeStamp() {
-    return await this.userRepository.find({
-      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()) },
-      relations: ['plan']
+    const users = await this.userRepository.find({
+      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()) }
     });
+    return users;
+  }
+
+  public async validateActiveTradersProfit(user: User) {
+    const bots = await this.getBotsByUserId(user);
+    let profit: number = 0;
+    let percentage: number = 0;
+    await Promise.all(bots.map(async (m) => {
+      profit += await this.getBotProfit(m.botid, user.tradeStartDate, moment().unix());
+      if (m.baseasset === CryptoAsset.BTC) {
+        let profitInUsd = new bigDecimal(PriceService.btcPrice)
+            .multiply(new bigDecimal(profit));
+        percentage += Number(profitInUsd
+          .divide(new bigDecimal(user.plan.price), 4)
+          .multiply(new bigDecimal(100))
+          .getValue())
+      }
+      else {
+        percentage += Number(new bigDecimal(profit)
+          .divide(new bigDecimal(user.plan.price), 4)
+          .multiply(new bigDecimal(100))
+          .getValue())
+      }
+    }));
+    return percentage > MaxProfitLimit ? true : false;
+  }
+
+  /**
+   * Get Active Traders
+   */
+  public async getActiveTraders() {
+    let sql = `SELECT  
+                "uuid",
+                "tradeStartDate",
+                "tradeExpiryDate"
+              FROM
+               (SELECT
+                  "uuid",
+                  "tradeStartDate",
+                  "tradeExpiryDate",
+                  
+                  CASE  
+                    WHEN $1 BETWEEN "tradeStartDate" AND "tradeExpiryDate"
+                    
+                    THEN '1'
+                    
+                    ELSE '0'
+                  END
+                as activeTrader  from users) AS results  WHERE results.activeTrader='1';`;
+    const result: any[] = await this.userRepository.query(sql, [moment().unix()]);
+    const users = result.map(m => m.uuid)
+    let activeTraders: User[] = [];
+    if (users.length) {
+      activeTraders = await this.userRepository.find(
+        {
+          where: { uuid: In(users) },
+          relations: ['plan']
+        }
+      )
+    }
+    return activeTraders;
   }
 
   /**
@@ -1052,5 +1113,23 @@ export class UsersService {
 
     const trades = await this.tradingBotRepository.query(sql, [botId, from, to]);
     return trades[0].profit;
+  }
+
+
+  public async getTradesBetweenRange(botId: string, from: number, to: number)
+  {
+    let sql = `SELECT 
+              T."date",
+              T."amount" as stack,
+              T."profit",
+              T."profitpercentage" as variation
+            FROM
+              bots B
+              INNER JOIN slots S ON B."botid" = S."botid"
+              INNER JOIN trades T ON S."slotid" = T."slotid"
+            WHERE
+              B."botid" = $1 AND T.date Between $2 AND $3;`;
+    const trades = await this.tradingBotRepository.query(sql, [botId, from, to]);
+    return trades;
   }
 }

@@ -19,5 +19,6 @@ export enum CryptoAsset
 {
   USDT = 'USDT',
   BTC = 'BTC',
-  ETH = 'ETH'
+  ETH = 'ETH',
+  KLAY = 'KLAY',
 }

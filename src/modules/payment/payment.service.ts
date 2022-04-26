@@ -23,14 +23,16 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { Deposit } from './deposit.entity';
 import { CompensationTransaction } from './compensation.transaction';
 import { DepositCompletedEvent } from '../scheduler/deposit.complete.event';
-import { UsersService } from 'modules/user';
-import { Bot } from 'modules/bot/bot.entity';
+import { UsersService } from '../../modules/user';
+import { Bot } from '../../modules/bot/bot.entity';
 import { SocketService } from './../socket/socket.service';
-import { Notifications } from 'modules/socket/commons/socket.enum';
+import { Notifications } from '../../modules/socket/commons/socket.enum';
+import { PDFGenerator } from './pdf.generator';
+import { PDF } from './commons/payment.types';
 
 @Injectable()
 export class PaymentService {
-  
+
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
@@ -41,9 +43,10 @@ export class PaymentService {
     private readonly klaytnService: KlaytnService,
     private readonly loggerServce: LoggerService,
     private readonly userService: UsersService,
-    private readonly socketService: SocketService
+    private readonly socketService: SocketService,
+    private readonly pdfGenerator: PDFGenerator
   ) {
-   }
+  }
 
   /**
    * Get user payments
@@ -266,20 +269,46 @@ export class PaymentService {
   }
 
   /**
+  * Notify the user for preformance fee payment dues
+  * @returns 
+  */
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: JOB.NOTIFY_PROFIT_LIMIT_EXCEED,
+  })
+  public async NotifyUsersOnProfitLimitReach() {
+    this.loggerServce.log(
+      `JOB: Notify user on profit limit reach started at: ${moment().unix()}`,
+    );
+    const activeTraders = await this.userService.getActiveTraders();
+    Promise.all(activeTraders.map(async m => {
+      const valid = await this.userService.validateActiveTradersProfit(m);
+      if (valid)
+        await this.socketService.emitNotification(m.email, Notifications.PERFORMANCE_FEE);
+    }))
+      .then(() => {
+        this.loggerServce.log(
+          `JOB: Notify user on profit limit reach completed at: ${moment().unix()}`,
+        );
+        return;
+      });
+  }
+
+  /**
    * Notify the user for preformance fee payment dues
    * @returns 
    */
-   @Cron(CronExpression.EVERY_MINUTE, {
-    name: JOB.VALIDATETRADETIMESTAMP,
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: JOB.NOTIFY_TRADE_LIMIT_EXCEED,
   })
-  public async NotifyUsersForPreformanceFeePayment() {
+  public async NotifyUsersOnTradeLimitExceed() {
     this.loggerServce.log(
-      `Preformance fee notification job started: ${moment().unix()}`,
+      `JOB: Notify user on trade limit exceed started at: ${moment().unix()}`,
     );
+
     const users = await this.userService.validateTradeTimeStamp();
     if (!users.length) {
       this.loggerServce.log(
-        `Preformance fee notification job Completed: ${moment().unix()}`,
+        `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
       );
       return;
     }
@@ -294,7 +323,7 @@ export class PaymentService {
       }))
         .then(() => {
           this.loggerServce.log(
-            `Preformance fee notification job Completed: ${moment().unix()}`,
+            `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
           );
           return;
         });
@@ -323,6 +352,33 @@ export class PaymentService {
   }
 
   /**
+   * 
+   * @param user 
+   * @param bot 
+   * @returns 
+   */
+  public base64toBlob(base64Data, contentType) {
+    contentType = contentType || '';
+    var sliceSize = 1024;
+    var byteCharacters = atob(base64Data);
+    var bytesLength = byteCharacters.length;
+    var slicesCount = Math.ceil(bytesLength / sliceSize);
+    var byteArrays = new Array(slicesCount);
+
+    for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+      var begin = sliceIndex * sliceSize;
+      var end = Math.min(begin + sliceSize, bytesLength);
+
+      var bytes = new Array(end - begin);
+      for (var offset = begin, i = 0; offset < end; ++i, ++offset) {
+        bytes[i] = byteCharacters[offset].charCodeAt(0);
+      }
+      byteArrays[sliceIndex] = new Uint8Array(bytes);
+    }
+    return new Blob(byteArrays, { type: contentType });
+  }
+
+  /**
    * Build preformace fee payment for the given user and bot
    * @param options 
    * @param condition 
@@ -338,6 +394,8 @@ export class PaymentService {
           resolve();
         }
         else {
+
+          const tradesList = await this.userService.getTradesBetweenRange(bot.botid, user.tradeStartDate, user.tradeExpiryDate);
           const uid = new ShortUniqueId({ length: 10 });
           const payment = new Payment();
           payment.paymentId = uid();
@@ -349,10 +407,12 @@ export class PaymentService {
           }
           else {
             payment.type = PaymentType.TX_PREFORMANCE_BTC;
-            payment.amountUSD = Number(new bigDecimal(profit)
+            let profitInUsd = new bigDecimal(PriceService.btcPrice)
+              .multiply(new bigDecimal(profit));
+            payment.amountUSD = Number(profitInUsd
               .multiply(new bigDecimal(user.plan.preformanceFeePercentage))
               .divide(new bigDecimal(100), 4).getValue());
-            //Fix: KLAY Price for BTC
+
           }
           payment.status = PaymentStatus.PENDING;
           payment.createdAt = moment().unix();
@@ -364,6 +424,17 @@ export class PaymentService {
           );
           payment.plan = user.plan;
           payment.user = user;
+          let data: PDF = {
+            userName: user.userName,
+            from: moment(user.tradeStartDate * 1000).format('MM-DD-YYYY HH:mm:ss'),
+            to: moment(user.tradeExpiryDate * 1000).format('MM-DD-YYYY HH:mm:ss'),
+            issueDate: moment().format('MM-DD-YYYY HH:mm:ss'),
+            profit: profit,
+            charges: payment.amountUSD,
+            preformanceFee: user.plan.preformanceFeePercentage,
+            trades: tradesList
+          }
+          payment.pdf = await this.pdfGenerator.generatePDF(data);
           this.loggerServce.log(`Payment created = ${payment.paymentId}, bot: ${bot.botid}`);
           resolve(await this.paymentRepository.save(payment));
         }

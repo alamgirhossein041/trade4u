@@ -65,6 +65,8 @@ describe('BinancePlus auth test', () => {
             planExpiry: null,
             apiActivationDate: null,
             referralLink: process.env.APP_URL + `register?referrer=john58`,
+            tradeExpiryDate: null,
+            tradeStartDate: null,
             refereeUuid: null,
             userTelegram: null,
             profileCode: null,

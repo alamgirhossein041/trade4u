@@ -28,11 +28,11 @@ export class CoinGeckoMarket {
    * Get price of klay from coin market
    * @returns
    */
-  public async getPrice(): Promise<SimplePriceResponse> {
+  public async getPrice(currency): Promise<SimplePriceResponse> {
     return new Promise<SimplePriceResponse>(async (resolve, reject) => {
       try {
         const marketCap = await this.coinGeckoClient.simplePrice({
-          ids: 'klay-token',
+          ids: currency,
           vs_currencies: 'usd',
           include_last_updated_at: true,
         });

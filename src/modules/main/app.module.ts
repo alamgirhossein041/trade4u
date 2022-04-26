@@ -19,8 +19,6 @@ import { ObserverModule } from '../observers/observers.module';
 import { WithdrawalModule } from '../../modules/withdrawal/withdrawal.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { SocketModule } from 'modules/socket/socket.module';
-
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
