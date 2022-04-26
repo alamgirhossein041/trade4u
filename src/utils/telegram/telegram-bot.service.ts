@@ -7,6 +7,7 @@ import { BotResponse } from 'modules/user/commons/user.types';
 
 @Injectable()
 export class TelegramService {
+  public static connected: boolean = false;
   constructor() {}
 
   public getTelegramCode() {
@@ -24,6 +25,7 @@ export class TelegramService {
       const res = await axios.get(
         `${process.env.TELEGRAM_BOT_API}/setWebhook?url=${process.env.SERVER_URL}/api/user/webhook/${process.env.BOT_TOKEN}`,
       );
+      this.connected = true;
       console.log(res.data);
     } catch (err) {
       console.log(
@@ -103,14 +105,13 @@ export class TelegramService {
    */
   public async sendBonusNotification(
     userTelegram: UserTelegram,
-    txHash: string,
     klayPrice: number,
     amountKlay: number,
     amountUSD: number,
     bonusType: string,
   ) {
+    // \n<a href="https://baobab.scope.klaytn.com/tx/${txHash}"> ${txHash}</a>
     let message = `${bonusType.toUpperCase()} Bonus Received ***
-    \n<a href="https://baobab.scope.klaytn.com/tx/${txHash}"> ${txHash}</a>
     \n <b>KLAY Price: US$ ${klayPrice}</b>
     \n <b>Amount (KLAY): ${amountKlay}</b>
     \n <b>Amount(USDT): US$ ${amountUSD}</b>
@@ -185,6 +186,7 @@ export class TelegramService {
     let message = `Hi ${userTelegram.name}!
                 \nYou Have A New Affiliate
                 \nUsername : <b>${affiliateUsername}</b>
+                \nThanks
                 \nBinancePlus Team`;
     const resObj: BotResponse = {
       chat_id: userTelegram.chat_id,

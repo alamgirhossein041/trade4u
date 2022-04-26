@@ -41,3 +41,33 @@ export class TelegramNotifyDto {
   @IsBoolean()
   promotionNotifications: boolean;
 }
+
+export class TradeNotificationDto {
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  tradeId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  type: string;
+
+  @IsNotEmpty()
+  @IsString()
+  baseCurrency: string;
+
+  @IsNotEmpty()
+  @IsString()
+  coin: string;
+
+  @IsNotEmpty()
+  @IsString()
+  amount: string;
+
+  @IsNotEmpty()
+  @IsString()
+  date: string;
+}

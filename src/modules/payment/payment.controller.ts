@@ -32,7 +32,6 @@ export class PaymentController {
   @UseGuards(AuthGuard('jwt'))
   public async orderPlan(
     @CurrentUser() user: User,
-    @Req() req: Request,
     @Res() res: Response,
     @Param('planId') planId: number,
   ) {

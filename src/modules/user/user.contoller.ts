@@ -28,6 +28,7 @@ import {
   BinanceTradingDto,
   TelegramNotifyDto,
   SystemDto,
+  TradeNotificationDto,
 } from './commons/user.dtos';
 import { UserDataDto } from './user.entity';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
@@ -501,6 +502,21 @@ export class UserContoller {
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       message: ResponseMessage.PROFILE_UPDATED_SUCCESSFULLY,
+    });
+  }
+
+  @Post('send_trade_notification')
+  public async sendTradeNotification(
+    @Body() body: TradeNotificationDto,
+    @Res() res: Response,
+  ): Promise<Response> {
+    this.loggerService.log(
+      `Patch user/send_trade_notication ${LoggerMessages.API_CALLED}`,
+    );
+    await this.userService.sendTradeNotification(body);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      message: ResponseMessage.SUCCESS,
     });
   }
 }

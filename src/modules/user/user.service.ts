@@ -14,7 +14,11 @@ import { UserStats } from './user-stats.entity';
 import { AffliatesInterface, TradesResultStats } from './commons/user.types';
 import { User } from './user.entity';
 import { SeedService } from '../seed/seed.service';
-import { BinanceTradingDto, TelegramNotifyDto } from './commons/user.dtos';
+import {
+  BinanceTradingDto,
+  TelegramNotifyDto,
+  TradeNotificationDto,
+} from './commons/user.dtos';
 import { BinanceService } from '../../utils/binance/binance.service';
 import { UserTelegram } from './telegram.entity';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
@@ -99,7 +103,10 @@ export class UsersService {
    * @returns
    */
   async getByUserName(userName: string): Promise<User> {
-    return await this.userRepository.findOne({ userName });
+    return await this.userRepository.findOne(
+      { userName },
+      { relations: ['userTelegram'] },
+    );
   }
 
   /**
@@ -742,19 +749,45 @@ export class UsersService {
       if (userTelegram && userTelegram.isActive) {
         userTelegram.isActive = false;
         await this.userTelegramRepository.save(userTelegram);
-        await this.telegramService.sendResponseToUser({
-          chat_id: userTelegram.chat_id,
-          parse_mode: 'HTML',
-          text: TelergramBotMessages.SUCCCESSFULLY_DEACTIVATED,
-        });
-        return;
+        if (TelegramService.connected) {
+          await this.telegramService.sendResponseToUser({
+            chat_id: userTelegram.chat_id,
+            parse_mode: 'HTML',
+            text: TelergramBotMessages.SUCCCESSFULLY_DEACTIVATED,
+          });
+        }
       } else if (userTelegram && !userTelegram.isActive) {
-        await this.telegramService.sendResponseToUser({
-          chat_id: userTelegram.chat_id,
-          parse_mode: 'HTML',
-          text: TelergramBotMessages.ACTIVATE_FIRST,
-        });
-        return;
+        if (TelegramService.connected) {
+          await this.telegramService.sendResponseToUser({
+            chat_id: userTelegram.chat_id,
+            parse_mode: 'HTML',
+            text: TelergramBotMessages.ACTIVATE_FIRST,
+          });
+        }
+      }
+      return;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async sendTradeNotification(body: TradeNotificationDto) {
+    try {
+      const user = await this.get(body.userId);
+      if (!user) {
+        throw new HttpException(
+          `User ${ResponseMessage.DOES_NOT_EXIST}`,
+          ResponseCode.NOT_FOUND,
+        );
+      }
+      if (user.userTelegram && user.userTelegram.isActive) {
+        const userTelegram = user.userTelegram;
+        if (
+          userTelegram.systemNotificationsActive &&
+          TelegramService.connected
+        ) {
+          await this.telegramService.sendTradeNotification(userTelegram, body);
+        }
       }
       return;
     } catch (err) {
@@ -772,10 +805,10 @@ export class UsersService {
     try {
       const userTelegram = await this.getUserTelegramByChatId(chat_id);
       if (userTelegram) {
-        if (userTelegram.isActive) {
+        if (userTelegram.isActive && TelegramService.connected) {
           await this.telegramService.sendAlreadyActivatedMessage(userTelegram);
           return;
-        } else {
+        } else if (TelegramService.connected) {
           await this.telegramService.sendCommunicationMessage(userTelegram);
           return;
         }
@@ -786,7 +819,9 @@ export class UsersService {
       newUserTelegram.name = name;
       newUserTelegram.code = code;
       await this.userTelegramRepository.save(newUserTelegram);
-      await this.telegramService.sendCommunicationMessage(newUserTelegram);
+      if (TelegramService.connected) {
+        await this.telegramService.sendCommunicationMessage(newUserTelegram);
+      }
       return;
     } catch (err) {
       throw new HttpException(
@@ -824,7 +859,9 @@ export class UsersService {
     );
     user.userTelegram = updatedTelegram;
     await this.userRepository.save(user);
-    await this.telegramService.sendNotificationsMessage(updatedTelegram);
+    if (TelegramService.connected) {
+      await this.telegramService.sendNotificationsMessage(updatedTelegram);
+    }
     return updatedTelegram;
   }
 
