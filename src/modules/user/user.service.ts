@@ -1,11 +1,13 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import {
+  JOB,
   ResponseCode,
   ResponseMessage,
   TelergramBotMessages,
+  Time,
 } from '../../utils/enum';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { UserStats } from './user-stats.entity';
@@ -26,6 +28,7 @@ import {
   botConstants,
   HistoryLimit,
   MaxLevels,
+  MaxProfitLimit,
 } from './commons/user.constants';
 import { BOTClient } from 'botclient';
 import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
@@ -33,7 +36,9 @@ import { TradingSystem } from './commons/user.enums';
 import { Bot } from '../bot/bot.entity';
 import bigDecimal from 'js-big-decimal';
 import { UserCommision } from './user-commision.entity';
-import moment from 'moment';
+import moment, { unix } from 'moment';
+import { CryptoAsset } from '../../modules/payment/commons/payment.enum';
+import { PriceService } from '../../modules/price/price.service';
 
 @Injectable()
 export class UsersService {
@@ -285,34 +290,58 @@ export class UsersService {
                 INNER JOIN trades t ON s."slotid" = t."slotid"
               WHERE
                 b."botid" = $1 ${filter};`;
-    const trades = await this.tradingBotRepository.query(sql, [
-      userBot.botid
-    ]);
+    const trades = await this.tradingBotRepository.query(sql, [userBot.botid]);
     if (!trades.length)
       throw new HttpException(
         ResponseMessage.CONTENT_NOT_FOUND,
         ResponseCode.CONTENT_NOT_FOUND,
       );
-    const stats = await this.getTradeResultStats(user, trades, effectivePeriod, system.toUpperCase());
+    const stats = await this.getTradeResultStats(
+      user,
+      trades,
+      effectivePeriod,
+      system.toUpperCase(),
+    );
     return { trades, stats };
   }
 
-
-  async getTradeResultStats(user: User, trades: any, effectivePeriod: number, system: string) {
+  async getTradeResultStats(
+    user: User,
+    trades: any,
+    effectivePeriod: number,
+    system: string,
+  ) {
     let totalBalance: number;
     const accumulated: number = trades.at(-1).accumulated;
     const balances = await this.getBankUsage(user);
-    balances.map(balance => {
+    balances.map((balance) => {
       if (balance.baseasset === system) {
         totalBalance = balance.total;
       }
     });
-    const periodResult = Number(new bigDecimal(accumulated).divide(new bigDecimal(totalBalance), 4).multiply(new bigDecimal(100)).getValue());
+    const periodResult = Number(
+      new bigDecimal(accumulated)
+        .divide(new bigDecimal(totalBalance), 4)
+        .multiply(new bigDecimal(100))
+        .getValue(),
+    );
     const totalResult = { accumulated, periodResult };
-    const dailyAccumulated = effectivePeriod === 0 ? accumulated : Number(new bigDecimal(accumulated).divide(new bigDecimal(effectivePeriod), 4).getValue());
-    const dailyPercentage = Number(new bigDecimal(dailyAccumulated).divide(new bigDecimal(totalBalance), 4).multiply(new bigDecimal(100)).getValue());
+    const dailyAccumulated =
+      effectivePeriod === 0
+        ? accumulated
+        : Number(
+            new bigDecimal(accumulated)
+              .divide(new bigDecimal(effectivePeriod), 4)
+              .getValue(),
+          );
+    const dailyPercentage = Number(
+      new bigDecimal(dailyAccumulated)
+        .divide(new bigDecimal(totalBalance), 4)
+        .multiply(new bigDecimal(100))
+        .getValue(),
+    );
     const dailyResult = { dailyAccumulated, dailyPercentage };
-    return { periodResult, totalResult, dailyResult,effectivePeriod };
+    return { periodResult, totalResult, dailyResult, effectivePeriod };
   }
 
   /**
@@ -608,6 +637,8 @@ export class UsersService {
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
       user.tradingSystem = binanceDto.tradingSystem;
       user.apiActivationDate = moment().unix();
+      user.tradeStartDate = moment().unix();
+      user.tradeExpiryDate = moment().unix() + Time.THIRTY_DAYS; //30 Days after the trading is started
       const botData: ICreateBot = {
         apiKey: binanceDto.apiKey,
         apiSecret: binanceDto.apiSecret,
@@ -632,24 +663,24 @@ export class UsersService {
     let botResponseArr: IBotResponse[] = [];
     switch (tradingSystem) {
       case TradingSystem.USDT:
-        botData.baseAsset = 'USDT';
-        botData.quoteAsset = 'BTC';
+        botData.baseAsset = CryptoAsset.USDT;
+        botData.quoteAsset = CryptoAsset.BTC;
         botResponseArr[0] = await this.botclient.createBot(botData);
         await this.botclient.startBot(botResponseArr[0].data.botId);
         return botResponseArr;
       case TradingSystem.BTC:
-        botData.baseAsset = 'BTC';
-        botData.quoteAsset = 'ETH';
+        botData.baseAsset = CryptoAsset.BTC;
+        botData.quoteAsset = CryptoAsset.ETH;
         botResponseArr[0] = await this.botclient.createBot(botData);
         await this.botclient.startBot(botResponseArr[0].data.botId);
         return botResponseArr;
       case TradingSystem.BOTH:
-        botData.baseAsset = 'USDT';
-        botData.quoteAsset = 'BTC';
+        botData.baseAsset = CryptoAsset.USDT;
+        botData.quoteAsset = CryptoAsset.BTC;
         const bot1 = await this.botclient.createBot(botData);
         await this.botclient.startBot(bot1.data.botId);
-        botData.baseAsset = 'BTC';
-        botData.quoteAsset = 'ETH';
+        botData.baseAsset = CryptoAsset.BTC;
+        botData.quoteAsset = CryptoAsset.ETH;
         const bot2 = await this.botclient.createBot(botData);
         await this.botclient.startBot(bot2.data.botId);
         botResponseArr.push(bot1, bot2);
@@ -1019,5 +1050,126 @@ export class UsersService {
     return await this.userRepository.find({
       where: { balance: MoreThanOrEqual(limit) },
     });
+  }
+
+  /**
+   *
+   */
+  public async validateTradeTimeStamp() {
+    const users = await this.userRepository.find({
+      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()) },
+    });
+    return users;
+  }
+
+  public async validateActiveTradersProfit(user: User) {
+    const bots = await this.getBotsByUserId(user);
+    let profit: number = 0;
+    let percentage: number = 0;
+    await Promise.all(
+      bots.map(async (m) => {
+        profit += await this.getBotProfit(
+          m.botid,
+          user.tradeStartDate,
+          moment().unix(),
+        );
+        if (m.baseasset === CryptoAsset.BTC) {
+          let profitInUsd = new bigDecimal(PriceService.btcPrice).multiply(
+            new bigDecimal(profit),
+          );
+          percentage += Number(
+            profitInUsd
+              .divide(new bigDecimal(user.plan.price), 4)
+              .multiply(new bigDecimal(100))
+              .getValue(),
+          );
+        } else {
+          percentage += Number(
+            new bigDecimal(profit)
+              .divide(new bigDecimal(user.plan.price), 4)
+              .multiply(new bigDecimal(100))
+              .getValue(),
+          );
+        }
+      }),
+    );
+    return percentage > MaxProfitLimit ? true : false;
+  }
+
+  /**
+   * Get Active Traders
+   */
+  public async getActiveTraders() {
+    let sql = `SELECT  
+                "uuid",
+                "tradeStartDate",
+                "tradeExpiryDate"
+              FROM
+               (SELECT
+                  "uuid",
+                  "tradeStartDate",
+                  "tradeExpiryDate",
+                  
+                  CASE  
+                    WHEN $1 BETWEEN "tradeStartDate" AND "tradeExpiryDate"
+                    
+                    THEN '1'
+                    
+                    ELSE '0'
+                  END
+                as activeTrader  from users) AS results  WHERE results.activeTrader='1';`;
+    const result: any[] = await this.userRepository.query(sql, [
+      moment().unix(),
+    ]);
+    const users = result.map((m) => m.uuid);
+    let activeTraders: User[] = [];
+    if (users.length) {
+      activeTraders = await this.userRepository.find({
+        where: { uuid: In(users) },
+        relations: ['plan'],
+      });
+    }
+    return activeTraders;
+  }
+
+  /**
+   * Get the profit of the bot
+   */
+  public async getBotProfit(botId: string, from: number, to: number) {
+    let sql = `SELECT 
+                COALESCE(SUM(T.amount :: double precision), 0) as profit
+              FROM
+                bots B
+                INNER JOIN slots S ON B."botid" = S."botid"
+                INNER JOIN trades T ON S."slotid" = T."slotid"
+              WHERE
+                B."botid" = $1 AND T.date Between $2 AND $3;`;
+
+    const trades = await this.tradingBotRepository.query(sql, [
+      botId,
+      from,
+      to,
+    ]);
+    return trades[0].profit;
+  }
+
+  public async getTradesBetweenRange(botId: string, from: number, to: number) {
+    let sql = `SELECT 
+              T."date",
+              T."amount" as stack,
+              T."profit",
+              T."profitpercentage" as variation
+            FROM
+              bots B
+              INNER JOIN slots S ON B."botid" = S."botid"
+              INNER JOIN trades T ON S."slotid" = T."slotid"
+            WHERE
+              B."botid" = $1 AND T.date Between $2 AND $3;`;
+    const trades = await this.tradingBotRepository.query(sql, [
+      botId,
+      from,
+      to,
+    ]);
+    return trades;
   }
 }

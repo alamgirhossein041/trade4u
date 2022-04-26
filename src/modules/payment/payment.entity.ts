@@ -9,6 +9,7 @@ import {
   OneToOne,
   PrimaryColumn,
 } from 'typeorm';
+import { PaymentType } from './commons/payment.enum';
 
 @Entity({
   name: 'payments',
@@ -29,6 +30,15 @@ export class Payment {
 
   @Column()
   status: string;
+
+  @Column()
+  type: string;
+
+  @Column({
+    type: 'bytea',
+    nullable: true,
+  })
+  pdf: Buffer;
 
   @Column()
   createdAt: number;

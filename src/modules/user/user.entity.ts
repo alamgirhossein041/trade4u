@@ -55,6 +55,12 @@ export class User {
   @Column({ nullable: true })
   apiActivationDate: number;
 
+  @Column({ nullable: true })
+  tradeStartDate: number;
+
+  @Column({ nullable: true })
+  tradeExpiryDate: number;
+
   @Column({ length: 150, nullable: true })
   klayWallet: string;
 

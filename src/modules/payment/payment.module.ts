@@ -16,6 +16,8 @@ import { LicenseFee } from '../seed/licensefee.entity';
 import { PerformanceFee } from '../seed/preformaceFee.entity';
 import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 import { UserCommision } from '../user/user-commision.entity';
+import { SocketModule } from '../../modules/socket/socket.module';
+import { PDFGenerator } from './pdf.generator';
 
 @Module({
   imports: [
@@ -33,9 +35,20 @@ import { UserCommision } from '../user/user-commision.entity';
     KlaytnModule,
     UserModule,
     TelegramModule,
+    SocketModule,
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, DepositTransaction, CompensationTransaction],
-  exports: [PaymentService, DepositTransaction, CompensationTransaction],
+  providers: [
+    PaymentService,
+    DepositTransaction,
+    CompensationTransaction,
+    PDFGenerator,
+  ],
+  exports: [
+    PaymentService,
+    DepositTransaction,
+    CompensationTransaction,
+    PDFGenerator,
+  ],
 })
 export class PaymentModule {}

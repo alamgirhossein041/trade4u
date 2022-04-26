@@ -63,12 +63,21 @@ export const CoinMarketMock = {
         return true;
     }),
     getPrice: jest.fn((value: string) => {
-        let object = {};
-        object['klay-token'] = {};
-        object['klay-token']['usd'] = 1.21
-        object['klay-token']['last_updated_at'] = 1646304806;
-        return object;
-    }),
+        if (value === 'bitcoin') {
+            let object = {};
+            object['bitcoin'] = {};
+            object['bitcoin']['usd'] = 40548.90
+            object['bitcoin']['last_updated_at'] = 1646304806;
+            return object;
+        }
+        else if (value === 'klay-token') {
+            let object = {};
+            object['klay-token'] = {};
+            object['klay-token']['usd'] = 1.21
+            object['klay-token']['last_updated_at'] = 1646304807;
+            return object;
+        }
+    })
 };
 
 export const EventEmitterMock = {

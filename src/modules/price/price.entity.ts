@@ -7,6 +7,9 @@ export class Price {
   @PrimaryColumn()
   timestamp: number;
 
+  @Column()
+  currency: string;
+
   @Column({
     type: 'double precision',
   })

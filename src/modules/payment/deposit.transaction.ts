@@ -6,8 +6,8 @@ import { Account } from '../klaytn/account.entity';
 import { Payment } from '../payment/payment.entity';
 import { Plan } from '../seed/plan.entity';
 import { Deposit } from './deposit.entity';
-import moment from 'moment';
-import { PaymentStatus } from './commons/payment.enum';
+import moment, { unix } from 'moment';
+import { PaymentStatus, PaymentType } from './commons/payment.enum';
 import { TransactionReceipt } from 'caver-js';
 import { KlaytnService } from '../../modules/klaytn/klaytn.service';
 import { CaverService } from '../../modules/klaytn/caver.service';
@@ -15,6 +15,7 @@ import bigDecimal from 'js-big-decimal';
 import { UserStats } from '../user/user-stats.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { UserCommision } from '../user/user-commision.entity';
+import { Time } from '../../utils/enum';
 
 @Injectable()
 export class DepositTransaction {
@@ -62,11 +63,18 @@ export class DepositTransaction {
           await this.saveDeposit(tx, queryRunner);
           await this.updateStateOfAccount(tx.to, queryRunner);
           await this.detachAccountFromPayment(queryRunner);
-          await this.updateUserPlan(
-            this.payment.user,
-            this.payment.plan,
-            queryRunner,
-          );
+          if (
+            this.payment.type === PaymentType.TX_PREFORMANCE_BTC ||
+            this.payment.type === PaymentType.TX_PREFORMANCE_USDT
+          ) {
+            await this.updateTradeTimeFrames(this.payment.user, queryRunner);
+          } else {
+            await this.updateUserPlan(
+              this.payment.user,
+              this.payment.plan,
+              queryRunner,
+            );
+          }
           await this.caverService.moveToMasterWallet(tx.to);
           await this.klaytnService.removeListener(tx.to);
         }
@@ -84,6 +92,17 @@ export class DepositTransaction {
         resolve(this.payment.user);
       }
     });
+  }
+
+  /**
+   * Update the trading time frames when Preformance fee is paid
+   * @returns
+   */
+  public async updateTradeTimeFrames(user: User, queryRunner: QueryRunner) {
+    user.tradeStartDate = user.tradeExpiryDate;
+    user.tradeExpiryDate = user.tradeExpiryDate + Time.THIRTY_DAYS; //30 Days after the Preformance fee is paid
+
+    return await queryRunner.manager.save(user);
   }
 
   /**
