@@ -12,11 +12,10 @@ export enum BonusType {
 export enum PaymentType {
   ACTIVATION = 'Activation',
   TX_PREFORMANCE_USDT = 'Tx.PreformaceFee USDT',
-  TX_PREFORMANCE_BTC = 'Tx.PreformaceFee BTC'
+  TX_PREFORMANCE_BTC = 'Tx.PreformaceFee BTC',
 }
 
-export enum CryptoAsset
-{
+export enum CryptoAsset {
   USDT = 'USDT',
   BTC = 'BTC',
   ETH = 'ETH',

@@ -54,7 +54,7 @@ import { join } from 'path';
     SchedulerModule,
     ObserverModule,
     WithdrawalModule,
-   // SocketModule,
+    // SocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

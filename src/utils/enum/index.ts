@@ -85,14 +85,14 @@ export enum NodeEnv {
 
 export enum JOB {
   KLAY_MARKET_PRICE = `klay market price`,
-  BTC_MARKET_PRICE =`btc market price`,
+  BTC_MARKET_PRICE = `btc market price`,
   RECOVER_DEPOSIT = `recover deposits`,
   EXPIRE_PAYMENT = `expire payment`,
   WALLET_SYNC = `wallet sync`,
   PROCESS_DEPOSIT = `process deposit`,
   WITHDRAWAL = `withdrawal`,
   NOTIFY_TRADE_LIMIT_EXCEED = `notify trade limit exceed`,
-  NOTIFY_PROFIT_LIMIT_EXCEED = `notify_prfit_limit_exceed`
+  NOTIFY_PROFIT_LIMIT_EXCEED = `notify_prfit_limit_exceed`,
 }
 
 export enum BlockProcess {

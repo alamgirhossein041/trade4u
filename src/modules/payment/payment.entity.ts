@@ -32,13 +32,13 @@ export class Payment {
   status: string;
 
   @Column()
-  type: string
+  type: string;
 
   @Column({
     type: 'bytea',
-    nullable: true
+    nullable: true,
   })
-  pdf: Buffer
+  pdf: Buffer;
 
   @Column()
   createdAt: number;

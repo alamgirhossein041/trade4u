@@ -21,8 +21,8 @@ export interface BotResponse {
 }
 
 export interface TradesResultStats {
-  effectivePeriod: number,
-  periodResult: number,
-  totalResult: { accumulated: number,periodResult: number },
-  dailyResult: {dailyAccumulated: number, dailyPercentage: number}
+  effectivePeriod: number;
+  periodResult: number;
+  totalResult: { accumulated: number; periodResult: number };
+  dailyResult: { dailyAccumulated: number; dailyPercentage: number };
 }

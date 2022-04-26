@@ -38,7 +38,17 @@ import { PDFGenerator } from './pdf.generator';
     SocketModule,
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, DepositTransaction, CompensationTransaction, PDFGenerator],
-  exports: [PaymentService, DepositTransaction, CompensationTransaction, PDFGenerator],
+  providers: [
+    PaymentService,
+    DepositTransaction,
+    CompensationTransaction,
+    PDFGenerator,
+  ],
+  exports: [
+    PaymentService,
+    DepositTransaction,
+    CompensationTransaction,
+    PDFGenerator,
+  ],
 })
 export class PaymentModule {}

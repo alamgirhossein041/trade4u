@@ -2,7 +2,12 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SeedService } from '../../modules/seed/seed.service';
 import { getConnection, Repository, LessThanOrEqual, Like } from 'typeorm';
-import { BonusType, CryptoAsset, PaymentStatus, PaymentType } from './commons/payment.enum';
+import {
+  BonusType,
+  CryptoAsset,
+  PaymentStatus,
+  PaymentType,
+} from './commons/payment.enum';
 import { Payment } from './payment.entity';
 import moment from 'moment';
 import { PriceService } from '../price/price.service';
@@ -32,7 +37,6 @@ import { PDF } from './commons/payment.types';
 
 @Injectable()
 export class PaymentService {
-
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
@@ -44,9 +48,8 @@ export class PaymentService {
     private readonly loggerServce: LoggerService,
     private readonly userService: UsersService,
     private readonly socketService: SocketService,
-    private readonly pdfGenerator: PDFGenerator
-  ) {
-  }
+    private readonly pdfGenerator: PDFGenerator,
+  ) {}
 
   /**
    * Get user payments
@@ -269,10 +272,10 @@ export class PaymentService {
   }
 
   /**
-  * Notify the user for preformance fee payment dues
-  * @returns 
-  */
-  @Cron(CronExpression.EVERY_MINUTE, {
+   * Notify the user for preformance fee payment dues
+   * @returns
+   */
+  @Cron(CronExpression.EVERY_5_MINUTES, {
     name: JOB.NOTIFY_PROFIT_LIMIT_EXCEED,
   })
   public async NotifyUsersOnProfitLimitReach() {
@@ -280,24 +283,28 @@ export class PaymentService {
       `JOB: Notify user on profit limit reach started at: ${moment().unix()}`,
     );
     const activeTraders = await this.userService.getActiveTraders();
-    Promise.all(activeTraders.map(async m => {
-      const valid = await this.userService.validateActiveTradersProfit(m);
-      if (valid)
-        await this.socketService.emitNotification(m.email, Notifications.PERFORMANCE_FEE);
-    }))
-      .then(() => {
-        this.loggerServce.log(
-          `JOB: Notify user on profit limit reach completed at: ${moment().unix()}`,
-        );
-        return;
-      });
+    Promise.all(
+      activeTraders.map(async (m) => {
+        const valid = await this.userService.validateActiveTradersProfit(m);
+        if (valid)
+          await this.socketService.emitNotification(
+            m.email,
+            Notifications.PERFORMANCE_FEE,
+          );
+      }),
+    ).then(() => {
+      this.loggerServce.log(
+        `JOB: Notify user on profit limit reach completed at: ${moment().unix()}`,
+      );
+      return;
+    });
   }
 
   /**
    * Notify the user for preformance fee payment dues
-   * @returns 
+   * @returns
    */
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_5_MINUTES, {
     name: JOB.NOTIFY_TRADE_LIMIT_EXCEED,
   })
   public async NotifyUsersOnTradeLimitExceed() {
@@ -311,51 +318,54 @@ export class PaymentService {
         `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
       );
       return;
-    }
-    else {
-      Promise.all(users.map(async m => {
-        try {
-          await this.socketService.emitNotification(m.email, Notifications.PERFORMANCE_FEE);
-        }
-        catch (err) {
-          this.loggerServce.error(err);
-        }
-      }))
-        .then(() => {
-          this.loggerServce.log(
-            `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
-          );
-          return;
-        });
+    } else {
+      Promise.all(
+        users.map(async (m) => {
+          try {
+            await this.socketService.emitNotification(
+              m.email,
+              Notifications.PERFORMANCE_FEE,
+            );
+          } catch (err) {
+            this.loggerServce.error(err);
+          }
+        }),
+      ).then(() => {
+        this.loggerServce.log(
+          `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
+        );
+        return;
+      });
     }
   }
 
   /**
    * Create Preformance fee payment
-   * @returns 
+   * @returns
    */
   public async createPreformanceFeePayment(user: User): Promise<Payment[]> {
     return new Promise<Payment[]>(async (resolve, reject) => {
       let payments: Payment[] = [];
       const bots = await this.userService.getBotsByUserId(user);
-      await Promise.all(bots.map(async m => {
-        try {
-          const payment = await this.buildPayment(user, m);
-          payment ? payments.push(payment) : '';
-        }
-        catch (err) {
-          reject(err);
-        }
-      }));
+      await Promise.all(
+        bots.map(async (m) => {
+          try {
+            const payment = await this.buildPayment(user, m);
+            payment ? payments.push(payment) : '';
+          } catch (err) {
+            reject(err);
+          }
+        }),
+      );
       return resolve(payments);
     });
   }
 
   /**
-   * 
-   * @param user 
-   * @param bot 
-   * @returns 
+   *
+   * @param user
+   * @param bot
+   * @returns
    */
   public base64toBlob(base64Data, contentType) {
     contentType = contentType || '';
@@ -380,39 +390,50 @@ export class PaymentService {
 
   /**
    * Build preformace fee payment for the given user and bot
-   * @param options 
-   * @param condition 
-   * @param relations 
-   * @returns 
+   * @param options
+   * @param condition
+   * @param relations
+   * @returns
    */
   public async buildPayment(user: User, bot: Bot): Promise<Payment | void> {
     return new Promise<Payment | void>(async (resolve, reject) => {
       try {
-        const profit = await this.userService.getBotProfit(bot.botid, user.tradeStartDate, user.tradeExpiryDate);
+        const profit = await this.userService.getBotProfit(
+          bot.botid,
+          user.tradeStartDate,
+          user.tradeExpiryDate,
+        );
         if (!profit) {
           this.loggerServce.warn(`Profits not found for bot: ${bot.botid}`);
           resolve();
-        }
-        else {
-
-          const tradesList = await this.userService.getTradesBetweenRange(bot.botid, user.tradeStartDate, user.tradeExpiryDate);
+        } else {
+          const tradesList = await this.userService.getTradesBetweenRange(
+            bot.botid,
+            user.tradeStartDate,
+            user.tradeExpiryDate,
+          );
           const uid = new ShortUniqueId({ length: 10 });
           const payment = new Payment();
           payment.paymentId = uid();
           if (bot.baseasset === CryptoAsset.USDT) {
             payment.type = PaymentType.TX_PREFORMANCE_USDT;
-            payment.amountUSD = Number(new bigDecimal(profit)
-              .multiply(new bigDecimal(user.plan.preformanceFeePercentage))
-              .divide(new bigDecimal(100), 4).getValue());
-          }
-          else {
+            payment.amountUSD = Number(
+              new bigDecimal(profit)
+                .multiply(new bigDecimal(user.plan.preformanceFeePercentage))
+                .divide(new bigDecimal(100), 4)
+                .getValue(),
+            );
+          } else {
             payment.type = PaymentType.TX_PREFORMANCE_BTC;
-            let profitInUsd = new bigDecimal(PriceService.btcPrice)
-              .multiply(new bigDecimal(profit));
-            payment.amountUSD = Number(profitInUsd
-              .multiply(new bigDecimal(user.plan.preformanceFeePercentage))
-              .divide(new bigDecimal(100), 4).getValue());
-
+            let profitInUsd = new bigDecimal(PriceService.btcPrice).multiply(
+              new bigDecimal(profit),
+            );
+            payment.amountUSD = Number(
+              profitInUsd
+                .multiply(new bigDecimal(user.plan.preformanceFeePercentage))
+                .divide(new bigDecimal(100), 4)
+                .getValue(),
+            );
           }
           payment.status = PaymentStatus.PENDING;
           payment.createdAt = moment().unix();
@@ -426,26 +447,30 @@ export class PaymentService {
           payment.user = user;
           let data: PDF = {
             userName: user.userName,
-            from: moment(user.tradeStartDate * 1000).format('MM-DD-YYYY HH:mm:ss'),
-            to: moment(user.tradeExpiryDate * 1000).format('MM-DD-YYYY HH:mm:ss'),
+            from: moment(user.tradeStartDate * 1000).format(
+              'MM-DD-YYYY HH:mm:ss',
+            ),
+            to: moment(user.tradeExpiryDate * 1000).format(
+              'MM-DD-YYYY HH:mm:ss',
+            ),
             issueDate: moment().format('MM-DD-YYYY HH:mm:ss'),
             profit: profit,
             charges: payment.amountUSD,
             preformanceFee: user.plan.preformanceFeePercentage,
-            trades: tradesList
-          }
+            trades: tradesList,
+          };
           payment.pdf = await this.pdfGenerator.generatePDF(data);
-          this.loggerServce.log(`Payment created = ${payment.paymentId}, bot: ${bot.botid}`);
+          this.loggerServce.log(
+            `Payment created = ${payment.paymentId}, bot: ${bot.botid}`,
+          );
           resolve(await this.paymentRepository.save(payment));
         }
-      }
-      catch (err) {
+      } catch (err) {
         this.loggerServce.error(`Preformance Fee payment creation failed !`);
         reject(err);
       }
-    })
+    });
   }
-
 
   /**
    * Paginate the payment list

@@ -57,7 +57,7 @@ export class User {
 
   @Column({ nullable: true })
   tradeStartDate: number;
-  
+
   @Column({ nullable: true })
   tradeExpiryDate: number;
 

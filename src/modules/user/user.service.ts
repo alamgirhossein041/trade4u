@@ -290,34 +290,58 @@ export class UsersService {
                 INNER JOIN trades t ON s."slotid" = t."slotid"
               WHERE
                 b."botid" = $1 ${filter};`;
-    const trades = await this.tradingBotRepository.query(sql, [
-      userBot.botid
-    ]);
+    const trades = await this.tradingBotRepository.query(sql, [userBot.botid]);
     if (!trades.length)
       throw new HttpException(
         ResponseMessage.CONTENT_NOT_FOUND,
         ResponseCode.CONTENT_NOT_FOUND,
       );
-    const stats = await this.getTradeResultStats(user, trades, effectivePeriod, system.toUpperCase());
+    const stats = await this.getTradeResultStats(
+      user,
+      trades,
+      effectivePeriod,
+      system.toUpperCase(),
+    );
     return { trades, stats };
   }
 
-
-  async getTradeResultStats(user: User, trades: any, effectivePeriod: number, system: string) {
+  async getTradeResultStats(
+    user: User,
+    trades: any,
+    effectivePeriod: number,
+    system: string,
+  ) {
     let totalBalance: number;
     const accumulated: number = trades.at(-1).accumulated;
     const balances = await this.getBankUsage(user);
-    balances.map(balance => {
+    balances.map((balance) => {
       if (balance.baseasset === system) {
         totalBalance = balance.total;
       }
     });
-    const periodResult = Number(new bigDecimal(accumulated).divide(new bigDecimal(totalBalance), 4).multiply(new bigDecimal(100)).getValue());
+    const periodResult = Number(
+      new bigDecimal(accumulated)
+        .divide(new bigDecimal(totalBalance), 4)
+        .multiply(new bigDecimal(100))
+        .getValue(),
+    );
     const totalResult = { accumulated, periodResult };
-    const dailyAccumulated = effectivePeriod === 0 ? accumulated : Number(new bigDecimal(accumulated).divide(new bigDecimal(effectivePeriod), 4).getValue());
-    const dailyPercentage = Number(new bigDecimal(dailyAccumulated).divide(new bigDecimal(totalBalance), 4).multiply(new bigDecimal(100)).getValue());
+    const dailyAccumulated =
+      effectivePeriod === 0
+        ? accumulated
+        : Number(
+            new bigDecimal(accumulated)
+              .divide(new bigDecimal(effectivePeriod), 4)
+              .getValue(),
+          );
+    const dailyPercentage = Number(
+      new bigDecimal(dailyAccumulated)
+        .divide(new bigDecimal(totalBalance), 4)
+        .multiply(new bigDecimal(100))
+        .getValue(),
+    );
     const dailyResult = { dailyAccumulated, dailyPercentage };
-    return { periodResult, totalResult, dailyResult,effectivePeriod };
+    return { periodResult, totalResult, dailyResult, effectivePeriod };
   }
 
   /**
@@ -1029,11 +1053,11 @@ export class UsersService {
   }
 
   /**
-   * 
+   *
    */
   public async validateTradeTimeStamp() {
     const users = await this.userRepository.find({
-      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()) }
+      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()) },
     });
     return users;
   }
@@ -1042,23 +1066,33 @@ export class UsersService {
     const bots = await this.getBotsByUserId(user);
     let profit: number = 0;
     let percentage: number = 0;
-    await Promise.all(bots.map(async (m) => {
-      profit += await this.getBotProfit(m.botid, user.tradeStartDate, moment().unix());
-      if (m.baseasset === CryptoAsset.BTC) {
-        let profitInUsd = new bigDecimal(PriceService.btcPrice)
-            .multiply(new bigDecimal(profit));
-        percentage += Number(profitInUsd
-          .divide(new bigDecimal(user.plan.price), 4)
-          .multiply(new bigDecimal(100))
-          .getValue())
-      }
-      else {
-        percentage += Number(new bigDecimal(profit)
-          .divide(new bigDecimal(user.plan.price), 4)
-          .multiply(new bigDecimal(100))
-          .getValue())
-      }
-    }));
+    await Promise.all(
+      bots.map(async (m) => {
+        profit += await this.getBotProfit(
+          m.botid,
+          user.tradeStartDate,
+          moment().unix(),
+        );
+        if (m.baseasset === CryptoAsset.BTC) {
+          let profitInUsd = new bigDecimal(PriceService.btcPrice).multiply(
+            new bigDecimal(profit),
+          );
+          percentage += Number(
+            profitInUsd
+              .divide(new bigDecimal(user.plan.price), 4)
+              .multiply(new bigDecimal(100))
+              .getValue(),
+          );
+        } else {
+          percentage += Number(
+            new bigDecimal(profit)
+              .divide(new bigDecimal(user.plan.price), 4)
+              .multiply(new bigDecimal(100))
+              .getValue(),
+          );
+        }
+      }),
+    );
     return percentage > MaxProfitLimit ? true : false;
   }
 
@@ -1084,16 +1118,16 @@ export class UsersService {
                     ELSE '0'
                   END
                 as activeTrader  from users) AS results  WHERE results.activeTrader='1';`;
-    const result: any[] = await this.userRepository.query(sql, [moment().unix()]);
-    const users = result.map(m => m.uuid)
+    const result: any[] = await this.userRepository.query(sql, [
+      moment().unix(),
+    ]);
+    const users = result.map((m) => m.uuid);
     let activeTraders: User[] = [];
     if (users.length) {
-      activeTraders = await this.userRepository.find(
-        {
-          where: { uuid: In(users) },
-          relations: ['plan']
-        }
-      )
+      activeTraders = await this.userRepository.find({
+        where: { uuid: In(users) },
+        relations: ['plan'],
+      });
     }
     return activeTraders;
   }
@@ -1111,13 +1145,15 @@ export class UsersService {
               WHERE
                 B."botid" = $1 AND T.date Between $2 AND $3;`;
 
-    const trades = await this.tradingBotRepository.query(sql, [botId, from, to]);
+    const trades = await this.tradingBotRepository.query(sql, [
+      botId,
+      from,
+      to,
+    ]);
     return trades[0].profit;
   }
 
-
-  public async getTradesBetweenRange(botId: string, from: number, to: number)
-  {
+  public async getTradesBetweenRange(botId: string, from: number, to: number) {
     let sql = `SELECT 
               T."date",
               T."amount" as stack,
@@ -1129,7 +1165,11 @@ export class UsersService {
               INNER JOIN trades T ON S."slotid" = T."slotid"
             WHERE
               B."botid" = $1 AND T.date Between $2 AND $3;`;
-    const trades = await this.tradingBotRepository.query(sql, [botId, from, to]);
+    const trades = await this.tradingBotRepository.query(sql, [
+      botId,
+      from,
+      to,
+    ]);
     return trades;
   }
 }

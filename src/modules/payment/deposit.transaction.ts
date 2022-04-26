@@ -63,11 +63,12 @@ export class DepositTransaction {
           await this.saveDeposit(tx, queryRunner);
           await this.updateStateOfAccount(tx.to, queryRunner);
           await this.detachAccountFromPayment(queryRunner);
-          if (this.payment.type === PaymentType.TX_PREFORMANCE_BTC ||
-            this.payment.type === PaymentType.TX_PREFORMANCE_USDT) {
+          if (
+            this.payment.type === PaymentType.TX_PREFORMANCE_BTC ||
+            this.payment.type === PaymentType.TX_PREFORMANCE_USDT
+          ) {
             await this.updateTradeTimeFrames(this.payment.user, queryRunner);
-          }
-          else {
+          } else {
             await this.updateUserPlan(
               this.payment.user,
               this.payment.plan,
@@ -95,11 +96,11 @@ export class DepositTransaction {
 
   /**
    * Update the trading time frames when Preformance fee is paid
-   * @returns 
+   * @returns
    */
   public async updateTradeTimeFrames(user: User, queryRunner: QueryRunner) {
     user.tradeStartDate = user.tradeExpiryDate;
-    user.tradeExpiryDate = user.tradeExpiryDate + Time.THIRTY_DAYS //30 Days after the Preformance fee is paid
+    user.tradeExpiryDate = user.tradeExpiryDate + Time.THIRTY_DAYS; //30 Days after the Preformance fee is paid
 
     return await queryRunner.manager.save(user);
   }

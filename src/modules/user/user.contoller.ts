@@ -246,20 +246,28 @@ export class UserContoller {
           `Query Parameter startDate or endDate ${ResponseMessage.IS_INVALID}, future date not allowed`,
           ResponseCode.BAD_REQUEST,
         );
-      effectivePeriod = moment.unix(end).startOf('day').diff(moment.unix(start).startOf('day'), 'days');
+      effectivePeriod = moment
+        .unix(end)
+        .startOf('day')
+        .diff(moment.unix(start).startOf('day'), 'days');
       if (effectivePeriod > TradeResultDaysLimit)
         throw new HttpException(
           `Effective Period Limit ${ResponseMessage.IS_INVALID}, allowed 180 days , got ${effectivePeriod} days`,
           ResponseCode.BAD_REQUEST,
         );
-      filter = `AND t."date" >= ${moment.unix(start).startOf('day').unix()} AND t."date" <= ${moment.unix(end).endOf('day').unix()
-        } AND b."baseasset" = '${system.toUpperCase()}'`;
+      filter = `AND t."date" >= ${moment
+        .unix(start)
+        .startOf('day')
+        .unix()} AND t."date" <= ${moment
+        .unix(end)
+        .endOf('day')
+        .unix()} AND b."baseasset" = '${system.toUpperCase()}'`;
     }
     const tradesResult = await this.userService.getTradesResult(
       user,
       system,
       effectivePeriod,
-      filter
+      filter,
     );
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,

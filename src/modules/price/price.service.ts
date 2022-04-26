@@ -23,8 +23,8 @@ export class PriceService {
   ) {
     this.loggerService.setContext('PriceService');
     (async () => {
-        await this.initKlayPrice();
-        await this.initBtcPrice();
+      await this.initKlayPrice();
+      await this.initBtcPrice();
     })();
   }
 
@@ -39,11 +39,11 @@ export class PriceService {
     }
     const [klay, btc] = await Promise.all([
       this.coinGeckoService.getPrice('klay-token'),
-      this.coinGeckoService.getPrice('bitcoin')
+      this.coinGeckoService.getPrice('bitcoin'),
     ]);
     const [klayPrice, btcPrice] = await Promise.all([
       this.saveKlayPrice(klay),
-      this.saveBtcPrice(btc)
+      this.saveBtcPrice(btc),
     ]);
     return { klayPrice, btcPrice };
   }
@@ -116,7 +116,7 @@ export class PriceService {
       this.loggerService.log(`Get Btc latest price on startup`);
       const data = await this.getMarketPrice();
       PriceService.btcPrice = data.btcPrice;
-      } else {
+    } else {
       PriceService.btcPrice = result[0].price;
     }
     return;

@@ -63,7 +63,9 @@ export class WithdrawalService {
       } finally {
         // you need to release query runner which is manually created:
         await queryRunner.release();
-        this.loggerService.log(`Withdrawal Transaction Completed for user: ${user.userName}`);
+        this.loggerService.log(
+          `Withdrawal Transaction Completed for user: ${user.userName}`,
+        );
         resolve();
       }
     });

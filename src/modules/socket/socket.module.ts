@@ -3,8 +3,8 @@ import { SocketController } from './socket.controller';
 import { SocketService } from './socket.service';
 
 @Module({
-  exports:[SocketService],
+  exports: [SocketService],
   controllers: [SocketController],
-  providers: [SocketService]
+  providers: [SocketService],
 })
-export class SocketModule { }
+export class SocketModule {}
