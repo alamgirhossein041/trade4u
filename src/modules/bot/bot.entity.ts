@@ -40,9 +40,9 @@ export class Bot {
   @Column()
   userid: string;
 
-  @Column({ type: 'double precision' })
+  @Column({ type: 'double precision',nullable: true })
   efficiencyoverall: number;
 
-  @Column({ type: 'double precision' })
+  @Column({ type: 'double precision',nullable: true })
   efficiencytoday: number;
 }
