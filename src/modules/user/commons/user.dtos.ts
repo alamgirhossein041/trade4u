@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsPositive,
   IsString,
+  IsUUID
 } from 'class-validator';
 import { TradingSystem } from './user.enums';
 
@@ -43,8 +44,7 @@ export class TelegramNotifyDto {
 }
 
 export class TradeNotificationDto {
-  @IsNotEmpty()
-  @IsString()
+  @IsUUID()
   userId: string;
 
   @IsNotEmpty()

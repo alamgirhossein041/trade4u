@@ -6,9 +6,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   JoinColumn,
-  ManyToOne,
-  CreateDateColumn,
-  UpdateDateColumn,
+  ManyToOne
 } from 'typeorm';
 import { Crypto } from '../../utils/crypto';
 import { Plan } from '../seed/plan.entity';
@@ -70,6 +68,9 @@ export class User {
 
   @Column({ type: 'boolean', default: false })
   planIsActive: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  isActive: boolean;
 
   @Column({ nullable: true })
   planExpiry: number;
