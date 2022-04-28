@@ -11,7 +11,7 @@ import { Logger } from '@nestjs/common';
 import { Notifications } from './commons/socket.enum';
 
 @WebSocketGateway(Number(process.env.APP_PORT), {
-   cors: true 
+  cors: true,
 })
 export class SocketService
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -33,7 +33,7 @@ export class SocketService
   }
 
   public async emitNotification(email: string, Notification: Notifications) {
-    return this.server.to(email).emit(Notification);
+    return await this.server.to(email).emit(Notification);
   }
 
   @SubscribeMessage('join')

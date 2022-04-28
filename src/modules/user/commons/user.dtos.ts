@@ -4,7 +4,7 @@ import {
   IsNotEmpty,
   IsPositive,
   IsString,
-  IsUUID
+  IsUUID,
 } from 'class-validator';
 import { TradingSystem } from './user.enums';
 

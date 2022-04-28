@@ -13,7 +13,8 @@ import { EventEmitter } from './event.emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Deposit } from '../payment/deposit.entity';
 import { Repository } from 'typeorm';
-import { BotStatus } from 'modules/user/commons/user.enums';
+import { SocketService } from '../../modules/socket/socket.service';
+import { Notifications } from '../../modules/socket/commons/socket.enum';
 
 @Processor(BlockQueue.BLOCK)
 export class BlockProcessor {
@@ -27,6 +28,7 @@ export class BlockProcessor {
     private readonly loggerService: LoggerService,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
+    private readonly socketService: SocketService,
   ) {
     this.loggerService.setContext('BlockProcessor');
   }
@@ -66,19 +68,26 @@ export class BlockProcessor {
             const user = await this.depositTransaction.initDepositTransaction(
               tx,
             );
-            const deposit = await this.depositRepository.findOne({
-              txHash: tx.transactionHash
-            },
+            const deposit = await this.depositRepository.findOne(
               {
-                relations: ['payment']
-              });
+                txHash: tx.transactionHash,
+              },
+              {
+                relations: ['payment'],
+              },
+            );
             if (deposit) {
               const depositCompletedEvent = new DepositCompletedEvent();
-              if (deposit.payment.type === PaymentType.TX_PREFORMANCE_BTC ||
-                deposit.payment.type === PaymentType.TX_PREFORMANCE_USDT) {
-                depositCompletedEvent.bonusType = BonusType.PERFORMANCE
-              }
-              else{
+              if (
+                deposit.payment.type === PaymentType.TX_PREFORMANCE_BTC ||
+                deposit.payment.type === PaymentType.TX_PREFORMANCE_USDT
+              ) {
+                depositCompletedEvent.bonusType = BonusType.PERFORMANCE;
+                await this.socketService.emitNotification(
+                  user.email,
+                  Notifications.PERFORMANCE_FEE_PAID,
+                );
+              } else {
                 depositCompletedEvent.bonusType = BonusType.LISENCE;
               }
               depositCompletedEvent.user = user;
