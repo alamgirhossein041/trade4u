@@ -415,6 +415,47 @@ export class UsersService {
   }
 
   /**
+   * Get User Commisions data
+   * @param user
+   */
+  async getUserCommissions(user: User) {
+    let sql = `SELECT
+                SUM(c."amount") as total_commission
+              FROM
+                users_commisions c
+              WHERE
+                c."consumed" = true AND c."userId"='${user.uuid}';`;
+    const result = await this.userCommisionRepository.query(sql);
+    const commisions = await this.userCommisionRepository.find({
+      where: { user, consumed: true },
+    });
+    if (!commisions.length) {
+      throw new HttpException(
+        ResponseMessage.CONTENT_NOT_FOUND,
+        ResponseCode.CONTENT_NOT_FOUND,
+      );
+    }
+    return { commisions, total_commision: result[0].total_commission };
+  }
+
+  /**
+   * Get User Bot Efficiency
+   * @param user
+   */
+  async getBotEfficiency(user: User, system: string) {
+    const bot = await this.getBotByUserIdAndBaseAsset(user, system);
+    if (!bot)
+      throw new HttpException(
+        ResponseMessage.NO_ACTIVE_BOT,
+        ResponseCode.BAD_REQUEST,
+      );
+    return {
+      todayEfficiency: bot.efficiencytoday,
+      globalEfficiency: bot.efficiencyoverall,
+    };
+  }
+
+  /**
    * Get user by userName
    * @param userName
    * @returns

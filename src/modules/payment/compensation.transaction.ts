@@ -68,8 +68,10 @@ export class CompensationTransaction {
         );
         await this.distBonusInParents(
           userParentTree,
+          userWithPlan,
           planAmount,
           depositCompletedEvent.bonusType,
+          depositCompletedEvent.deposit.txHash,
           queryRunner,
         );
         await this.updateDepositProcessing(
@@ -100,8 +102,10 @@ export class CompensationTransaction {
    */
   private async distBonusInParents(
     parenTree: any,
+    userWithPlan: User,
     planAmount: number,
     bonusType: string,
+    depositHash: string,
     queryRunner: QueryRunner,
   ) {
     return new Promise<void>(async (resolve, reject) => {
@@ -122,10 +126,15 @@ export class CompensationTransaction {
                 parentToUpdate.userStats,
               );
               if (isEarningLimitExceed) {
+                if (bonusType === BonusType.LISENCE)
+                  bonusType = userWithPlan.plan.planName;
                 await this.createCommision(
                   parentToUpdate,
+                  userWithPlan,
                   amount,
                   bonusType,
+                  parent.level,
+                  depositHash,
                   queryRunner,
                   false,
                 );
@@ -145,11 +154,16 @@ export class CompensationTransaction {
                   amount,
                   queryRunner,
                 );
+                if (bonusType === BonusType.LISENCE)
+                  bonusType = userWithPlan.plan.planName;
                 await this.createCommision(
                   parentToUpdate,
+                  userWithPlan,
                   amount,
                   bonusType,
-                  queryRunner,
+                  parent.level,
+                  depositHash,
+                  queryRunner
                 );
                 parentToUpdate.balance = Number(
                   new bigDecimal(amount)
@@ -290,8 +304,11 @@ export class CompensationTransaction {
    */
   private async createCommision(
     parent: User,
+    affiliate: User,
     amount: number,
     type: string,
+    level: string,
+    depositHash: string,
     queryRunner: QueryRunner,
     consumed: boolean = true,
   ) {
@@ -306,6 +323,9 @@ export class CompensationTransaction {
         commision.amount = amount;
         commision.user = parent;
         commision.type = type;
+        commision.level = level;
+        commision.affiliate = affiliate.userName;
+        commision.txHash = depositHash;
         commision.amountKLAY = amountKLAY;
         commision.consumed = consumed;
         await queryRunner.manager.save(commision);

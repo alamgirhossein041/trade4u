@@ -307,16 +307,37 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Get(`commisions`)
+  @Get(`bot_efficiency`)
+  public async getUserBotEfficiency(
+    @CurrentUser() user: User,
+    @Body() body: SystemDto,
+    @Res() res: Response,
+  ) {
+    this.loggerService.log(
+      `GET user/bot_efficiency ${LoggerMessages.API_CALLED}`,
+    );
+    const efficiency = await this.userService.getBotEfficiency(
+      user,
+      body.system,
+    );
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: efficiency,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get(`commissions`)
   public async getUserCommissions(
     @CurrentUser() user: User,
     @Res() res: Response,
   ) {
-    this.loggerService.log(`GET user/commisions ${LoggerMessages.API_CALLED}`);
-    const history = await this.userService.getBankUsage(user);
+    this.loggerService.log(`GET user/commissions ${LoggerMessages.API_CALLED}`);
+    const commissions = await this.userService.getUserCommissions(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
-      data: history,
+      data: commissions,
       message: ResponseMessage.SUCCESS,
     });
   }
