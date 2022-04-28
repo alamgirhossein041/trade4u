@@ -8,6 +8,7 @@ import { KlaytnModule } from '../../modules/klaytn/klaytn.module';
 import { EventEmitter } from './event.emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Deposit } from '../payment/deposit.entity';
+import { SocketModule } from '../../modules/socket/socket.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { Deposit } from '../payment/deposit.entity';
     LoggerModule,
     PaymentModule,
     KlaytnModule,
+    SocketModule,
   ],
   controllers: [SchedulerController],
   providers: [SchedulerService, BlockProcessor, EventEmitter],

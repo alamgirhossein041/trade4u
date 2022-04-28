@@ -1,8 +1,6 @@
 import PDFDocument from 'pdfkit-table';
-import fs from 'fs';
 import moment from 'moment';
 import { PDF } from './commons/payment.types';
-import console from 'console';
 
 export class PDFGenerator {
   public async generatePDF(data: PDF): Promise<string> {
@@ -37,15 +35,10 @@ export class PDFGenerator {
       const tableTwo = {
         title: 'FINISHED ORDERS',
         headers: [
-          { label: 'Date', property: 'date', width: 140, renderer: null },
-          { label: 'Stack', property: 'stack', width: 140, renderer: null },
-          {
-            label: 'Variation',
-            property: 'variation',
-            width: 140,
-            renderer: null,
-          },
-          { label: 'takeProfit', property: 'takeProfit', width: 140, renderer: null },
+          { label: 'Date', property: 'date', width: 148, renderer: null },
+          { label: 'Stack', property: 'stack', width: 148, renderer: null },
+          { label: 'Variation', property: 'variation', width: 148, renderer: null },
+          { label: 'takeProfit', property: 'takeProfit', width: 148, renderer: null },
         ],
         // complex data
         datas: data.trades.map((m: any) => {
@@ -79,7 +72,7 @@ export class PDFGenerator {
       doc.on('data', buffer.push.bind(buffer));
       doc.on('end', () => {
         const data = Buffer.concat(buffer);
-        const output = ('data:application/pdf;base64,' + data.toString('base64'));
+        const output = 'data:application/pdf;base64,' + data.toString('base64');
         resolve(output);
       });
     });

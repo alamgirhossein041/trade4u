@@ -6,7 +6,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   JoinColumn,
-  ManyToOne
+  ManyToOne,
 } from 'typeorm';
 import { Crypto } from '../../utils/crypto';
 import { Plan } from '../seed/plan.entity';
