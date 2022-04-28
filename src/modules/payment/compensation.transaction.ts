@@ -61,7 +61,8 @@ export class CompensationTransaction {
         const userWithPlan = await this.userService.get(
           depositCompletedEvent.user.uuid,
         );
-        const planAmount = userWithPlan.plan.price;
+
+        const planAmount = depositCompletedEvent.deposit.payment.amountUSD;
         const userParentTree = await this.userService.getUserParentsTree(
           userWithPlan,
         );

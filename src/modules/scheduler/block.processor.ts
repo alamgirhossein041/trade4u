@@ -7,12 +7,13 @@ import { TransactionReceipt } from 'caver-js';
 import { DepositTransaction } from '../payment/deposit.transaction';
 import { CaverService } from '../klaytn/caver.service';
 import { BlockProcess } from '../../utils/enum';
-import { BonusType } from '../payment/commons/payment.enum';
+import { BonusType, PaymentType } from '../payment/commons/payment.enum';
 import { DepositCompletedEvent } from './deposit.complete.event';
 import { EventEmitter } from './event.emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Deposit } from '../payment/deposit.entity';
 import { Repository } from 'typeorm';
+import { BotStatus } from 'modules/user/commons/user.enums';
 
 @Processor(BlockQueue.BLOCK)
 export class BlockProcessor {
@@ -66,11 +67,20 @@ export class BlockProcessor {
               tx,
             );
             const deposit = await this.depositRepository.findOne({
-              txHash: tx.transactionHash,
-            });
+              txHash: tx.transactionHash
+            },
+              {
+                relations: ['payment']
+              });
             if (deposit) {
               const depositCompletedEvent = new DepositCompletedEvent();
-              depositCompletedEvent.bonusType = BonusType.LISENCE;
+              if (deposit.payment.type === PaymentType.TX_PREFORMANCE_BTC ||
+                deposit.payment.type === PaymentType.TX_PREFORMANCE_USDT) {
+                depositCompletedEvent.bonusType = BonusType.PERFORMANCE
+              }
+              else{
+                depositCompletedEvent.bonusType = BonusType.LISENCE;
+              }
               depositCompletedEvent.user = user;
               depositCompletedEvent.deposit = deposit;
               this.eventEmitter.emit(

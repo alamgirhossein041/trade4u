@@ -2,16 +2,16 @@ import PDFDocument from 'pdfkit-table';
 import fs from 'fs';
 import moment from 'moment';
 import { PDF } from './commons/payment.types';
+import console from 'console';
 
 export class PDFGenerator {
-  public async generatePDF(data: PDF): Promise<Buffer> {
-    return new Promise<Buffer>((resolve) => {
+  public async generatePDF(data: PDF): Promise<string> {
+    return new Promise<string>((resolve) => {
       // Create a document
       const doc = new PDFDocument({
         margin: 10,
       });
 
-      doc.pipe(fs.createWriteStream('output.pdf'));
       doc
         .font('Helvetica-Bold')
         .fontSize(20)
@@ -45,7 +45,7 @@ export class PDFGenerator {
             width: 140,
             renderer: null,
           },
-          { label: 'Profit', property: 'Profit', width: 140, renderer: null },
+          { label: 'takeProfit', property: 'takeProfit', width: 140, renderer: null },
         ],
         // complex data
         datas: data.trades.map((m: any) => {
@@ -79,7 +79,8 @@ export class PDFGenerator {
       doc.on('data', buffer.push.bind(buffer));
       doc.on('end', () => {
         const data = Buffer.concat(buffer);
-        resolve(data);
+        const output = ('data:application/pdf;base64,' + data.toString('base64'));
+        resolve(output);
       });
     });
   }
