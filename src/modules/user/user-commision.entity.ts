@@ -30,6 +30,9 @@ export class UserCommision {
   @Column({ type: 'double precision' })
   amount: number;
 
+  @Column({ nullable: true })
+  txHash: string;
+
   @Column({ type: 'double precision', nullable: true })
   amountKLAY: number;
 

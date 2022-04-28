@@ -71,6 +71,7 @@ export class CompensationTransaction {
           userWithPlan,
           planAmount,
           depositCompletedEvent.bonusType,
+          depositCompletedEvent.deposit.txHash,
           queryRunner,
         );
         await this.updateDepositProcessing(
@@ -104,6 +105,7 @@ export class CompensationTransaction {
     userWithPlan: User,
     planAmount: number,
     bonusType: string,
+    depositHash: string,
     queryRunner: QueryRunner,
   ) {
     return new Promise<void>(async (resolve, reject) => {
@@ -132,6 +134,7 @@ export class CompensationTransaction {
                   amount,
                   bonusType,
                   parent.level,
+                  depositHash,
                   queryRunner,
                   false,
                 );
@@ -159,7 +162,8 @@ export class CompensationTransaction {
                   amount,
                   bonusType,
                   parent.level,
-                  queryRunner,
+                  depositHash,
+                  queryRunner
                 );
                 parentToUpdate.balance = Number(
                   new bigDecimal(amount)
@@ -304,6 +308,7 @@ export class CompensationTransaction {
     amount: number,
     type: string,
     level: string,
+    depositHash: string,
     queryRunner: QueryRunner,
     consumed: boolean = true,
   ) {
@@ -320,6 +325,7 @@ export class CompensationTransaction {
         commision.type = type;
         commision.level = level;
         commision.affiliate = affiliate.userName;
+        commision.txHash = depositHash;
         commision.amountKLAY = amountKLAY;
         commision.consumed = consumed;
         await queryRunner.manager.save(commision);
