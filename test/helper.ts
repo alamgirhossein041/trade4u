@@ -238,7 +238,7 @@ export class Helper {
 
     async getDepositBytxHash() {
         const repository = getConnection().getRepository(Deposit);
-        return await repository.findOne({ txHash: '0xadasdf32descscdfsd434rfdcsdfsdsade' });
+        return await repository.findOne({ txHash: '0xadasdf32descscdfsd434rfdcsdfsdsade' }, { relations: ['payment'] });
     }
 
     public async getEventObject(email: string) {
