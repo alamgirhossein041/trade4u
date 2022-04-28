@@ -18,6 +18,15 @@ export class UserCommision {
   @Column({ nullable: true })
   type: string;
 
+  @Column({ nullable: true })
+  affiliate: string;
+
+  @Column({ nullable: true })
+  level: string;
+
+  @Column({ nullable: true })
+  license_performance: string;
+
   @Column({ type: 'double precision' })
   amount: number;
 
