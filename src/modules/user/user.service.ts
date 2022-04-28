@@ -1034,8 +1034,12 @@ export class UsersService {
       let token = speakeasy.totp({
         secret: process.env.OTP_KEY,
         digits: 6,
-        step: 1800,
+        step: 120,
       });
+      await this.userRepository.update(
+        { uuid: user.uuid },
+        { profileCode: Number(token) },
+      );
       return await this.mailerservice.sendEmailProfileVerificationCode(
         user,
         token.toString(),
@@ -1055,21 +1059,16 @@ export class UsersService {
    * @returns
    */
   async getProfileDetails(user: User, code: string) {
-    if (user.profileCode === Number(code)) {
-      throw new HttpException(
-        ResponseMessage.INVALID_VERIFICATION_CODE,
-        ResponseCode.NOT_FOUND,
-      );
-    }
     const verified = speakeasy.totp.verify({
       secret: process.env.OTP_KEY,
       token: code,
-      step: 1800,
+      step: 120,
     });
-    if (verified) {
+
+    if (user.profileCode === Number(code) && verified) {
       await this.userRepository.update(
         { uuid: user.uuid },
-        { profileCode: Number(code) },
+        { profileCode: null },
       );
       return user.toDto();
     } else {

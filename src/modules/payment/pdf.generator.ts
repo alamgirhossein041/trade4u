@@ -37,8 +37,18 @@ export class PDFGenerator {
         headers: [
           { label: 'Date', property: 'date', width: 148, renderer: null },
           { label: 'Stack', property: 'stack', width: 148, renderer: null },
-          { label: 'Variation', property: 'variation', width: 148, renderer: null },
-          { label: 'takeProfit', property: 'takeProfit', width: 148, renderer: null },
+          {
+            label: 'Variation',
+            property: 'variation',
+            width: 148,
+            renderer: null,
+          },
+          {
+            label: 'takeProfit',
+            property: 'takeProfit',
+            width: 148,
+            renderer: null,
+          },
         ],
         // complex data
         datas: data.trades.map((m: any) => {

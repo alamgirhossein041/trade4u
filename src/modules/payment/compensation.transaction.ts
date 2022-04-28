@@ -163,7 +163,7 @@ export class CompensationTransaction {
                   bonusType,
                   parent.level,
                   depositHash,
-                  queryRunner
+                  queryRunner,
                 );
                 parentToUpdate.balance = Number(
                   new bigDecimal(amount)
