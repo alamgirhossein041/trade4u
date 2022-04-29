@@ -15,3 +15,7 @@ export enum Exchange {
   STABLE = 'STABLE',
   BINANCE = 'BINANCE'
 }
+export enum UserActiveStatus {
+  ENABLE = `enable`,
+  DISABLE = `disable`
+}
