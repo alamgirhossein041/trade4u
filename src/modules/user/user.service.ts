@@ -36,7 +36,7 @@ import {
 } from './commons/user.constants';
 import { BOTClient } from 'botclient';
 import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
-import { TradingSystem } from './commons/user.enums';
+import { Exchange, TradingSystem } from './commons/user.enums';
 import { Bot } from '../bot/bot.entity';
 import bigDecimal from 'js-big-decimal';
 import { UserCommision } from './user-commision.entity';
@@ -337,10 +337,10 @@ export class UsersService {
       effectivePeriod === 0
         ? accumulated
         : Number(
-            new bigDecimal(accumulated)
-              .divide(new bigDecimal(effectivePeriod), 4)
-              .getValue(),
-          );
+          new bigDecimal(accumulated)
+            .divide(new bigDecimal(effectivePeriod), 4)
+            .getValue(),
+        );
     const dailyPercentage = Number(
       new bigDecimal(dailyAccumulated)
         .divide(new bigDecimal(totalBalance), 4)
@@ -676,10 +676,13 @@ export class UsersService {
     user: User,
     binanceDto: BinanceTradingDto,
   ): Promise<User> {
-    await this.binanceService.verifyApiKey(
-      binanceDto.apiKey,
-      binanceDto.apiSecret,
-    );
+
+    if (process.env.EXCHANGE === Exchange.BINANCE) {
+      await this.binanceService.verifyApiKey(
+        binanceDto.apiKey,
+        binanceDto.apiSecret,
+      );
+    }
     try {
       user.apiKey = Crypto.encrypt(binanceDto.apiKey);
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
