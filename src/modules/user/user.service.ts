@@ -978,6 +978,7 @@ export class UsersService {
    */
   async updateEmailStatus(user: User): Promise<User> {
     user.emailConfirmed = true;
+    user.isActive = true;
     const confirmedUser = await this.userRepository.save(user);
     if (user.refereeUuid) {
       const refereeStats = await this.getReferrerAffiliates(user.refereeUuid);
