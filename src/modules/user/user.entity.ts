@@ -16,6 +16,7 @@ import { IsValidCountry } from '../../modules/common/validator/country.validator
 import { IsValidPhoneNumber } from '../../modules/common/validator/phone.validator';
 import { ResponseMessage } from '../../utils/enum';
 import moment from 'moment';
+import { UserActiveStatus } from './commons/user.enums';
 
 @Entity({
   name: 'users',
@@ -69,8 +70,8 @@ export class User {
   @Column({ type: 'boolean', default: false })
   planIsActive: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  isActive: boolean;
+  @Column({ default: UserActiveStatus.DISABLE })
+  activeStatus: string;
 
   @Column({ nullable: true })
   planExpiry: number;

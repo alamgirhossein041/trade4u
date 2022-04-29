@@ -36,7 +36,7 @@ import {
 } from './commons/user.constants';
 import { BOTClient } from 'botclient';
 import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
-import { Exchange, TradingSystem } from './commons/user.enums';
+import { Exchange, TradingSystem,UserActiveStatus } from './commons/user.enums';
 import { Bot } from '../bot/bot.entity';
 import bigDecimal from 'js-big-decimal';
 import { UserCommision } from './user-commision.entity';
@@ -981,7 +981,7 @@ export class UsersService {
    */
   async updateEmailStatus(user: User): Promise<User> {
     user.emailConfirmed = true;
-    user.isActive = true;
+    user.activeStatus = UserActiveStatus.ENABLE;
     const confirmedUser = await this.userRepository.save(user);
     if (user.refereeUuid) {
       const refereeStats = await this.getReferrerAffiliates(user.refereeUuid);

@@ -70,7 +70,7 @@ describe('BinancePlus auth test', () => {
             refereeUuid: null,
             userTelegram: null,
             profileCode: null,
-            isActive: false
+            activeStatus: 'disable'
         }
 
         await request(server)
