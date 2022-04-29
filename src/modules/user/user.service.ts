@@ -692,7 +692,7 @@ export class UsersService {
         apiSecret: binanceDto.apiSecret,
         baseAsset: '',
         quoteAsset: '',
-        exchange: botConstants.exchange,
+        exchange: process.env.EXCHANGE,
         strategy: botConstants.strategy,
         riskLevel: botConstants.riskLevel,
         userId: user.uuid,
