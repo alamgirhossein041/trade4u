@@ -10,3 +10,8 @@ export enum BotStatus {
   STOPPED = `stopped`,
   RUNNING = `running`,
 }
+
+export enum Exchange {
+  STABLE = 'STABLE',
+  BINANCE = 'BINANCE'
+}
