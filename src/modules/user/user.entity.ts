@@ -46,10 +46,10 @@ export class User {
   @Column({ length: 10, nullable: true })
   tradingSystem: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ nullable: true })
   apiKey: string;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ nullable: true })
   apiSecret: string;
 
   @Column({ nullable: true })
