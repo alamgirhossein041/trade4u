@@ -107,8 +107,8 @@ export class DepositTransaction {
    * @returns
    */
   public async updateTradeTimeFrames(user: User, queryRunner: QueryRunner) {
-    user.tradeStartDate = user.tradeExpiryDate;
-    user.tradeExpiryDate = user.tradeExpiryDate + Time.THIRTY_DAYS; //30 Days after the Preformance fee is paid
+    user.tradeStartDate = moment().unix();
+    user.tradeExpiryDate = moment().unix() + Time.THIRTY_DAYS; //30 Days after the Preformance fee is paid
 
     return await queryRunner.manager.save(user);
   }

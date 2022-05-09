@@ -36,13 +36,15 @@ import {
 } from './commons/user.constants';
 import { BOTClient } from 'botclient';
 import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
-import { Exchange, TradingSystem,UserActiveStatus } from './commons/user.enums';
+import { Exchange, TradingSystem, UserActiveStatus } from './commons/user.enums';
 import { Bot } from '../bot/bot.entity';
 import bigDecimal from 'js-big-decimal';
 import { UserCommision } from './user-commision.entity';
 import moment, { unix } from 'moment';
 import { CryptoAsset } from '../../modules/payment/commons/payment.enum';
 import { PriceService } from '../../modules/price/price.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { LoggerService } from '../../utils/logger/logger.service';
 
 @Injectable()
 export class UsersService {
@@ -63,6 +65,7 @@ export class UsersService {
     private readonly telegramService: TelegramService,
     private readonly mailerservice: MailService,
     private readonly klaytnService: KlaytnService,
+    private readonly loggerServce: LoggerService,
   ) {
     this.botclient = new BOTClient(process.env.BINANCE_BOT_ADDRESS);
   }
@@ -1252,5 +1255,40 @@ export class UsersService {
       to,
     ]);
     return trades;
+  }
+
+  /**
+   * Notify the user for preformance fee payment dues
+   * @returns
+   */
+  @Cron(CronExpression.EVERY_10_MINUTES, {
+    name: JOB.TRADE_LIMIT_EXCEED,
+  })
+  public async tradeLimitExpiry() {
+    this.loggerServce.log('trade limit exceed job started')
+    const users = await this.userRepository.find({
+      where: {
+        tradeExpiryDate: LessThanOrEqual(moment().unix())
+      }
+    });
+
+    const filtered = users.filter(u => u.tradeExpiryDate + Time.TEN_DAYS <= moment().unix());
+    if (!filtered.length) {
+      this.loggerServce.log('trade limit exceed job completed')
+      return;
+    }
+    else {
+      await Promise.all(
+        filtered.map(async m => {
+          this.loggerServce.warn(`trade limit exceeded: ${m.fullName}`)
+          const bots = await this.getBotsByUserId(m);
+          bots.map(async b => {
+            if (b.pid != -1)
+              await this.stopUserBot(b.botid);
+          });
+        }));
+      this.loggerServce.log('trade limit exceed job completed')
+      return;
+    }
   }
 }
