@@ -33,7 +33,7 @@ import { UserCommision } from './user-commision.entity';
     BinanceModule,
     MailModule,
     KlaytnModule,
-    LoggerModule
+    LoggerModule,
   ],
   exports: [UsersService],
   providers: [UsersService],

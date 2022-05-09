@@ -36,7 +36,11 @@ import {
 } from './commons/user.constants';
 import { BOTClient } from 'botclient';
 import { IBotResponse, ICreateBot } from 'botclient/lib/@types/types';
-import { Exchange, TradingSystem, UserActiveStatus } from './commons/user.enums';
+import {
+  Exchange,
+  TradingSystem,
+  UserActiveStatus,
+} from './commons/user.enums';
 import { Bot } from '../bot/bot.entity';
 import bigDecimal from 'js-big-decimal';
 import { UserCommision } from './user-commision.entity';
@@ -340,10 +344,10 @@ export class UsersService {
       effectivePeriod === 0
         ? accumulated
         : Number(
-          new bigDecimal(accumulated)
-            .divide(new bigDecimal(effectivePeriod), 4)
-            .getValue(),
-        );
+            new bigDecimal(accumulated)
+              .divide(new bigDecimal(effectivePeriod), 4)
+              .getValue(),
+          );
     const dailyPercentage = Number(
       new bigDecimal(dailyAccumulated)
         .divide(new bigDecimal(totalBalance), 4)
@@ -679,7 +683,6 @@ export class UsersService {
     user: User,
     binanceDto: BinanceTradingDto,
   ): Promise<User> {
-
     if (process.env.EXCHANGE === Exchange.BINANCE) {
       await this.binanceService.verifyApiKey(
         binanceDto.apiKey,
@@ -1138,6 +1141,7 @@ export class UsersService {
 
   /**
    *
+   * @returns
    */
   public async validateTradeTimeStamp() {
     const users = await this.userRepository.find({
@@ -1146,6 +1150,11 @@ export class UsersService {
     return users;
   }
 
+  /**
+   * Validate active traders profit percentage
+   * @param user
+   * @returns
+   */
   public async validateActiveTradersProfit(user: User) {
     const bots = await this.getBotsByUserId(user);
     let profit: number = 0;
@@ -1237,6 +1246,13 @@ export class UsersService {
     return trades[0].profit;
   }
 
+  /**
+   * Get Trades between range
+   * @param botId
+   * @param from
+   * @param to
+   * @returns
+   */
   public async getTradesBetweenRange(botId: string, from: number, to: number) {
     let sql = `SELECT 
               T."date",
@@ -1258,36 +1274,43 @@ export class UsersService {
   }
 
   /**
-   * Notify the user for preformance fee payment dues
+   * Stop the user's bot when the currentDate >= TradeExpiryDate + 10 days.
    * @returns
    */
   @Cron(CronExpression.EVERY_10_MINUTES, {
     name: JOB.TRADE_LIMIT_EXCEED,
   })
   public async tradeLimitExpiry() {
-    this.loggerServce.log('trade limit exceed job started')
+    this.loggerServce.log(
+      `Trade limit exceed job started at: ${moment().unix()}`,
+    );
     const users = await this.userRepository.find({
       where: {
-        tradeExpiryDate: LessThanOrEqual(moment().unix())
-      }
+        tradeExpiryDate: LessThanOrEqual(moment().unix()),
+      },
     });
 
-    const filtered = users.filter(u => u.tradeExpiryDate + Time.TEN_DAYS <= moment().unix());
+    const filtered = users.filter(
+      (u) => u.tradeExpiryDate + Time.TEN_DAYS <= moment().unix(),
+    );
     if (!filtered.length) {
-      this.loggerServce.log('trade limit exceed job completed')
+      this.loggerServce.log(
+        `Trade limit exceed job completed at: ${moment().unix()}`,
+      );
       return;
-    }
-    else {
+    } else {
       await Promise.all(
-        filtered.map(async m => {
-          this.loggerServce.warn(`trade limit exceeded: ${m.fullName}`)
+        filtered.map(async (m) => {
+          this.loggerServce.warn(`Trade limit exceeded: ${m.fullName}`);
           const bots = await this.getBotsByUserId(m);
-          bots.map(async b => {
-            if (b.pid != -1)
-              await this.stopUserBot(b.botid);
+          bots.map(async (b) => {
+            if (b.pid != -1) await this.stopUserBot(b.botid);
           });
-        }));
-      this.loggerServce.log('trade limit exceed job completed')
+        }),
+      );
+      this.loggerServce.log(
+        `Trade limit exceed job completed at: ${moment().unix()}`,
+      );
       return;
     }
   }

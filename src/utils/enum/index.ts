@@ -93,7 +93,7 @@ export enum JOB {
   WITHDRAWAL = `withdrawal`,
   NOTIFY_TRADE_LIMIT_EXCEED = `notify trade limit exceed`,
   NOTIFY_PROFIT_LIMIT_EXCEED = `notify_prfit_limit_exceed`,
-  TRADE_LIMIT_EXCEED = 'trade limit exceed'
+  TRADE_LIMIT_EXCEED = 'trade limit exceed',
 }
 
 export enum BlockProcess {

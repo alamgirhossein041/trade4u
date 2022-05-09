@@ -13,9 +13,9 @@ export enum BotStatus {
 
 export enum Exchange {
   STABLE = 'STABLE',
-  BINANCE = 'BINANCE'
+  BINANCE = 'BINANCE',
 }
 export enum UserActiveStatus {
   ENABLE = `enable`,
-  DISABLE = `disable`
+  DISABLE = `disable`,
 }
