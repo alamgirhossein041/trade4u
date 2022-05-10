@@ -344,10 +344,10 @@ export class UsersService {
       effectivePeriod === 0
         ? accumulated
         : Number(
-            new bigDecimal(accumulated)
-              .divide(new bigDecimal(effectivePeriod), 4)
-              .getValue(),
-          );
+          new bigDecimal(accumulated)
+            .divide(new bigDecimal(effectivePeriod), 4)
+            .getValue(),
+        );
     const dailyPercentage = Number(
       new bigDecimal(dailyAccumulated)
         .divide(new bigDecimal(totalBalance), 4)
@@ -505,21 +505,23 @@ export class UsersService {
                   MlmTree
                 LEFT JOIN plans p ON "planPlanId" = p."planId"
               WHERE
-                  level > 0
+                  level > 0 AND level <= $2
               ORDER BY level;`;
     const affliatesCountLevelWise = ` SELECT level,COUNT(level) as total_affiliates
               FROM
                   MlmTree
               WHERE
-                  level > 0
+                  level > 0 AND level <= $2
               GROUP BY level 
               ORDER BY level;`;
     const affiliatesResult = await this.userRepository.query(sql + affiliates, [
       user.uuid,
+      user.plan.levels
     ]);
     const affiliatesCountResult = await this.userRepository.query(
       sql + affliatesCountLevelWise,
-      [user.uuid],
+      [user.uuid,
+      user.plan.levels],
     );
     affiliatesCountResult.map(
       (count) => (count.total_affiliates = Number(count.total_affiliates)),
