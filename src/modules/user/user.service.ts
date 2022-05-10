@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
-import { In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { In, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import {
   JOB,
   ResponseCode,
@@ -344,10 +344,10 @@ export class UsersService {
       effectivePeriod === 0
         ? accumulated
         : Number(
-          new bigDecimal(accumulated)
-            .divide(new bigDecimal(effectivePeriod), 4)
-            .getValue(),
-        );
+            new bigDecimal(accumulated)
+              .divide(new bigDecimal(effectivePeriod), 4)
+              .getValue(),
+          );
     const dailyPercentage = Number(
       new bigDecimal(dailyAccumulated)
         .divide(new bigDecimal(totalBalance), 4)
@@ -434,7 +434,7 @@ export class UsersService {
                 c."consumed" = true AND c."userId"='${user.uuid}';`;
     const result = await this.userCommisionRepository.query(sql);
     const commisions = await this.userCommisionRepository.find({
-      where: { user, consumed: true },
+      where: { user, consumed: true , amount: MoreThan(0) },
     });
     if (!commisions.length) {
       throw new HttpException(
@@ -516,12 +516,11 @@ export class UsersService {
               ORDER BY level;`;
     const affiliatesResult = await this.userRepository.query(sql + affiliates, [
       user.uuid,
-      user.plan.levels
+      user.plan.levels,
     ]);
     const affiliatesCountResult = await this.userRepository.query(
       sql + affliatesCountLevelWise,
-      [user.uuid,
-      user.plan.levels],
+      [user.uuid, user.plan.levels],
     );
     affiliatesCountResult.map(
       (count) => (count.total_affiliates = Number(count.total_affiliates)),
@@ -1188,6 +1187,7 @@ export class UsersService {
         }
       }),
     );
+
     return percentage > MaxProfitLimit ? true : false;
   }
 
@@ -1232,7 +1232,7 @@ export class UsersService {
    */
   public async getBotProfit(botId: string, from: number, to: number) {
     let sql = `SELECT 
-                COALESCE(SUM(T.amount :: double precision), 0) as profit
+                COALESCE(SUM(T.profit :: double precision), 0) as profit
               FROM
                 bots B
                 INNER JOIN slots S ON B."botid" = S."botid"

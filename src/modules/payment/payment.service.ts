@@ -286,11 +286,15 @@ export class PaymentService {
     Promise.all(
       activeTraders.map(async (m) => {
         const valid = await this.userService.validateActiveTradersProfit(m);
-        if (valid)
+        if (valid) {
           await this.socketService.emitNotification(
             m.email,
             Notifications.PERFORMANCE_FEE,
           );
+          this.loggerServce.debug(
+            `JOB: Notify user on profit limit reach: ${m.userName}`,
+          );
+        }
       }),
     ).then(() => {
       this.loggerServce.log(
@@ -325,6 +329,9 @@ export class PaymentService {
             await this.socketService.emitNotification(
               m.email,
               Notifications.PERFORMANCE_FEE,
+            );
+            this.loggerServce.debug(
+              `JOB: Notify user on trade limit exceed: ${m.userName}`,
             );
           } catch (err) {
             this.loggerServce.error(err);
