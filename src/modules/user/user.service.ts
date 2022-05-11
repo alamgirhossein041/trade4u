@@ -450,7 +450,7 @@ export class UsersService {
    * @param user
    */
   async getBotEfficiency(user: User, system: string) {
-    const bot = await this.getBotByUserIdAndBaseAsset(user, system);
+    const bot = await this.getBotByUserIdAndBaseAsset(user, system.toUpperCase());
     if (!bot)
       throw new HttpException(
         ResponseMessage.NO_ACTIVE_BOT,
