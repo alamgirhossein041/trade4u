@@ -26,6 +26,7 @@ services:
       - .env:/app/.env
     ports:
       - '3836:3836'
+      - '3834:3834'
     networks:
       - binance_plus
   cache:
