@@ -10,8 +10,10 @@ import { Socket, Server } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { Notifications } from './commons/socket.enum';
 
-@WebSocketGateway(Number(process.env.APP_PORT), {
-  cors: true,
+@WebSocketGateway(3834, {
+  cors: {
+    origin: '*'
+  },
 })
 export class SocketService
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
