@@ -9,6 +9,7 @@ import {
   HttpException,
   Req,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Request, Response } from 'express';
@@ -34,6 +35,8 @@ import { UserDataDto } from './user.entity';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { Pagination } from '../../utils/paginate';
 import moment from 'moment';
+import { isEnumMember, sys } from 'typescript';
+import { TradingSystem } from './commons/user.enums';
 
 @Controller('api/user')
 export class UserContoller {
@@ -260,9 +263,9 @@ export class UserContoller {
         .unix(start)
         .startOf('day')
         .unix()} AND t."date" <= ${moment
-        .unix(end)
-        .endOf('day')
-        .unix()} AND b."baseasset" = '${system.toUpperCase()}'`;
+          .unix(end)
+          .endOf('day')
+          .unix()} AND b."baseasset" = '${system.toUpperCase()}'`;
     }
     const tradesResult = await this.userService.getTradesResult(
       user,
@@ -310,16 +313,17 @@ export class UserContoller {
   @Get(`bot_efficiency`)
   public async getUserBotEfficiency(
     @CurrentUser() user: User,
-    @Body() body: SystemDto,
+    @Query('system') system: string,
     @Res() res: Response,
   ) {
     this.loggerService.log(
       `GET user/bot_efficiency ${LoggerMessages.API_CALLED}`,
     );
+    
     const efficiency = await this.userService.getBotEfficiency(
-      user,
-      body.system,
-    );
+        user,
+        system,
+      );
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: efficiency,
