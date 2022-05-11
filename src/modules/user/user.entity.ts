@@ -124,6 +124,7 @@ export class User {
     this.country = payload.country;
     this.phoneNumber = payload.phoneNumber;
     this.password = payload.password;
+    this.createdAt = moment().unix();
 
     return this;
   }
