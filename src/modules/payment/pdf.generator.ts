@@ -9,7 +9,7 @@ export class PDFGenerator {
       const doc = new PDFDocument({
         margin: 10,
       });
-
+      doc.image('./logo.png', {fit: [100,100]}).moveDown(2)
       doc
         .font('Helvetica-Bold')
         .fontSize(20)
@@ -24,7 +24,6 @@ export class PDFGenerator {
         .fillColor('green')
         .text(data.profit, { align: 'center' })
         .moveDown(1);
-      // doc.fontSize(16).fillColor('black').text('US$ 27.56', { align: 'center' }).moveDown(1);
 
       doc.fontSize(10).text(`Charge amount: US$ ${data.charges}`).moveDown(0.3);
       doc
