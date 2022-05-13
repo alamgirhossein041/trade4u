@@ -73,6 +73,7 @@ describe('BinancePlus User test', () => {
                     expect(body.message).toEqual(ResponseMessage.CONFIRAMATION_EMAIL_SENT);
                 });
             await helper.updateEmailConfirmation(`bnptestuser@yopmail.com`);
+            await helper.updateActiveStatus(`bnptestuser@yopmail.com`);
             await helper.updateUserPlan(`bnptestuser@yopmail.com`);
             await helper.login('bnptestuser@yopmail.com', 'Rnssol@21');
 
@@ -87,6 +88,7 @@ describe('BinancePlus User test', () => {
                 });
 
             await helper.updateEmailConfirmation(`bnptestuser1@yopmail.com`);
+            await helper.updateActiveStatus(`bnptestuser1@yopmail.com`);
             await helper.updateUserPlan(`bnptestuser1@yopmail.com`);
 
             regDto.userName = `testuser2`;
@@ -99,6 +101,7 @@ describe('BinancePlus User test', () => {
                     expect(body.message).toEqual(ResponseMessage.CONFIRAMATION_EMAIL_SENT);
                 });
             await helper.updateEmailConfirmation(`bnptestuser2@yopmail.com`);
+            await helper.updateActiveStatus(`bnptestuser2@yopmail.com`);
             await helper.updateUserPlan(`bnptestuser2@yopmail.com`);
         });
 

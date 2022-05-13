@@ -7,6 +7,7 @@ import { Hash } from '../../utils/Hash';
 import { User, UsersService } from './../user';
 import { LoginPayload } from './login.payload';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
+import { UserActiveStatus } from '../user/commons/user.enums';
 
 @Injectable()
 export class AuthService {
@@ -231,6 +232,12 @@ export class AuthService {
     if (!user || !isValidPassword) {
       throw new HttpException(
         ResponseMessage.INVALID_USERNAME_OR_PASSWORD,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
+    if (user.activeStatus === UserActiveStatus.DISABLE) {
+      throw new HttpException(
+        ResponseMessage.INACTIVE_USER,
         ResponseCode.BAD_REQUEST,
       );
     }

@@ -12,7 +12,7 @@ import { Notifications } from './commons/socket.enum';
 
 @WebSocketGateway(3834, {
   cors: {
-    origin: '*'
+    origin: '*',
   },
 })
 export class SocketService
