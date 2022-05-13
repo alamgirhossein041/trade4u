@@ -9,7 +9,7 @@ export class PDFGenerator {
       const doc = new PDFDocument({
         margin: 10,
       });
-      doc.image('./logo.png', {fit: [100,100]}).moveDown(2)
+      doc.image('./logo.png', { fit: [100, 100] }).moveDown(2);
       doc
         .font('Helvetica-Bold')
         .fontSize(20)

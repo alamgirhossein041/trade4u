@@ -70,7 +70,7 @@ describe('BinancePlus auth test', () => {
             refereeUuid: null,
             userTelegram: null,
             profileCode: null,
-            activeStatus: 'disable'
+            activeStatus: 'enable'
         }
 
         await request(server)
@@ -109,6 +109,10 @@ describe('BinancePlus auth test', () => {
 
     it(`Test /update plan of bnp user`, async () => {
         await helper.updateUserPlan(`bnptestuser@yopmail.com`);
+    });
+
+    it(`Test /update activeStatus of bnp user`, async () => {
+        await helper.updateActiveStatus(`bnptestuser@yopmail.com`);
     });
 
     it(`Test /login bnp user API`, async () => {

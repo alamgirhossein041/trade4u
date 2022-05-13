@@ -1,7 +1,13 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
-import { In, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import {
+  In,
+  LessThanOrEqual,
+  MoreThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import {
   JOB,
   ResponseCode,
@@ -434,7 +440,7 @@ export class UsersService {
                 c."consumed" = true AND c."userId"='${user.uuid}';`;
     const result = await this.userCommisionRepository.query(sql);
     const commisions = await this.userCommisionRepository.find({
-      where: { user, consumed: true , amount: MoreThan(0) },
+      where: { user, consumed: true, amount: MoreThan(0) },
     });
     if (!commisions.length) {
       throw new HttpException(
@@ -450,7 +456,10 @@ export class UsersService {
    * @param user
    */
   async getBotEfficiency(user: User, system: string) {
-    const bot = await this.getBotByUserIdAndBaseAsset(user, system.toUpperCase());
+    const bot = await this.getBotByUserIdAndBaseAsset(
+      user,
+      system.toUpperCase(),
+    );
     if (!bot)
       throw new HttpException(
         ResponseMessage.NO_ACTIVE_BOT,
@@ -607,6 +616,7 @@ export class UsersService {
     newUser.planIsActive = true;
     newUser.plan = await this.seedService.getPlanById(1);
     newUser.emailConfirmed = true;
+    newUser.activeStatus = UserActiveStatus.ENABLE;
     newUser.password = await Hash.make(newUser.password);
     return await this.userRepository.save(newUser);
   }

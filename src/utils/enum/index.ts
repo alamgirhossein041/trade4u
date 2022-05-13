@@ -27,6 +27,7 @@ export enum ResponseMessage {
   USER_ALREADY_EXISTS = `User with the same email already exists`,
   USER_DOES_NOT_EXIST = `User with specified email does not exists`,
   INVALID_USERNAME_OR_PASSWORD = `Invalid email or password`,
+  INACTIVE_USER = `Account is disabled, please contact to support`,
   USERNAME_ALREADY_TAKEN = `User with the same username already exists, please try another one.`,
 
   INVALID_EMAIL = `Invalid email address`,

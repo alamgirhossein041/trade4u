@@ -15,6 +15,7 @@ import { DepositCompletedEvent } from "../src/modules/scheduler/deposit.complete
 import { Events } from "../src/modules/scheduler/commons/scheduler.enum";
 import { UserStats } from "../src/modules/user/user-stats.entity";
 import { Deposit } from "../src/modules/payment/deposit.entity";
+import { UserActiveStatus } from "../src/modules/user/commons/user.enums";
 
 export class Helper {
     private app: INestApplication;
@@ -78,6 +79,15 @@ export class Helper {
     public async updateEmailConfirmation(email: string) {
         const repository = getConnection().getRepository(User);
         return await repository.update({ email }, { emailConfirmed: true });
+    }
+
+    /**
+    * Update activeStatus Confirmation of user
+    * @returns 
+    */
+    public async updateActiveStatus(email: string) {
+        const repository = getConnection().getRepository(User);
+        return await repository.update({ email }, { activeStatus: UserActiveStatus.ENABLE });
     }
 
     /**
@@ -193,6 +203,7 @@ export class Helper {
                 expect(body.message).toEqual(ResponseMessage.CONFIRAMATION_EMAIL_SENT);
             });
         await this.updateEmailConfirmation(`bnptestuser@yopmail.com`);
+        await this.updateActiveStatus(`bnptestuser@yopmail.com`);
         await this.updateUserPlan(`bnptestuser@yopmail.com`);
         await this.updateUserStats('bnptestuser@yopmail.com');
 
@@ -208,6 +219,7 @@ export class Helper {
             });
 
         await this.updateEmailConfirmation(`bnptestuser1@yopmail.com`);
+        await this.updateActiveStatus(`bnptestuser1@yopmail.com`);
         await this.updateUserPlan(`bnptestuser1@yopmail.com`);
         await this.updateUserStats('bnptestuser1@yopmail.com');
 
@@ -221,6 +233,7 @@ export class Helper {
                 expect(body.message).toEqual(ResponseMessage.CONFIRAMATION_EMAIL_SENT);
             });
         await this.updateEmailConfirmation(`bnptestuser2@yopmail.com`);
+        await this.updateActiveStatus(`bnptestuser2@yopmail.com`);
         await this.updateUserPlan(`bnptestuser2@yopmail.com`);
         await this.updateUserStats('bnptestuser2@yopmail.com');
 
@@ -234,6 +247,7 @@ export class Helper {
                 expect(body.message).toEqual(ResponseMessage.CONFIRAMATION_EMAIL_SENT);
             });
         await this.updateEmailConfirmation(`bnptestuser3@yopmail.com`);
+        await this.updateActiveStatus(`bnptestuser3@yopmail.com`);
     }
 
     async getDepositBytxHash() {

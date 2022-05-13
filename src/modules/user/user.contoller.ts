@@ -263,9 +263,9 @@ export class UserContoller {
         .unix(start)
         .startOf('day')
         .unix()} AND t."date" <= ${moment
-          .unix(end)
-          .endOf('day')
-          .unix()} AND b."baseasset" = '${system.toUpperCase()}'`;
+        .unix(end)
+        .endOf('day')
+        .unix()} AND b."baseasset" = '${system.toUpperCase()}'`;
     }
     const tradesResult = await this.userService.getTradesResult(
       user,
@@ -319,11 +319,8 @@ export class UserContoller {
     this.loggerService.log(
       `GET user/bot_efficiency ${LoggerMessages.API_CALLED}`,
     );
-    
-    const efficiency = await this.userService.getBotEfficiency(
-        user,
-        system,
-      );
+
+    const efficiency = await this.userService.getBotEfficiency(user, system);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: efficiency,
