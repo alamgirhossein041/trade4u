@@ -79,6 +79,9 @@ export class User {
   @Column({ type: 'boolean', default: false })
   emailConfirmed: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  hasActivationDeficit: boolean;
+
   @Column({ type: 'uuid', default: null })
   refereeUuid: string;
 

@@ -18,6 +18,7 @@ import { UserCommision } from '../user/user-commision.entity';
 import { Time } from '../../utils/enum';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 import { UserTelegram } from 'modules/user/telegram.entity';
+import { DeficitDeposit } from './deficit.deposit.entity';
 
 @Injectable()
 export class DepositTransaction {
@@ -85,6 +86,14 @@ export class DepositTransaction {
             this.payment.user.userName,
             this.payment.plan.planName,
           );
+        } else if (this.payment.type.includes(PaymentType.ACTIVATION)) {
+          const allowedDeficit = await this.validateAmountDeficit();
+          if (allowedDeficit) {
+            await this.saveDeficitDeposit(tx, queryRunner);
+            await this.updateDeficitPaymentStatus(queryRunner);
+            await this.updateUserDeficitStatus(this.payment.user, queryRunner);
+            await this.klaytnService.removeListener(tx.to,true);
+          }
         }
         await queryRunner.commitTransaction();
       } catch (err) {
@@ -124,6 +133,26 @@ export class DepositTransaction {
           this.payment.account.address,
         );
         Number(balance) >= this.payment.amountKLAY
+          ? resolve(true)
+          : resolve(false);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+  * Verify Klay Amount Deficit is less than 1
+  * @returns
+  */
+  private validateAmountDeficit(): Promise<boolean> {
+    return new Promise<boolean>(async (resolve, reject) => {
+      try {
+        const balance = await this.klaytnService.getAccountBalance(
+          this.payment.account.address,
+        );
+        const deficit = Number(new bigDecimal(this.payment.amountKLAY).subtract(new bigDecimal(Number(balance))).getValue());
+        deficit <= 1
           ? resolve(true)
           : resolve(false);
       } catch (err) {
@@ -204,6 +233,26 @@ export class DepositTransaction {
   }
 
   /**
+   * Save Deposit Transaction Having Allowed Deficit Amount
+   * @param tx
+   * @param queryRunner
+   * @returns
+   */
+  private async saveDeficitDeposit(tx: TransactionReceipt, queryRunner: QueryRunner) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        const deposit = new DeficitDeposit();
+        deposit.txHash = tx.transactionHash;
+        deposit.userId = this.payment.user.uuid;
+        await queryRunner.manager.save(deposit);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
    * Change Account State From Halt to Free
    * @param address
    * @returns
@@ -243,6 +292,24 @@ export class DepositTransaction {
     });
   }
 
+
+  /**
+   * Detach Account From Payment Object
+   * @param queryRunner
+   * @returns
+   */
+  private async updateDeficitPaymentStatus(queryRunner: QueryRunner) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        this.payment.status = PaymentStatus.DEFICIT;
+        await queryRunner.manager.save(this.payment);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
   /**
    * Update Plan Of User
    * @param user
@@ -265,6 +332,24 @@ export class DepositTransaction {
         );
         if (!user.planIsActive) user.planIsActive = true;
         user.planExpiry = moment().add(1, 'year').unix();
+        await queryRunner.manager.save(user);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  /**
+  * Update Amount Deficit Status Of User
+  * @param user
+  * @param plan
+  * @returns
+  */
+  private async updateUserDeficitStatus(user: User, queryRunner: QueryRunner) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        user.hasActivationDeficit = true;
         await queryRunner.manager.save(user);
         resolve();
       } catch (err) {

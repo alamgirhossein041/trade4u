@@ -88,6 +88,16 @@ export class CaverService {
 
   /**
    *
+   * @param txHash
+   * @returns
+   */
+  public async getTransactionReceipt(txHash: string) {
+    const receipt = await this.caver.klay.getTransactionReceipt(txHash);
+    return receipt;
+  }
+
+  /**
+   *
    * @param hexString
    * @returns
    */
