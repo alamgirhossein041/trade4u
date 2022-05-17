@@ -34,6 +34,11 @@ import { SocketService } from './../socket/socket.service';
 import { Notifications } from '../../modules/socket/commons/socket.enum';
 import { PDFGenerator } from './pdf.generator';
 import { PDF } from './commons/payment.types';
+import { DeficitDepositTransaction } from './deficit.transaction';
+import { DeficitDeposit } from './deficit.deposit.entity';
+import { CaverService } from '../klaytn/caver.service';
+import { EventEmitter } from '../scheduler/event.emitter';
+import { Events } from '../scheduler/commons/scheduler.enum';
 
 @Injectable()
 export class PaymentService {
@@ -42,14 +47,19 @@ export class PaymentService {
     private readonly paymentRepository: Repository<Payment>,
     @InjectRepository(Deposit)
     private readonly depositRepository: Repository<Deposit>,
+    @InjectRepository(DeficitDeposit)
+    private readonly deficitDepositRepository: Repository<DeficitDeposit>,
+    private eventEmitter: EventEmitter,
+    private readonly deficitTransaction: DeficitDepositTransaction,
     private readonly compensationTransaction: CompensationTransaction,
     private readonly seedService: SeedService,
     private readonly klaytnService: KlaytnService,
+    private readonly caverService: CaverService,
     private readonly loggerServce: LoggerService,
     private readonly userService: UsersService,
     private readonly socketService: SocketService,
     private readonly pdfGenerator: PDFGenerator,
-  ) {}
+  ) { }
 
   /**
    * Get user payments
@@ -231,6 +241,45 @@ export class PaymentService {
     } catch (err) {
       this.loggerServce.log(`Payment Expiry Job Failed`);
       return;
+    }
+  }
+
+  /**
+   * 
+   */
+  public async initDeficitDepositTransaction(userId: string) {
+    try {
+      const deficitDeposit = await this.deficitDepositRepository.findOne({ userId });
+      if (!deficitDeposit) {
+        throw new HttpException(`No Deficit Deposit Found`, ResponseCode.NOT_FOUND);
+      }
+      const tx = await this.caverService.getTransactionReceipt(deficitDeposit.txHash);
+      tx.value = this.caverService.fromPeb(tx.value);
+      const user = await this.deficitTransaction.initDeficitDepositTransaction(tx);
+      const deposit = await this.depositRepository.findOne(
+        {
+          txHash: tx.transactionHash,
+        },
+        {
+          relations: ['payment'],
+        },
+      );
+      const depositEvent = new DepositCompletedEvent();
+      depositEvent.bonusType = BonusType.LISENCE;
+      depositEvent.deposit = deposit;
+      depositEvent.user = user;
+      await this.deficitDepositRepository.delete({ txHash: deficitDeposit.txHash });
+      let sql = `UPDATE users
+                    SET "hasActivationDeficit" = false
+                WHERE
+                    "uuid" = $1`;
+      await this.paymentRepository.query(sql, [userId]);
+      this.eventEmitter.emit(
+        Events.DEPOSIT_COMPLETED,
+        depositEvent
+      );
+    } catch (err) {
+      throw new HttpException(err, ResponseCode.BAD_REQUEST);
     }
   }
 

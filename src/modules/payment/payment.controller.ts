@@ -3,6 +3,7 @@ import {
   Get,
   Param,
   Post,
+  Patch,
   Req,
   Res,
   UseGuards,
@@ -26,7 +27,7 @@ export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
     private readonly loggerService: LoggerService,
-  ) {}
+  ) { }
 
   @Post(`order_plan/:planId`)
   @UseGuards(AuthGuard('jwt'))
@@ -90,6 +91,26 @@ export class PaymentController {
         data: data,
         message: ResponseMessage.CREATED_SUCCESSFULLY,
       });
+    });
+  }
+
+
+  @Patch('deficit_deposit')
+  public async initDeficitDepositTransaction(
+    @Res() res: Response,
+    @Query('userId') userId: string
+  ) {
+    this.loggerService.log(`POST payment/deficit_deposit ${LoggerMessages.API_CALLED}`);
+    if (!userId) {
+      throw new HttpException(
+        ResponseMessage.INVALID_QUERY_PARAM,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
+    await this.paymentService.initDeficitDepositTransaction(userId);
+    return res.status(ResponseCode.CREATED_SUCCESSFULLY).send({
+      statusCode: ResponseCode.CREATED_SUCCESSFULLY,
+      message: ResponseMessage.CREATED_SUCCESSFULLY,
     });
   }
 

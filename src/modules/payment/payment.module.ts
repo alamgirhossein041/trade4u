@@ -18,6 +18,9 @@ import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 import { UserCommision } from '../user/user-commision.entity';
 import { SocketModule } from '../../modules/socket/socket.module';
 import { PDFGenerator } from './pdf.generator';
+import { DeficitDeposit } from './deficit.deposit.entity';
+import { DeficitDepositTransaction } from './deficit.transaction';
+import { EventEmitter } from '../scheduler/event.emitter';
 
 @Module({
   imports: [
@@ -29,13 +32,14 @@ import { PDFGenerator } from './pdf.generator';
       LicenseFee,
       PerformanceFee,
       UserCommision,
+      DeficitDeposit
     ]),
     SeedModule,
     LoggerModule,
     KlaytnModule,
     UserModule,
     TelegramModule,
-    SocketModule,
+    SocketModule
   ],
   controllers: [PaymentController],
   providers: [
@@ -43,12 +47,15 @@ import { PDFGenerator } from './pdf.generator';
     DepositTransaction,
     CompensationTransaction,
     PDFGenerator,
+    DeficitDepositTransaction,
+    EventEmitter
   ],
   exports: [
     PaymentService,
     DepositTransaction,
     CompensationTransaction,
     PDFGenerator,
+    EventEmitter
   ],
 })
 export class PaymentModule {}
