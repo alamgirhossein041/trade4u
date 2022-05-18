@@ -63,6 +63,20 @@ export class UserContoller {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('meetings')
+  public async getMeetings(@Res() res: Response): Promise<Response> {
+    this.loggerService.log(
+      `Get user/business_meetings ${LoggerMessages.API_CALLED}`,
+    );
+    const meetings = await this.userService.getBusinessMeetings();
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: meetings,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Post('update_plan/:planId')
   public async updateUserPlan(
     @CurrentUser() user: User,

@@ -21,14 +21,14 @@ export class Plan {
   levels: number;
 
   @Column()
-  limit: string;
+  limit: number;
 
-  @Column()
+  @Column({ type: 'double precision' })
   preformanceFeePercentage: number;
 
-  @Column()
+  @Column({ type: 'double precision' })
   directBonusPercentage: number;
 
-  @Column()
+  @Column({ type: 'double precision' })
   directPreformanceBonusPercentage: number;
 }
