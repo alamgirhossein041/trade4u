@@ -304,7 +304,7 @@ export class DeficitDepositTransaction {
     ) {
         return new Promise<void>(async (resolve, reject) => {
             try {
-                const planLimit = Number(plan.limit.split('')[0]);
+                const planLimit = Number(plan.limit);
                 const earningLimit = Number(
                     new bigDecimal(planLimit)
                         .multiply(new bigDecimal(plan.price))

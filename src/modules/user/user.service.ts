@@ -136,6 +136,19 @@ export class UsersService {
   }
 
   /**
+   * Get businees meetings for user
+   * @returns
+   */
+  async getBusinessMeetings() {
+    let sql = `SELECT * FROM meetings`;
+    const meetings = await this.userRepository.query(sql);
+    if (!meetings.length) {
+      throw new HttpException(ResponseMessage.CONTENT_NOT_FOUND, ResponseCode.CONTENT_NOT_FOUND);
+    }
+    return meetings;
+  }
+
+  /**
    * Get user commisions of last week and last month
    * @param user
    * @returns
@@ -351,10 +364,10 @@ export class UsersService {
       effectivePeriod === 0
         ? accumulated
         : Number(
-            new bigDecimal(accumulated)
-              .divide(new bigDecimal(effectivePeriod), 4)
-              .getValue(),
-          );
+          new bigDecimal(accumulated)
+            .divide(new bigDecimal(effectivePeriod), 4)
+            .getValue(),
+        );
     const dailyPercentage = Number(
       new bigDecimal(dailyAccumulated)
         .divide(new bigDecimal(totalBalance), 4)
@@ -639,7 +652,7 @@ export class UsersService {
   public async initializeStats(): Promise<UserStats> {
     let userStats: UserStats;
     userStats = new UserStats();
-    userStats.earning_limit = 500;
+    userStats.earning_limit = 5000;
     return this.userStatsRepository.save(userStats);
   }
 
