@@ -55,6 +55,7 @@ import { CryptoAsset } from '../../modules/payment/commons/payment.enum';
 import { PriceService } from '../../modules/price/price.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LoggerService } from '../../utils/logger/logger.service';
+import { PlanNameEnum } from '../seed/seed.enums';
 
 @Injectable()
 export class UsersService {
@@ -607,14 +608,14 @@ export class UsersService {
     if (user) {
       throw new HttpException(
         ResponseMessage.USER_ALREADY_EXISTS,
-        ResponseCode.BAD_REQUEST,
+        ResponseCode.BAD_REQUEST
       );
     }
     const newUser = new User().fromDto(payload);
     newUser.userStats = await this.initializeStats();
     newUser.referralLink = this.getUserReferralLink(newUser);
     newUser.planIsActive = true;
-    newUser.plan = await this.seedService.getPlanById(1);
+    newUser.plan = await this.seedService.getPlanByName(PlanNameEnum.Premium);
     newUser.emailConfirmed = true;
     newUser.activeStatus = UserActiveStatus.ENABLE;
     newUser.password = await Hash.make(newUser.password);
