@@ -129,10 +129,25 @@ export class SeedService {
   }
 
   /**
-   * Get all business plan
+   * Get business plan by id
    */
   async getPlanById(planId: number) {
     const plan = await this.planRepository.findOne({ planId });
+    if (!plan) {
+      throw new HttpException(
+        `Plan ${ResponseMessage.DOES_NOT_EXIST}`,
+        ResponseCode.NOT_FOUND,
+      );
+    }
+
+    return plan;
+  }
+
+  /**
+   * Get business plan by id
+   */
+  async getPlanByName(planName: string) {
+    const plan = await this.planRepository.findOne({ planName });
     if (!plan) {
       throw new HttpException(
         `Plan ${ResponseMessage.DOES_NOT_EXIST}`,
