@@ -3,14 +3,15 @@ FROM node:lts-alpine
 WORKDIR /app
 
 ENV NODE_ENV production
-COPY package.json yarn.lock ./
-
-# install dev dependencies too
-RUN set -x && yarn --prod=true
+COPY package*.json ./
+#install all dependencies
+RUN npm install
 
 COPY . .
-RUN set -x && yarn run prestart:prod
 
-EXPOSE 3836
+RUN npm run prestart:prod
 
-CMD [ "node", "dist/main.js" ]
+EXPOSE 4000
+EXPOSE 3834
+
+CMD [ "npm", "run", "start:prod" ]

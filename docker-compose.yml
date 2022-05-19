@@ -16,7 +16,7 @@ services:
   trade4u-backend:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile-prod
     image: trade4u-backend:latest
     container_name: trade4u-backend
     depends_on:
