@@ -52,7 +52,7 @@ export class CaverService {
    */
   public async getLatestBlock() {
     const latestBlock = await this.caver.klay.getBlockNumber();
-    return this.hexToNumber(latestBlock);
+    return this.hexToNumber(latestBlock.toString());
   }
 
   /**
@@ -171,7 +171,7 @@ export class CaverService {
         });
 
         const gasLimit = await this.caver.klay.estimateGas(tx);
-        tx.gas = gasLimit;
+        tx.gas = gasLimit.toString();
         const sender = this.caver.wallet.getKeyring(address);
         const exist = this.wallet.isExisted(
           process.env.KLAY_FEE_WALLET_ADDRESS,
@@ -224,7 +224,7 @@ export class CaverService {
         });
 
         const gasLimit = await this.caver.klay.estimateGas(tx);
-        tx.gas = gasLimit;
+        tx.gas = gasLimit.toString();
 
         const senderExist = this.wallet.isExisted(
           process.env.KLAY_MASTER_WALLET_ADDRESS,
