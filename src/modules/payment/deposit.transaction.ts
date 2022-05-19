@@ -36,6 +36,8 @@ export class DepositTransaction {
     private readonly paymentRepository: Repository<Payment>,
     @InjectRepository(UserCommision)
     private readonly commisionRepository: Repository<UserCommision>,
+    @InjectRepository(DeficitDeposit)
+    private readonly deficitDepositRepository: Repository<DeficitDeposit>,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
     private readonly telegramService: TelegramService,
@@ -81,18 +83,18 @@ export class DepositTransaction {
           }
           await this.caverService.moveToMasterWallet(tx.to);
           await this.klaytnService.removeListener(tx.to);
+          await this.removeDeficitDeposit(queryRunner, this.payment.user);
           await this.notifyUserOnTelegram(
             this.payment.user,
             this.payment.user.userName,
             this.payment.plan.planName,
           );
         } else if (this.payment.type.includes(PaymentType.ACTIVATION)) {
-          const allowedDeficit = await this.validateAmountDeficit();
-          if (allowedDeficit) {
-            await this.saveDeficitDeposit(tx, queryRunner);
+          const deficit = await this.getDeficitAmount();
+          if (deficit <= 1) {
+            await this.saveDeficitDeposit(tx, deficit, queryRunner);
             await this.updateDeficitPaymentStatus(queryRunner);
             await this.updateUserDeficitStatus(this.payment.user, queryRunner);
-            await this.klaytnService.removeListener(tx.to,true);
           }
         }
         await queryRunner.commitTransaction();
@@ -142,19 +144,35 @@ export class DepositTransaction {
   }
 
   /**
-  * Verify Klay Amount Deficit is less than 1
+  * Get Klay Amount Deficit
   * @returns
   */
-  private validateAmountDeficit(): Promise<boolean> {
-    return new Promise<boolean>(async (resolve, reject) => {
+  private getDeficitAmount(): Promise<number> {
+    return new Promise<number>(async (resolve, reject) => {
       try {
         const balance = await this.klaytnService.getAccountBalance(
           this.payment.account.address,
         );
         const deficit = Number(new bigDecimal(this.payment.amountKLAY).subtract(new bigDecimal(Number(balance))).getValue());
-        deficit <= 1
-          ? resolve(true)
-          : resolve(false);
+        resolve(deficit);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+
+  /**
+   * Remove Deficit Deposit Of user if exists
+   * @param queryRunner 
+   * @param user 
+   * @returns 
+   */
+  private async removeDeficitDeposit(queryRunner: QueryRunner, user: User) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        await queryRunner.manager.delete(DeficitDeposit, { user });
+        resolve();
       } catch (err) {
         reject(err);
       }
@@ -221,6 +239,13 @@ export class DepositTransaction {
   private async saveDeposit(tx: TransactionReceipt, queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {
+        const isDeficitedDeposit = await this.deficitDepositRepository.findOne({ user: this.payment.user });
+        if (isDeficitedDeposit) {
+          const balance = await this.klaytnService.getAccountBalance(
+            this.payment.account.address,
+          );
+          tx.value = balance;
+        }
         const deposit = new Deposit().fromTransaction(tx);
         deposit.payment = this.payment;
         deposit.account = this.payment.account;
@@ -238,12 +263,14 @@ export class DepositTransaction {
    * @param queryRunner
    * @returns
    */
-  private async saveDeficitDeposit(tx: TransactionReceipt, queryRunner: QueryRunner) {
+  private async saveDeficitDeposit(tx: TransactionReceipt, deficitAmount: number, queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const deposit = new DeficitDeposit();
         deposit.txHash = tx.transactionHash;
-        deposit.userId = this.payment.user.uuid;
+        deposit.user = this.payment.user;
+        deposit.deficitAmount = deficitAmount;
+        deposit.payment = this.payment;
         await queryRunner.manager.save(deposit);
         resolve();
       } catch (err) {
@@ -331,6 +358,7 @@ export class DepositTransaction {
           queryRunner,
         );
         if (!user.planIsActive) user.planIsActive = true;
+        if (user.hasActivationDeficit) user.hasActivationDeficit = false;
         user.planExpiry = moment().add(1, 'year').unix();
         await queryRunner.manager.save(user);
         resolve();
@@ -415,11 +443,7 @@ export class DepositTransaction {
               .add(new bigDecimal(earningLimit))
               .getValue(),
           );
-          userStats.earning_limit = Number(
-            new bigDecimal(newEarningLimit)
-              .add(new bigDecimal(userStats.earning_limit))
-              .getValue(),
-          );
+          userStats.earning_limit = newEarningLimit;
         } else {
           userStats.earning_limit = earningLimit;
         }

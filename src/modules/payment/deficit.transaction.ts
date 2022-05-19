@@ -321,11 +321,7 @@ export class DeficitDepositTransaction {
                             .add(new bigDecimal(earningLimit))
                             .getValue(),
                     );
-                    userStats.earning_limit = Number(
-                        new bigDecimal(newEarningLimit)
-                            .add(new bigDecimal(userStats.earning_limit))
-                            .getValue(),
-                    );
+                    userStats.earning_limit = newEarningLimit;
                 } else {
                     userStats.earning_limit = earningLimit;
                 }
