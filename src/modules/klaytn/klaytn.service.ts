@@ -304,7 +304,7 @@ export class KlaytnService {
   /**
    * Remove a listener
    */
-  public removeListener(address: string,hasDeficit: boolean = false) {
+  public removeListener(address: string) {
     return new Promise<void>((resolve, reject) => {
       try {
         const index = this.listeners.indexOf(address);
@@ -312,9 +312,7 @@ export class KlaytnService {
           this.listeners.splice(index, 1);
           this.loggerService.log(`listener removed: ${address}`);
         }
-        if(!hasDeficit) {
-          this.caverService.removeAddressFromWallet(address);
-        }
+        this.caverService.removeAddressFromWallet(address);
         resolve();
       } catch (err) {
         reject(err);

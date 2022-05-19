@@ -83,6 +83,10 @@ export class PaymentService {
   public async orderPlan(user: User, planId: number): Promise<Payment> {
     return new Promise<Payment>(async (resolve, reject) => {
       try {
+        const userDeficit = await this.deficitDepositRepository.findOne({user});
+        if(userDeficit) {
+          throw new HttpException(ResponseMessage.DEFICIT_DEPOSIT,ResponseCode.BAD_REQUEST);
+        }
         const payment = await this.createPayment(user, planId);
         return resolve(await this.paymentRepository.save(payment));
       } catch (err) {
@@ -249,9 +253,13 @@ export class PaymentService {
    */
   public async initDeficitDepositTransaction(userId: string) {
     try {
-      const deficitDeposit = await this.deficitDepositRepository.findOne({ userId });
+      const userExists = await this.userService.get(userId);
+      if (!userExists) {
+        throw new HttpException(`User ${ResponseMessage.DOES_NOT_EXIST}`, ResponseCode.BAD_REQUEST);
+      }
+      const deficitDeposit = await this.deficitDepositRepository.findOne({ user: userExists });
       if (!deficitDeposit) {
-        throw new HttpException(`No Deficit Deposit Found`, ResponseCode.NOT_FOUND);
+        throw new HttpException(`No Deficit Deposit Found`, ResponseCode.BAD_REQUEST);
       }
       const tx = await this.caverService.getTransactionReceipt(deficitDeposit.txHash);
       tx.value = this.caverService.fromPeb(tx.value);
@@ -268,7 +276,7 @@ export class PaymentService {
       depositEvent.bonusType = BonusType.LISENCE;
       depositEvent.deposit = deposit;
       depositEvent.user = user;
-      await this.deficitDepositRepository.delete({ txHash: deficitDeposit.txHash });
+      await this.deficitDepositRepository.delete({ user });
       let sql = `UPDATE users
                     SET "hasActivationDeficit" = false
                 WHERE
