@@ -59,7 +59,7 @@ export class PaymentService {
     private readonly userService: UsersService,
     private readonly socketService: SocketService,
     private readonly pdfGenerator: PDFGenerator,
-  ) { }
+  ) {}
 
   /**
    * Get user payments
@@ -83,9 +83,14 @@ export class PaymentService {
   public async orderPlan(user: User, planId: number): Promise<Payment> {
     return new Promise<Payment>(async (resolve, reject) => {
       try {
-        const userDeficit = await this.deficitDepositRepository.findOne({user});
-        if(userDeficit) {
-          throw new HttpException(ResponseMessage.DEFICIT_DEPOSIT,ResponseCode.BAD_REQUEST);
+        const userDeficit = await this.deficitDepositRepository.findOne({
+          user,
+        });
+        if (userDeficit) {
+          throw new HttpException(
+            ResponseMessage.DEFICIT_DEPOSIT,
+            ResponseCode.BAD_REQUEST,
+          );
         }
         const payment = await this.createPayment(user, planId);
         return resolve(await this.paymentRepository.save(payment));
@@ -249,21 +254,33 @@ export class PaymentService {
   }
 
   /**
-   * 
+   *
    */
   public async initDeficitDepositTransaction(userId: string) {
     try {
       const userExists = await this.userService.get(userId);
       if (!userExists) {
-        throw new HttpException(`User ${ResponseMessage.DOES_NOT_EXIST}`, ResponseCode.BAD_REQUEST);
+        throw new HttpException(
+          `User ${ResponseMessage.DOES_NOT_EXIST}`,
+          ResponseCode.BAD_REQUEST,
+        );
       }
-      const deficitDeposit = await this.deficitDepositRepository.findOne({ user: userExists });
+      const deficitDeposit = await this.deficitDepositRepository.findOne({
+        user: userExists,
+      });
       if (!deficitDeposit) {
-        throw new HttpException(`No Deficit Deposit Found`, ResponseCode.BAD_REQUEST);
+        throw new HttpException(
+          `No Deficit Deposit Found`,
+          ResponseCode.BAD_REQUEST,
+        );
       }
-      const tx = await this.caverService.getTransactionReceipt(deficitDeposit.txHash);
+      const tx = await this.caverService.getTransactionReceipt(
+        deficitDeposit.txHash,
+      );
       tx.value = this.caverService.fromPeb(tx.value);
-      const user = await this.deficitTransaction.initDeficitDepositTransaction(tx);
+      const user = await this.deficitTransaction.initDeficitDepositTransaction(
+        tx,
+      );
       const deposit = await this.depositRepository.findOne(
         {
           txHash: tx.transactionHash,
@@ -282,10 +299,7 @@ export class PaymentService {
                 WHERE
                     "uuid" = $1`;
       await this.paymentRepository.query(sql, [userId]);
-      this.eventEmitter.emit(
-        Events.DEPOSIT_COMPLETED,
-        depositEvent
-      );
+      this.eventEmitter.emit(Events.DEPOSIT_COMPLETED, depositEvent);
     } catch (err) {
       throw new HttpException(err, ResponseCode.BAD_REQUEST);
     }
@@ -340,7 +354,7 @@ export class PaymentService {
       `JOB: Notify user on profit limit reach started at: ${moment().unix()}`,
     );
     const activeTraders = await this.userService.getActiveTraders();
-    Promise.all(
+    await Promise.all(
       activeTraders.map(async (m) => {
         const valid = await this.userService.validateActiveTradersProfit(m);
         if (valid) {

@@ -144,16 +144,20 @@ export class DepositTransaction {
   }
 
   /**
-  * Get Klay Amount Deficit
-  * @returns
-  */
+   * Get Klay Amount Deficit
+   * @returns
+   */
   private getDeficitAmount(): Promise<number> {
     return new Promise<number>(async (resolve, reject) => {
       try {
         const balance = await this.klaytnService.getAccountBalance(
           this.payment.account.address,
         );
-        const deficit = Number(new bigDecimal(this.payment.amountKLAY).subtract(new bigDecimal(Number(balance))).getValue());
+        const deficit = Number(
+          new bigDecimal(this.payment.amountKLAY)
+            .subtract(new bigDecimal(Number(balance)))
+            .getValue(),
+        );
         resolve(deficit);
       } catch (err) {
         reject(err);
@@ -161,12 +165,11 @@ export class DepositTransaction {
     });
   }
 
-
   /**
    * Remove Deficit Deposit Of user if exists
-   * @param queryRunner 
-   * @param user 
-   * @returns 
+   * @param queryRunner
+   * @param user
+   * @returns
    */
   private async removeDeficitDeposit(queryRunner: QueryRunner, user: User) {
     return new Promise<void>(async (resolve, reject) => {
@@ -239,7 +242,9 @@ export class DepositTransaction {
   private async saveDeposit(tx: TransactionReceipt, queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {
-        const isDeficitedDeposit = await this.deficitDepositRepository.findOne({ user: this.payment.user });
+        const isDeficitedDeposit = await this.deficitDepositRepository.findOne({
+          user: this.payment.user,
+        });
         if (isDeficitedDeposit) {
           const balance = await this.klaytnService.getAccountBalance(
             this.payment.account.address,
@@ -263,7 +268,11 @@ export class DepositTransaction {
    * @param queryRunner
    * @returns
    */
-  private async saveDeficitDeposit(tx: TransactionReceipt, deficitAmount: number, queryRunner: QueryRunner) {
+  private async saveDeficitDeposit(
+    tx: TransactionReceipt,
+    deficitAmount: number,
+    queryRunner: QueryRunner,
+  ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         const deposit = new DeficitDeposit();
@@ -319,7 +328,6 @@ export class DepositTransaction {
     });
   }
 
-
   /**
    * Detach Account From Payment Object
    * @param queryRunner
@@ -369,11 +377,11 @@ export class DepositTransaction {
   }
 
   /**
-  * Update Amount Deficit Status Of User
-  * @param user
-  * @param plan
-  * @returns
-  */
+   * Update Amount Deficit Status Of User
+   * @param user
+   * @param plan
+   * @returns
+   */
   private async updateUserDeficitStatus(user: User, queryRunner: QueryRunner) {
     return new Promise<void>(async (resolve, reject) => {
       try {

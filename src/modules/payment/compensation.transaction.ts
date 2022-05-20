@@ -121,34 +121,7 @@ export class CompensationTransaction {
                 parent.parent_depth_level,
               );
               let amount = this.getBonusAmount(bonusPercentage, planAmount);
-              const isEarningLimitExceed = this.isLimitExceed(
-                amount,
-                parentToUpdate.userStats,
-              );
-              if (isEarningLimitExceed) {
-                if (bonusType === BonusType.LISENCE)
-                  bonusType = userWithPlan.plan.planName;
-                await this.createCommision(
-                  parentToUpdate,
-                  userWithPlan,
-                  amount,
-                  bonusType,
-                  parent.level,
-                  depositHash,
-                  queryRunner,
-                  false,
-                );
-                parentToUpdate.userStats.unconsumed_amount = Number(
-                  new bigDecimal(amount)
-                    .add(
-                      new bigDecimal(
-                        parentToUpdate.userStats.unconsumed_amount,
-                      ),
-                    )
-                    .getValue(),
-                );
-                await queryRunner.manager.save(parentToUpdate.userStats);
-              } else {
+              if (!parentToUpdate.refereeUuid) {
                 await this.updateParentStats(
                   parentToUpdate.userStats,
                   amount,
@@ -172,6 +145,59 @@ export class CompensationTransaction {
                 );
                 await this.notifyParentOnTelegram(parentToUpdate, amount);
                 await queryRunner.manager.save(parentToUpdate);
+              } else {
+                const isEarningLimitExceed = this.isLimitExceed(
+                  amount,
+                  parentToUpdate.userStats,
+                );
+                if (isEarningLimitExceed) {
+                  if (bonusType === BonusType.LISENCE)
+                    bonusType = userWithPlan.plan.planName;
+                  await this.createCommision(
+                    parentToUpdate,
+                    userWithPlan,
+                    amount,
+                    bonusType,
+                    parent.level,
+                    depositHash,
+                    queryRunner,
+                    false,
+                  );
+                  parentToUpdate.userStats.unconsumed_amount = Number(
+                    new bigDecimal(amount)
+                      .add(
+                        new bigDecimal(
+                          parentToUpdate.userStats.unconsumed_amount,
+                        ),
+                      )
+                      .getValue(),
+                  );
+                  await queryRunner.manager.save(parentToUpdate.userStats);
+                } else {
+                  await this.updateParentStats(
+                    parentToUpdate.userStats,
+                    amount,
+                    queryRunner,
+                  );
+                  if (bonusType === BonusType.LISENCE)
+                    bonusType = userWithPlan.plan.planName;
+                  await this.createCommision(
+                    parentToUpdate,
+                    userWithPlan,
+                    amount,
+                    bonusType,
+                    parent.level,
+                    depositHash,
+                    queryRunner,
+                  );
+                  parentToUpdate.balance = Number(
+                    new bigDecimal(amount)
+                      .add(new bigDecimal(parent.balance))
+                      .getValue(),
+                  );
+                  await this.notifyParentOnTelegram(parentToUpdate, amount);
+                  await queryRunner.manager.save(parentToUpdate);
+                }
               }
             }
           }),

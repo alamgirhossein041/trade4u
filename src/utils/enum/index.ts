@@ -41,7 +41,7 @@ export enum ResponseMessage {
   REFERRER_PLAN_NOT_ACTIVATED = `Referrer plan has not been activated`,
 
   PURCHASE_PLAN = `Purchase plan from available plans first`,
-  DEFICIT_DEPOSIT=`You already have a deficit deposit`,
+  DEFICIT_DEPOSIT = `You already have a deficit deposit`,
   BINANCE_SERVER_ERROR = `Binance server error`,
   BINANCE_BOT_STARTED = `Binance trading bot has been started successfully`,
   NO_ACTIVE_BOT = `No Active Bot Found`,
@@ -96,6 +96,7 @@ export enum JOB {
   NOTIFY_TRADE_LIMIT_EXCEED = `notify trade limit exceed`,
   NOTIFY_PROFIT_LIMIT_EXCEED = `notify_prfit_limit_exceed`,
   TRADE_LIMIT_EXCEED = 'trade limit exceed',
+  PLAN_EXPIRY_LIMIT_EXCEED = `plan expiry limit exceed`,
 }
 
 export enum BlockProcess {

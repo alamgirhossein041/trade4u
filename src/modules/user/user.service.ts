@@ -143,7 +143,10 @@ export class UsersService {
     let sql = `SELECT * FROM meetings`;
     const meetings = await this.userRepository.query(sql);
     if (!meetings.length) {
-      throw new HttpException(ResponseMessage.CONTENT_NOT_FOUND, ResponseCode.CONTENT_NOT_FOUND);
+      throw new HttpException(
+        ResponseMessage.CONTENT_NOT_FOUND,
+        ResponseCode.CONTENT_NOT_FOUND,
+      );
     }
     return meetings;
   }
@@ -364,10 +367,10 @@ export class UsersService {
       effectivePeriod === 0
         ? accumulated
         : Number(
-          new bigDecimal(accumulated)
-            .divide(new bigDecimal(effectivePeriod), 4)
-            .getValue(),
-        );
+            new bigDecimal(accumulated)
+              .divide(new bigDecimal(effectivePeriod), 4)
+              .getValue(),
+          );
     const dailyPercentage = Number(
       new bigDecimal(dailyAccumulated)
         .divide(new bigDecimal(totalBalance), 4)
@@ -591,9 +594,9 @@ export class UsersService {
                       INNER JOIN ReverseMlmTree h ON u.uuid = h."refereeUuid" 
                     )
             ) 
-             SELECT uuid,"fullName","balance","userName","planIsActive" as plan_is_active,p."planName" as plan_name,p."levels" as parent_depth_level,level FROM ReverseMlmTree
+             SELECT uuid,"refereeUuid","fullName","balance","userName","planIsActive" as plan_is_active,p."planName" as plan_name,p."levels" as parent_depth_level,level FROM ReverseMlmTree
              INNER JOIN plans p ON "planPlanId" = p."planId"
-             WHERE level > 0 AND level <= $2 AND "refereeUuid" IS NOT NULL
+             WHERE level > 0 AND level <= $2
              ORDER BY level;
             `;
     try {
@@ -621,7 +624,7 @@ export class UsersService {
     if (user) {
       throw new HttpException(
         ResponseMessage.USER_ALREADY_EXISTS,
-        ResponseCode.BAD_REQUEST
+        ResponseCode.BAD_REQUEST,
       );
     }
     const newUser = new User().fromDto(payload);
@@ -652,7 +655,6 @@ export class UsersService {
   public async initializeStats(): Promise<UserStats> {
     let userStats: UserStats;
     userStats = new UserStats();
-    userStats.earning_limit = 5000;
     return this.userStatsRepository.save(userStats);
   }
 
@@ -713,8 +715,10 @@ export class UsersService {
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
       user.tradingSystem = binanceDto.tradingSystem;
       user.apiActivationDate = moment().unix();
-      user.tradeStartDate = moment().unix();
-      user.tradeExpiryDate = moment().unix() + Time.THIRTY_DAYS; //30 Days after the trading is started
+      if (user.refereeUuid) {
+        user.tradeStartDate = moment().unix();
+        user.tradeExpiryDate = moment().unix() + Time.THIRTY_DAYS; //30 Days after the trading is started
+      }
       const botData: ICreateBot = {
         apiKey: binanceDto.apiKey,
         apiSecret: binanceDto.apiSecret,
@@ -1330,6 +1334,48 @@ export class UsersService {
       );
       this.loggerServce.log(
         `Trade limit exceed job completed at: ${moment().unix()}`,
+      );
+      return;
+    }
+  }
+
+  /**
+   * Stop the user's bot when the currentDate >= TradeExpiryDate + 10 days.
+   * @returns
+   */
+  @Cron(CronExpression.EVERY_10_MINUTES, {
+    name: JOB.PLAN_EXPIRY_LIMIT_EXCEED,
+  })
+  public async planExpiry() {
+    this.loggerServce.log(
+      `Plan Expiry On Time job started at: ${moment().unix()}`,
+    );
+    const users = await this.userRepository.find({
+      where: {
+        planExpiry: MoreThanOrEqual(moment().unix()),
+      },
+    });
+    if (!users.length) {
+      this.loggerServce.log(
+        `Plan Expiry On Time  job completed at: ${moment().unix()}`,
+      );
+      return;
+    } else {
+      await Promise.all(
+        users.map(async (u: User) => {
+          this.loggerServce.warn(`Plan Expiry Time exceeded: ${u.fullName}`);
+          u.plan = null;
+          u.planIsActive = false;
+          u.planExpiry = null;
+          await this.userRepository.save(u);
+          const bots = await this.getBotsByUserId(u);
+          bots.map(async (b) => {
+            if (b.pid != -1) await this.stopUserBot(b.botid);
+          });
+        }),
+      );
+      this.loggerServce.log(
+        `Plan Expiry On Time job completed at: ${moment().unix()}`,
       );
       return;
     }

@@ -1,15 +1,9 @@
 import { User } from '../user/user.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryColumn
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 import { Payment } from './payment.entity';
 
 @Entity({
-  name: 'deficit_deposits'
+  name: 'deficit_deposits',
 })
 export class DeficitDeposit {
   @PrimaryColumn()

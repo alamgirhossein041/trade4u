@@ -96,7 +96,7 @@ describe('BinancePlus payment test', () => {
 
     it(`Test Check Earning Limit Of license purchaser`, async () => {
         const user = await helper.getUserByEmail('bnptestuser3@yopmail.com');
-        expect(user.balance).toEqual(0)
+        expect(user.balance).toEqual(0);
         expect(user.userStats.consumed_amount).toEqual(0);
         expect(user.userStats.earning_limit).toEqual(1000);
     });

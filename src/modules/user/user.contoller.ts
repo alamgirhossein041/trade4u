@@ -35,8 +35,6 @@ import { UserDataDto } from './user.entity';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { Pagination } from '../../utils/paginate';
 import moment from 'moment';
-import { isEnumMember, sys } from 'typescript';
-import { TradingSystem } from './commons/user.enums';
 
 @Controller('api/user')
 export class UserContoller {
