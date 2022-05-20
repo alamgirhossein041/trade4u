@@ -708,12 +708,6 @@ export class UsersService {
     user: User,
     binanceDto: BinanceTradingDto,
   ): Promise<User> {
-    if (process.env.EXCHANGE === Exchange.BINANCE) {
-      await this.binanceService.verifyApiKey(
-        binanceDto.apiKey,
-        binanceDto.apiSecret,
-      );
-    }
     try {
       user.apiKey = Crypto.encrypt(binanceDto.apiKey);
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
