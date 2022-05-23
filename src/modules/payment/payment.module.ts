@@ -32,14 +32,14 @@ import { EventEmitter } from '../scheduler/event.emitter';
       LicenseFee,
       PerformanceFee,
       UserCommision,
-      DeficitDeposit
+      DeficitDeposit,
     ]),
     SeedModule,
     LoggerModule,
     KlaytnModule,
     UserModule,
     TelegramModule,
-    SocketModule
+    SocketModule,
   ],
   controllers: [PaymentController],
   providers: [
@@ -48,14 +48,14 @@ import { EventEmitter } from '../scheduler/event.emitter';
     CompensationTransaction,
     PDFGenerator,
     DeficitDepositTransaction,
-    EventEmitter
+    EventEmitter,
   ],
   exports: [
     PaymentService,
     DepositTransaction,
     CompensationTransaction,
     PDFGenerator,
-    EventEmitter
+    EventEmitter,
   ],
 })
 export class PaymentModule {}

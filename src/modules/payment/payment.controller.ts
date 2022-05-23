@@ -27,7 +27,7 @@ export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
     private readonly loggerService: LoggerService,
-  ) { }
+  ) {}
 
   @Post(`order_plan/:planId`)
   @UseGuards(AuthGuard('jwt'))
@@ -94,13 +94,14 @@ export class PaymentController {
     });
   }
 
-
   @Patch('deficit_deposit')
   public async initDeficitDepositTransaction(
     @Res() res: Response,
-    @Query('userId') userId: string
+    @Query('userId') userId: string,
   ) {
-    this.loggerService.log(`POST payment/deficit_deposit ${LoggerMessages.API_CALLED}`);
+    this.loggerService.log(
+      `POST payment/deficit_deposit ${LoggerMessages.API_CALLED}`,
+    );
     if (!userId) {
       throw new HttpException(
         ResponseMessage.INVALID_QUERY_PARAM,

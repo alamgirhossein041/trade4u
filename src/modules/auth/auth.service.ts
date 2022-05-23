@@ -66,11 +66,6 @@ export class AuthService {
         .createGenesisUser(payload)
         .then(async (user: User) => {
           try {
-            const token = await this.createToken(user);
-            await this.mailerservice.sendEmailConfirmation(
-              user,
-              token.accessToken,
-            );
             return resolve(user);
           } catch (err) {
             await this.userService.remove(user);

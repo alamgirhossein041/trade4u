@@ -32,20 +32,25 @@ export class PriceService {
     name: JOB.KLAY_MARKET_PRICE,
   })
   public async getMarketPrice() {
-    const ping = await this.coinGeckoService.ping();
-    if (!ping) {
+    try {
+      const ping = await this.coinGeckoService.ping();
+      if (!ping) {
+        this.loggerService.error(ResponseMessage.UNABLE_TO_PING_COINMARKET);
+        return;
+      }
+      const [klay, btc] = await Promise.all([
+        this.coinGeckoService.getPrice('klay-token'),
+        this.coinGeckoService.getPrice('bitcoin'),
+      ]);
+      const [klayPrice, btcPrice] = await Promise.all([
+        this.saveKlayPrice(klay),
+        this.saveBtcPrice(btc),
+      ]);
+      return { klayPrice, btcPrice };
+    } catch (err) {
       this.loggerService.error(ResponseMessage.UNABLE_TO_PING_COINMARKET);
       return;
     }
-    const [klay, btc] = await Promise.all([
-      this.coinGeckoService.getPrice('klay-token'),
-      this.coinGeckoService.getPrice('bitcoin'),
-    ]);
-    const [klayPrice, btcPrice] = await Promise.all([
-      this.saveKlayPrice(klay),
-      this.saveBtcPrice(btc),
-    ]);
-    return { klayPrice, btcPrice };
   }
 
   /**

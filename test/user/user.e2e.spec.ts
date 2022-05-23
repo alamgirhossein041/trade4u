@@ -129,30 +129,15 @@ describe('BinancePlus User test', () => {
             await helper.login('bnptestuser2@yopmail.com', 'Rnssol@21');
             const expectedParents = [
                 { level: 1, fullName: `bnp user`, userName: `testuser1`, balance: 0, plan_is_active: true, parent_depth_level: 7, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, plan_is_active: true, parent_depth_level: 7, plan_name: 'Silver' }
+                { level: 2, fullName: `bnp user`, userName: `bnptestuser32`, balance: 0, plan_is_active: true, parent_depth_level: 7, plan_name: 'Silver' },
+                { level: 3, fullName: `john smith`, userName: `john58`, balance: 0, plan_is_active: true, parent_depth_level: 12, plan_name: 'Premium' }
             ];
             await request(server)
                 .get('/api/user/parents')
                 .set('Authorization', helper.getAccessToken())
                 .expect(200)
                 .expect(({ body }) => {
-                    delete body.data[0].uuid;
-                    delete body.data[1].uuid;
-                    expect(body.data).toEqual(expectedParents);
-                });
-        });
-        it(`Test get user/parents of bnp user 2 after plan purchase to verify balance  API`, async () => {
-            const expectedParents = [
-                { level: 1, fullName: `bnp user`, parent_depth_level: 7,plan_is_active: true, userName: `testuser1`, balance: 0, plan_name: 'Silver' },
-                { level: 2, fullName: `bnp user`, parent_depth_level: 7,plan_is_active: true, userName: `bnptestuser32`, balance: 0, plan_name: 'Silver' }
-            ];
-            await request(server)
-                .get('/api/user/parents')
-                .set('Authorization', helper.getAccessToken())
-                .expect(200)
-                .expect(({ body }) => {
-                    delete body.data[0].uuid;
-                    delete body.data[1].uuid;
+                    body.data.map((user: any) => { delete user.uuid; delete user.refereeUuid });
                     expect(body.data).toEqual(expectedParents);
                 });
         });
@@ -269,7 +254,7 @@ describe('BinancePlus User test', () => {
         it(`Test /trades get user trades_result`, async () => {
             await request(server)
                 .post('/api/user/trades_result?startDate=1649999102&endDate=1649999108')
-                .send({system: 'usdt'})
+                .send({ system: 'usdt' })
                 .set('Authorization', helper.getAccessToken())
                 .expect(204)
         });
