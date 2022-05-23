@@ -14,7 +14,7 @@ export class WithdrawalService {
     private readonly userService: UsersService,
     private readonly caverService: CaverService,
     private readonly loggerService: LoggerService,
-  ) {}
+  ) { }
 
   @Cron(CronExpression.EVERY_5_MINUTES, {
     name: JOB.WITHDRAWAL,
@@ -27,7 +27,7 @@ export class WithdrawalService {
     else {
       return await Promise.all(
         users.map((u) => {
-          if (u.refereeUuid) this.withdrawalTransaction(u);
+          this.withdrawalTransaction(u);
         }),
       );
     }

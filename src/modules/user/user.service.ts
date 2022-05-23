@@ -6,6 +6,7 @@ import {
   LessThanOrEqual,
   MoreThan,
   MoreThanOrEqual,
+  Not,
   Repository,
 } from 'typeorm';
 import {
@@ -1158,7 +1159,7 @@ export class UsersService {
    */
   public async getUsersForWithDrawal(limit: number) {
     return await this.userRepository.find({
-      where: { balance: MoreThanOrEqual(limit) },
+      where: { balance: MoreThanOrEqual(limit), refereeUuid: Not(null) },
     });
   }
 
@@ -1168,7 +1169,7 @@ export class UsersService {
    */
   public async validateTradeTimeStamp() {
     const users = await this.userRepository.find({
-      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()) },
+      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()), planIsActive: true, refereeUuid: Not(null) },
     });
     return users;
   }
@@ -1242,7 +1243,7 @@ export class UsersService {
     let activeTraders: User[] = [];
     if (users.length) {
       activeTraders = await this.userRepository.find({
-        where: { uuid: In(users) },
+        where: { uuid: In(users), planIsActive: true, refereeUuid: Not(null) },
         relations: ['plan'],
       });
     }
@@ -1311,6 +1312,8 @@ export class UsersService {
     const users = await this.userRepository.find({
       where: {
         tradeExpiryDate: LessThanOrEqual(moment().unix()),
+        planIsActive: true,
+        refereeUuid: Not(null)
       },
     });
 
@@ -1351,7 +1354,8 @@ export class UsersService {
       `Plan Expiry On Time job started at: ${moment().unix()}`,
     );
     const users = await this.userRepository.find({
-      planIsActive: true
+      planIsActive: true,
+      refereeUuid: Not(null)
     });
     if (!users.length) {
       this.loggerServce.log(
@@ -1361,11 +1365,13 @@ export class UsersService {
     } else {
       await Promise.all(
         users.map(async (u: User) => {
-          if (moment().unix() >= u.planExpiry ) {
+          if (moment().unix() >= u.planExpiry) {
             this.loggerServce.warn(`Plan Expiry Time exceeded: ${u.fullName}`);
             u.plan = null;
             u.planIsActive = false;
             u.planExpiry = null;
+            u.tradeStartDate = null;
+            u.tradeExpiryDate = null;
             await this.userRepository.save(u);
             const bots = await this.getBotsByUserId(u);
             bots.map(async (b) => {
