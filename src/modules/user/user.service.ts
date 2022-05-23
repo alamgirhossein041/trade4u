@@ -1361,7 +1361,7 @@ export class UsersService {
     } else {
       await Promise.all(
         users.map(async (u: User) => {
-          if (moment().unix() >= u.planExpiry ) {
+          if (u.refereeUuid && moment().unix() >= u.planExpiry) {
             this.loggerServce.warn(`Plan Expiry Time exceeded: ${u.fullName}`);
             u.plan = null;
             u.planIsActive = false;
