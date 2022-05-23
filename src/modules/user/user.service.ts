@@ -367,10 +367,10 @@ export class UsersService {
       effectivePeriod === 0
         ? accumulated
         : Number(
-            new bigDecimal(accumulated)
-              .divide(new bigDecimal(effectivePeriod), 4)
-              .getValue(),
-          );
+          new bigDecimal(accumulated)
+            .divide(new bigDecimal(effectivePeriod), 4)
+            .getValue(),
+        );
     const dailyPercentage = Number(
       new bigDecimal(dailyAccumulated)
         .divide(new bigDecimal(totalBalance), 4)
@@ -1351,9 +1351,7 @@ export class UsersService {
       `Plan Expiry On Time job started at: ${moment().unix()}`,
     );
     const users = await this.userRepository.find({
-      where: {
-        planExpiry: MoreThanOrEqual(moment().unix()),
-      },
+      planIsActive: true
     });
     if (!users.length) {
       this.loggerServce.log(
@@ -1363,15 +1361,17 @@ export class UsersService {
     } else {
       await Promise.all(
         users.map(async (u: User) => {
-          this.loggerServce.warn(`Plan Expiry Time exceeded: ${u.fullName}`);
-          u.plan = null;
-          u.planIsActive = false;
-          u.planExpiry = null;
-          await this.userRepository.save(u);
-          const bots = await this.getBotsByUserId(u);
-          bots.map(async (b) => {
-            if (b.pid != -1) await this.stopUserBot(b.botid);
-          });
+          if (moment().unix() >= u.planExpiry ) {
+            this.loggerServce.warn(`Plan Expiry Time exceeded: ${u.fullName}`);
+            u.plan = null;
+            u.planIsActive = false;
+            u.planExpiry = null;
+            await this.userRepository.save(u);
+            const bots = await this.getBotsByUserId(u);
+            bots.map(async (b) => {
+              if (b.pid != -1) await this.stopUserBot(b.botid);
+            });
+          }
         }),
       );
       this.loggerServce.log(
