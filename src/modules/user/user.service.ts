@@ -715,6 +715,10 @@ export class UsersService {
       throw new HttpException(ResponseMessage.PURCHASE_PLAN, ResponseCode.BAD_REQUEST);
     }
     try {
+      const botServer = await this.botclient.ping();
+      if (!botServer) {
+        throw new HttpException(ResponseMessage.BOT_SERVER_DOWN, ResponseCode.BAD_REQUEST);
+      }
       user.apiKey = Crypto.encrypt(binanceDto.apiKey);
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
       user.tradingSystem = binanceDto.tradingSystem;
@@ -733,8 +737,10 @@ export class UsersService {
         riskLevel: botConstants.riskLevel,
         userId: user.uuid,
       };
-      await this.iniateUserBot(binanceDto.tradingSystem, botData);
-      return await this.userRepository.save(user);
+      if (botServer) {
+        await this.iniateUserBot(binanceDto.tradingSystem, botData);
+        return await this.userRepository.save(user);
+      }
     } catch (err) {
       throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
     }
@@ -788,6 +794,10 @@ export class UsersService {
 
   async stopUserBot(botId: string): Promise<void> {
     try {
+      const botServer = await this.botclient.ping();
+      if (!botServer) {
+        throw new HttpException(ResponseMessage.BOT_SERVER_DOWN, ResponseCode.BAD_REQUEST);
+      }
       await this.botclient.stopBot(botId);
       return;
     } catch (err) {
