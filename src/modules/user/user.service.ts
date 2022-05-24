@@ -711,6 +711,9 @@ export class UsersService {
     user: User,
     binanceDto: BinanceTradingDto,
   ): Promise<User> {
+    if (!user.planIsActive) {
+      throw new HttpException(ResponseMessage.PURCHASE_PLAN, ResponseCode.BAD_REQUEST);
+    }
     try {
       user.apiKey = Crypto.encrypt(binanceDto.apiKey);
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
