@@ -43,6 +43,7 @@ export enum ResponseMessage {
   PURCHASE_PLAN = `Purchase plan from available plans first`,
   DEFICIT_DEPOSIT = `You already have a deficit deposit`,
   BINANCE_SERVER_ERROR = `Binance server error`,
+  BOT_SERVER_DOWN=`Bot server down`,
   BINANCE_BOT_STARTED = `Binance trading bot has been started successfully`,
   NO_ACTIVE_BOT = `No Active Bot Found`,
   INTERNAL_SERVER_ERROR = `Internal server error`,

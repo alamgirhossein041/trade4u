@@ -195,6 +195,15 @@ export class MockBotServer {
             return res.status(200).send(success);
         });
 
+        this.app.get('/api/bot/ping', (req: Request, res: Response) => {
+            const success = {
+                "success": true,
+                "code": 1000,
+                "message": "bot server up"
+            }
+            return res.status(200).send(success);
+        });
+
         this.app.get('/api/bot/:id/start', (req: Request, res: Response) => {
             const success = {
                 "success": true,
