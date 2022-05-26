@@ -52,7 +52,7 @@ export class CaverService {
    */
   public async getLatestBlock() {
     const latestBlock = await this.caver.klay.getBlockNumber();
-    return this.hexToNumber(latestBlock.toString());
+    return latestBlock;
   }
 
   /**

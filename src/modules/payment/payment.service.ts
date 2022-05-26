@@ -346,7 +346,7 @@ export class PaymentService {
    * Notify the user for preformance fee payment dues
    * @returns
    */
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_10_MINUTES, {
     name: JOB.NOTIFY_PROFIT_LIMIT_EXCEED,
   })
   public async NotifyUsersOnProfitLimitReach() {
@@ -379,7 +379,7 @@ export class PaymentService {
    * Notify the user for preformance fee payment dues
    * @returns
    */
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_10_MINUTES, {
     name: JOB.NOTIFY_TRADE_LIMIT_EXCEED,
   })
   public async NotifyUsersOnTradeLimitExceed() {
