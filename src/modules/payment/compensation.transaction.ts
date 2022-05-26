@@ -17,6 +17,7 @@ import { UserStats } from '../user/user-stats.entity';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { Deposit } from './deposit.entity';
 import { UserCommision } from '../user/user-commision.entity';
+import moment from 'moment';
 
 @Injectable()
 export class CompensationTransaction {
@@ -354,6 +355,7 @@ export class CompensationTransaction {
         commision.txHash = depositHash;
         commision.amountKLAY = amountKLAY;
         commision.consumed = consumed;
+        commision.createdAt = moment().unix();
         await queryRunner.manager.save(commision);
         resolve();
       } catch (err) {
