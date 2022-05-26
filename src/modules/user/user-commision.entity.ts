@@ -36,7 +36,7 @@ export class UserCommision {
   @Column({ type: 'double precision', nullable: true })
   amountKLAY: number;
 
-  @Column({ default: moment().unix() })
+  @Column()
   createdAt: number;
 
   @Column({ default: true })
