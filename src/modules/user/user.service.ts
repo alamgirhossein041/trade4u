@@ -1182,7 +1182,7 @@ export class UsersService {
    */
   public async validateTradeTimeStamp() {
     const users = await this.userRepository.find({
-      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()), planIsActive: true, refereeUuid: Not(null) },
+      where: { tradeExpiryDate: LessThanOrEqual(moment().unix()) },
     });
     return users;
   }
@@ -1256,7 +1256,7 @@ export class UsersService {
     let activeTraders: User[] = [];
     if (users.length) {
       activeTraders = await this.userRepository.find({
-        where: { uuid: In(users), planIsActive: true, refereeUuid: Not(null) },
+        where: { uuid: In(users) },
         relations: ['plan'],
       });
     }
@@ -1324,9 +1324,7 @@ export class UsersService {
     );
     const users = await this.userRepository.find({
       where: {
-        tradeExpiryDate: LessThanOrEqual(moment().unix()),
-        planIsActive: true,
-        refereeUuid: Not(null)
+        tradeExpiryDate: LessThanOrEqual(moment().unix())
       },
     });
 
@@ -1367,8 +1365,7 @@ export class UsersService {
       `Plan Expiry On Time job started at: ${moment().unix()}`,
     );
     const users = await this.userRepository.find({
-      planIsActive: true,
-      refereeUuid: Not(null)
+      planIsActive: true
     });
     if (!users.length) {
       this.loggerServce.log(
