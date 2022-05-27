@@ -89,41 +89,49 @@ export class PriceService {
    * Initailize klay price on startup
    */
   public async initKlayPrice() {
-    const result: any[] = await this.priceRepository.query(`SELECT 
+    try {
+      const result: any[] = await this.priceRepository.query(`SELECT 
                     price 
                 FROM 
                     prices 
                 WHERE 
                     timestamp = (SELECT MAX(timestamp) FROM prices WHERE currency = '${CryptoAsset.KLAY}');`);
 
-    if (!result.length) {
-      this.loggerService.log(`Get klay latest price on startup`);
-      const data = await this.getMarketPrice();
-      PriceService.klayPrice = data.klayPrice;
-    } else {
-      PriceService.klayPrice = result[0].price;
+      if (!result.length) {
+        this.loggerService.log(`Get klay latest price on startup`);
+        const data = await this.getMarketPrice();
+        PriceService.klayPrice = data.klayPrice;
+      } else {
+        PriceService.klayPrice = result[0].price;
+      }
+      return;
+    } catch (err) {
+      this.loggerService.error(ResponseMessage.UNABLE_TO_PING_COINMARKET);
     }
-    return;
   }
 
   /**
    * Initailize klay price on startup
    */
   public async initBtcPrice() {
-    const result: any[] = await this.priceRepository.query(`SELECT 
+    try {
+      const result: any[] = await this.priceRepository.query(`SELECT 
                     price 
                 FROM 
                     prices 
                 WHERE 
                     timestamp = (SELECT MAX(timestamp) FROM prices WHERE currency = '${CryptoAsset.BTC}');`);
 
-    if (!result.length) {
-      this.loggerService.log(`Get Btc latest price on startup`);
-      const data = await this.getMarketPrice();
-      PriceService.btcPrice = data.btcPrice;
-    } else {
-      PriceService.btcPrice = result[0].price;
+      if (!result.length) {
+        this.loggerService.log(`Get Btc latest price on startup`);
+        const data = await this.getMarketPrice();
+        PriceService.btcPrice = data.btcPrice;
+      } else {
+        PriceService.btcPrice = result[0].price;
+      }
+      return;
+    } catch (err) {
+      this.loggerService.error(ResponseMessage.UNABLE_TO_PING_COINMARKET);
     }
-    return;
   }
 }
