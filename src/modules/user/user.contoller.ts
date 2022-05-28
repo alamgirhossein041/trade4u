@@ -114,7 +114,7 @@ export class UserContoller {
     });
   }
 
-  @Post(`/webhook/5060344605:AAHuBFdqTZzKg_avhYCRP6DkZrJSXFFAqa4`)
+  @Post(`/webhook/5554647132:AAGKc922WRWJj1CWaSXTeOtG4_DUlqpiU7o`)
   async getBotWebhook(@Req() req: Request, @Res() res: Response) {
     this.loggerService.log(
       `Post user/telegram_webhook ${LoggerMessages.API_CALLED}`,

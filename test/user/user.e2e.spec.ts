@@ -170,7 +170,7 @@ describe('BinancePlus User test', () => {
 
         it(`Test /webhook bnp telegram bot webhook API`, async () => {
             await request(server)
-                .post('/api/user/webhook/5060344605:AAHuBFdqTZzKg_avhYCRP6DkZrJSXFFAqa4')
+                .post('/api/user/webhook/5554647132:AAGKc922WRWJj1CWaSXTeOtG4_DUlqpiU7o')
                 .send({ message: { chat: { id: 154090 }, from: { first_name: 'HasNain' }, text: 'hello' } })
                 .expect(200)
         });
@@ -191,7 +191,7 @@ describe('BinancePlus User test', () => {
 
         it(`Test /webhook bnp telegram bot webhook API`, async () => {
             await request(server)
-                .post('/api/user/webhook/5060344605:AAHuBFdqTZzKg_avhYCRP6DkZrJSXFFAqa4')
+                .post('/api/user/webhook/5554647132:AAGKc922WRWJj1CWaSXTeOtG4_DUlqpiU7o')
                 .send({ message: { chat: { id: 154090 }, from: { first_name: 'HasNain' }, text: 'hello' } })
                 .expect(200)
         });
