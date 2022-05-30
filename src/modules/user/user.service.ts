@@ -1172,7 +1172,7 @@ export class UsersService {
    */
   public async getUsersForWithDrawal(limit: number) {
     return await this.userRepository.find({
-      where: { balance: MoreThanOrEqual(limit), refereeUuid: Not(null) },
+      where: { balance: MoreThanOrEqual(limit) },
     });
   }
 
