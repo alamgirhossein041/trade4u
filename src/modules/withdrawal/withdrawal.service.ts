@@ -27,7 +27,9 @@ export class WithdrawalService {
     else {
       return await Promise.all(
         users.map((u) => {
-          this.withdrawalTransaction(u);
+          if (u.refereeUuid) {
+            this.withdrawalTransaction(u);
+          }
         }),
       );
     }
