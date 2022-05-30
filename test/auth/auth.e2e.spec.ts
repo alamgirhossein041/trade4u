@@ -6,12 +6,13 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, TelegramBotMock } from '../mocks/mocks';
+import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, TelegramBotMock, GcpSmMock } from '../mocks/mocks';
 import { AppService } from '../../src/modules/main/app.service';
 import { ResponseMessage } from '../../src/utils/enum';
 import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 import { TelegramService } from '../../src/utils/telegram/telegram-bot.service';
+import { GcpSecretService } from '../../src/utils/secret-manager/gcp.sm.service';
 
 describe('BinancePlus auth test', () => {
     let app: INestApplication;
@@ -31,6 +32,8 @@ describe('BinancePlus auth test', () => {
             .useValue(KlaytnServiceMock)
             .overrideProvider(TelegramService)
             .useValue(TelegramBotMock)
+            .overrideProvider(GcpSecretService)
+            .useValue(GcpSmMock)
             .compile();
             
         app = moduleRef.createNestApplication();

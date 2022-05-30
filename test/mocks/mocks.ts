@@ -86,6 +86,12 @@ export const EventEmitterMock = {
     })
 }
 
+export const GcpSmMock = {
+    getWalletSecret: jest.fn(() => {
+        return '0x98d3a90c9d18f93de36b65e784ba5d95a45eaa326377a6d2a3693a898310f44d'
+    }),
+}
+
 export class CaverMock {
     public static accountAddress: string;
 
@@ -149,6 +155,10 @@ export class CaverMock {
     }
 
     async moveToMasterWallet() {
+        return;
+    }
+
+    async moveToUserWallet() {
         return;
     }
     isAddress(val) {

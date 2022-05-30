@@ -6,7 +6,7 @@ import { Helper } from '../helper';
 import request from 'supertest';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock, TelegramBotMock, MockBotServer } from '../mocks/mocks';
+import { MailerMock, LoggerMock, CoinMarketMock, KlaytnServiceMock, BinanceMock, TelegramBotMock, MockBotServer, GcpSmMock } from '../mocks/mocks';
 import { ResponseMessage } from '../../src/utils/enum';
 import { AppService } from '../../src/modules/main/app.service';
 import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
@@ -14,6 +14,7 @@ import { BinanceService } from '../../src/utils/binance/binance.service';
 import { TelegramService } from '../../src/utils/telegram/telegram-bot.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 import { User } from '../../src/modules/user/user.entity';
+import { GcpSecretService } from '../../src/utils/secret-manager/gcp.sm.service';
 
 describe('BinancePlus User test', () => {
     let app: INestApplication;
@@ -48,6 +49,8 @@ describe('BinancePlus User test', () => {
             .useValue(BinanceMock)
             .overrideProvider(TelegramService)
             .useValue(TelegramBotMock)
+            .overrideProvider(GcpSecretService)
+            .useValue(GcpSmMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());

@@ -1339,11 +1339,13 @@ export class UsersService {
     } else {
       await Promise.all(
         filtered.map(async (m) => {
-          this.loggerServce.warn(`Trade limit exceeded: ${m.fullName}`);
-          const bots = await this.getBotsByUserId(m);
-          bots.map(async (b) => {
-            if (b.pid != -1) await this.stopUserBot(b.botid);
-          });
+          if (m.refereeUuid) {
+            this.loggerServce.warn(`Trade limit exceeded: ${m.fullName}`);
+            const bots = await this.getBotsByUserId(m);
+            bots.map(async (b) => {
+              if (b.pid != -1) await this.stopUserBot(b.botid);
+            });
+          }
         }),
       );
       this.loggerServce.log(
@@ -1375,7 +1377,7 @@ export class UsersService {
     } else {
       await Promise.all(
         users.map(async (u: User) => {
-          if (moment().unix() >= u.planExpiry) {
+          if (moment().unix() >= u.planExpiry && u.refereeUuid) {
             this.loggerServce.warn(`Plan Expiry Time exceeded: ${u.fullName}`);
             u.plan = null;
             u.planIsActive = false;
