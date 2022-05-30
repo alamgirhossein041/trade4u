@@ -19,6 +19,7 @@ import { ObserverModule } from '../observers/observers.module';
 import { WithdrawalModule } from '../../modules/withdrawal/withdrawal.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { GcpSecretModule } from '../../utils/secret-manager/gcp.sm.module';
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
@@ -54,7 +55,7 @@ import { join } from 'path';
     SchedulerModule,
     ObserverModule,
     WithdrawalModule,
-    // SocketModule,
+    GcpSecretModule
   ],
   controllers: [AppController],
   providers: [AppService],

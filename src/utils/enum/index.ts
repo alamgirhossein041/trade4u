@@ -47,6 +47,7 @@ export enum ResponseMessage {
   BINANCE_BOT_STARTED = `Binance trading bot has been started successfully`,
   NO_ACTIVE_BOT = `No Active Bot Found`,
   INTERNAL_SERVER_ERROR = `Internal server error`,
+  GCP_ERROR=`Secret Access Error`,
   CHECK_INTERNET_CONNECTION = `Error while sending email please check internet connection`,
   UNABLE_TO_PING_COINMARKET = `Unable to ping coin-gecko market`,
 

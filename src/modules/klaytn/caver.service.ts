@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import Caver, { Keyring, KeyringContainer } from 'caver-js';
 import { LoggerService } from '../../utils/logger/logger.service';
+import { GcpSecretService } from '../../utils/secret-manager/gcp.sm.service';
 
 @Injectable()
 export class CaverService {
@@ -14,9 +15,23 @@ export class CaverService {
    */
   private wallet: KeyringContainer;
 
-  constructor(private readonly loggerService: LoggerService) {
+  private FEE_WALLET_SECRET: string;
+  private MASTER_WALLET_SECRET: string;
+
+  constructor(
+    private readonly loggerService: LoggerService,
+    private readonly secretService: GcpSecretService
+  ) {
     this.caver = new Caver(process.env.KLAYTN_NODE_URL);
     this.wallet = this.caver.wallet;
+    (async () => {
+      const [feeSecret, masterSecret] = await Promise.all([
+        this.secretService.getWalletSecret(process.env.GCP_FEE_WALLET_SECRET),
+        this.secretService.getWalletSecret(process.env.GCP_MASTER_WALLET_SECRET),
+      ]);
+      this.FEE_WALLET_SECRET = feeSecret;
+      this.MASTER_WALLET_SECRET = masterSecret;
+    })();
   }
 
   /**
@@ -179,9 +194,9 @@ export class CaverService {
         feepayer = exist
           ? this.caver.wallet.getKeyring(process.env.KLAY_FEE_WALLET_ADDRESS)
           : this.caver.wallet.newKeyring(
-              process.env.KLAY_FEE_WALLET_ADDRESS,
-              process.env.KLAY_FEE_WALLET_SECRET,
-            );
+            process.env.KLAY_FEE_WALLET_ADDRESS,
+            this.FEE_WALLET_SECRET,
+          );
 
         await tx.sign(sender);
         await tx.signAsFeePayer(feepayer);
@@ -232,9 +247,9 @@ export class CaverService {
         sender = senderExist
           ? this.caver.wallet.getKeyring(process.env.KLAY_MASTER_WALLET_ADDRESS)
           : this.caver.wallet.newKeyring(
-              process.env.KLAY_MASTER_WALLET_ADDRESS,
-              process.env.KLAY_MASTER_WALLET_SECRET,
-            );
+            process.env.KLAY_MASTER_WALLET_ADDRESS,
+            this.MASTER_WALLET_SECRET,
+          );
 
         const feepayerExist = this.wallet.isExisted(
           process.env.KLAY_FEE_WALLET_ADDRESS,
@@ -242,9 +257,9 @@ export class CaverService {
         feepayer = feepayerExist
           ? this.caver.wallet.getKeyring(process.env.KLAY_FEE_WALLET_ADDRESS)
           : this.caver.wallet.newKeyring(
-              process.env.KLAY_FEE_WALLET_ADDRESS,
-              process.env.KLAY_FEE_WALLET_SECRET,
-            );
+            process.env.KLAY_FEE_WALLET_ADDRESS,
+            this.FEE_WALLET_SECRET,
+          );
 
         await tx.sign(sender);
         await tx.signAsFeePayer(feepayer);

@@ -59,7 +59,7 @@ export class PaymentService {
     private readonly userService: UsersService,
     private readonly socketService: SocketService,
     private readonly pdfGenerator: PDFGenerator,
-  ) {}
+  ) { }
 
   /**
    * Get user payments
@@ -356,15 +356,17 @@ export class PaymentService {
     const activeTraders = await this.userService.getActiveTraders();
     await Promise.all(
       activeTraders.map(async (m) => {
-        const valid = await this.userService.validateActiveTradersProfit(m);
-        if (valid) {
-          await this.socketService.emitNotification(
-            m.email,
-            Notifications.PERFORMANCE_FEE,
-          );
-          this.loggerServce.debug(
-            `JOB: Notify user on profit limit reach: ${m.userName}`,
-          );
+        if (m.refereeUuid) {
+          const valid = await this.userService.validateActiveTradersProfit(m);
+          if (valid) {
+            await this.socketService.emitNotification(
+              m.email,
+              Notifications.PERFORMANCE_FEE,
+            );
+            this.loggerServce.debug(
+              `JOB: Notify user on profit limit reach: ${m.userName}`,
+            );
+          }
         }
       }),
     ).then(() => {
@@ -396,16 +398,18 @@ export class PaymentService {
     } else {
       Promise.all(
         users.map(async (m) => {
-          try {
-            await this.socketService.emitNotification(
-              m.email,
-              Notifications.PERFORMANCE_FEE,
-            );
-            this.loggerServce.debug(
-              `JOB: Notify user on trade limit exceed: ${m.userName}`,
-            );
-          } catch (err) {
-            this.loggerServce.error(err);
+          if (m.refereeUuid) {
+            try {
+              await this.socketService.emitNotification(
+                m.email,
+                Notifications.PERFORMANCE_FEE,
+              );
+              this.loggerServce.debug(
+                `JOB: Notify user on trade limit exceed: ${m.userName}`,
+              );
+            } catch (err) {
+              this.loggerServce.error(err);
+            }
           }
         }),
       ).then(() => {

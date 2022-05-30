@@ -8,6 +8,7 @@ import { BullModule } from '@nestjs/bull';
 import { BlockQueue } from '../scheduler/commons/scheduler.enum';
 import { Information } from './information.entity';
 import { CaverService } from './caver.service';
+import { GcpSecretModule } from '../../utils/secret-manager/gcp.sm.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CaverService } from './caver.service';
     BullModule.registerQueueAsync({
       name: BlockQueue.BLOCK,
     }),
+    GcpSecretModule
   ],
   controllers: [KlaytnController],
   providers: [KlaytnService, CaverService],

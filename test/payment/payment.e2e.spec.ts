@@ -4,7 +4,7 @@ import { AppModule } from '../../src/modules/main/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { LoggerService } from '../../src/utils/logger/logger.service';
 import { MailService } from '../../src/utils/mailer/mail.service';
-import { CaverMock, CoinMarketMock, EventEmitterMock, LoggerMock, MailerMock } from '../mocks/mocks';
+import { CaverMock, CoinMarketMock, EventEmitterMock, GcpSmMock, LoggerMock, MailerMock } from '../mocks/mocks';
 import { Helper } from '../helper';
 import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
 import request from 'supertest';
@@ -14,6 +14,7 @@ import { BlockProcess } from '../../src/utils/enum';
 import { CaverService } from '../../src/modules/klaytn/caver.service';
 import { EventEmitter } from '../../src/modules/scheduler/event.emitter';
 import { CompensationTransaction } from '../../src/modules/payment/compensation.transaction';
+import { GcpSecretService } from '../../src/utils/secret-manager/gcp.sm.service';
 var rimraf = require("rimraf");
 
 describe('BinancePlus payment test', () => {
@@ -38,6 +39,8 @@ describe('BinancePlus payment test', () => {
             .useClass(CaverMock)
             .overrideProvider(EventEmitter)
             .useValue(EventEmitterMock)
+            .overrideProvider(GcpSecretService)
+            .useValue(GcpSmMock)
             .compile();
         app = moduleRef.createNestApplication();
         app.useGlobalPipes(new ValidationPipe());
