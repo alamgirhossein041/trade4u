@@ -15,4 +15,4 @@ CONTAINER_CURRENT=rnssolutions/$CONTAINER_NAME:$LABEL
 
 docker stop $CONTAINER_NAME-$BRANCH_NAME
 docker rm -f $CONTAINER_NAME-$BRANCH_NAME
-docker run -v /var/binance-plus/.env:/app/.env  -v /var/binance-plus/keystore:/app/database  -d -p $PORT:3836 -p 3834:3834 --name $CONTAINER_NAME-$BRANCH_NAME $CONTAINER_CURRENT
+docker run  -v /var/binance-plus/secret-manager.json:/app/secret-manager.json -v /var/binance-plus/.env:/app/.env  -v /var/binance-plus/keystore:/app/database  -d -p $PORT:3836 -p 3834:3834 --name $CONTAINER_NAME-$BRANCH_NAME $CONTAINER_CURRENT
