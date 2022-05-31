@@ -18,7 +18,7 @@ export class MailService {
       try {
         await this.mailerService.sendMail({
           to: user.email,
-          from: '"Support Team" <support@binanceplus.com>', // override default from
+          from: 'do-not-replay@binanceplus.io', // override default from
           subject: 'Welcome to BinancePlus! Confirm your Email',
           html: `
           <div style="background: #EAF0F6;
@@ -152,7 +152,7 @@ export class MailService {
       try {
         await this.mailerService.sendMail({
           to: user.email,
-          from: '"Support Team" <support@binanceplus.com>', // override default from
+          from: 'do-not-replay@binanceplus.io', // override default from
           subject: 'Welcome to BinancePlus! Verification',
           html: `
           <div style="background: #EAF0F6;
@@ -274,7 +274,7 @@ export class MailService {
     const subRoute = 'changepassword';
     await this.mailerService.sendMail({
       to: email,
-      from: '"Support Team" <support@binanceplus.com>', // override default from
+      from: 'do-not-replay@binanceplus.io', // override default from
       subject: 'Binance+ ! Forgot Password',
       html: `
       <div style="background: #EAF0F6;

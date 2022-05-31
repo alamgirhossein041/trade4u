@@ -6,17 +6,16 @@ import { MailService } from './mail.service';
   imports: [
     MailerModule.forRoot({
       transport: {
-        service: 'gmail',
-        host: 'smtp.gmail.com',
-        ignoreTLS: false,
+        service: 'sendgrid',
+        host: 'smtp.sendgrid.net',
         secure: false,
         auth: {
-          user: 'noreplyicdfinlit@gmail.com',
-          pass: 'IcdFinlit123',
+          user: 'apikey',
+          pass: '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',
         },
       },
       defaults: {
-        from: '"No Reply" <noreply@example.com>',
+        from: 'do-not-replay@binanceplus.io',
       },
     }),
   ],

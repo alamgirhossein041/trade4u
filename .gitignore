@@ -3,6 +3,7 @@
 
 /database
 /test_database
+secret-manager.json
 
 # compiled output
 /dist
