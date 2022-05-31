@@ -31,7 +31,7 @@ export enum ResponseMessage {
   USERNAME_ALREADY_TAKEN = `User with the same username already exists, please try another one.`,
 
   INVALID_EMAIL = `Invalid email address`,
-  INVALID_PASSWORD = `Invalid Password. Use 8-15 characters with a mix of letters, numbers & symbols`,
+  INVALID_PASSWORD = `Invalid Password. Use minimum 8 characters with a mix of letters, numbers & symbols`,
   INVALID_USERNAME = `Invalid user name`,
   INVALID_NAME = `Invalid name`,
   INVALID_COUNTRY = `Invalid country name`,
