@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpException,
+  Inject,
   Post,
   Query,
   Req,
@@ -26,12 +27,14 @@ import {
   LoggerMessages,
 } from '../../utils/enum';
 import { LoggerService } from '../../utils/logger/logger.service';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Controller('api/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
   ) {
     this.loggerService.setContext('AuthController');
   }

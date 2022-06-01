@@ -1,6 +1,6 @@
 import { getConnection, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { Account } from '../klaytn/account.entity';
 import { Payment } from '../payment/payment.entity';
@@ -17,7 +17,7 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { UserCommision } from '../user/user-commision.entity';
 import { Time } from '../../utils/enum';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
-import { UserTelegram } from 'modules/user/telegram.entity';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { DeficitDeposit } from './deficit.deposit.entity';
 
 @Injectable()
@@ -41,7 +41,7 @@ export class DepositTransaction {
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
     private readonly telegramService: TelegramService,
-    private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
   ) {
     this.loggerService.setContext('DepositTransaction');
   }

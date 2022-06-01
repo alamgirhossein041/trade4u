@@ -15,6 +15,8 @@ import { Deposit } from '../payment/deposit.entity';
 import { Repository } from 'typeorm';
 import { SocketService } from '../../modules/socket/socket.service';
 import { Notifications } from '../../modules/socket/commons/socket.enum';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Inject } from '@nestjs/common';
 
 @Processor(BlockQueue.BLOCK)
 export class BlockProcessor {
@@ -25,7 +27,7 @@ export class BlockProcessor {
     private eventEmitter: EventEmitter,
     @InjectRepository(Deposit)
     private readonly depositRepository: Repository<Deposit>,
-    private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
     private readonly socketService: SocketService,

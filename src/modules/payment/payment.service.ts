@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SeedService } from '../../modules/seed/seed.service';
 import { getConnection, Repository, LessThanOrEqual, Like } from 'typeorm';
@@ -39,6 +39,7 @@ import { DeficitDeposit } from './deficit.deposit.entity';
 import { CaverService } from '../klaytn/caver.service';
 import { EventEmitter } from '../scheduler/event.emitter';
 import { Events } from '../scheduler/commons/scheduler.enum';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class PaymentService {
@@ -55,11 +56,14 @@ export class PaymentService {
     private readonly seedService: SeedService,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
-    private readonly loggerServce: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly loggerService: LoggerService,
     private readonly userService: UsersService,
     private readonly socketService: SocketService,
     private readonly pdfGenerator: PDFGenerator,
-  ) { }
+  ) {
+    this.loggerService.setContext('PaymentService')
+  }
 
   /**
    * Get user payments
@@ -220,7 +224,7 @@ export class PaymentService {
   })
   public async expirePayment(): Promise<number> {
     try {
-      this.loggerServce.log(
+      this.loggerService.log(
         `Payment Expiry Job started at: ${moment().unix()}`,
       );
       const now = moment().unix();
@@ -242,13 +246,13 @@ export class PaymentService {
           await this.paymentRepository.save(m);
         }),
       ).then(() => {
-        this.loggerServce.log(
+        this.loggerService.log(
           `Payment Expiry Job Completed at: ${moment().unix()}`,
         );
       });
       return;
     } catch (err) {
-      this.loggerServce.log(`Payment Expiry Job Failed`);
+      this.loggerService.log(`Payment Expiry Job Failed`);
       return;
     }
   }
@@ -310,7 +314,7 @@ export class PaymentService {
   })
   public async processDeposit(): Promise<number> {
     try {
-      this.loggerServce.log(
+      this.loggerService.log(
         `Process Deposit Job started at: ${moment().unix()}`,
       );
       const deposits = await this.depositRepository.find({
@@ -331,13 +335,13 @@ export class PaymentService {
           );
         }),
       ).then(() => {
-        this.loggerServce.log(
+        this.loggerService.log(
           `Process Deposit Job Completed at: ${moment().unix()}`,
         );
       });
       return;
     } catch (err) {
-      this.loggerServce.log(`Process Deposit Job Failed`);
+      this.loggerService.log(`Process Deposit Job Failed`);
       return;
     }
   }
@@ -350,7 +354,7 @@ export class PaymentService {
     name: JOB.NOTIFY_PROFIT_LIMIT_EXCEED,
   })
   public async NotifyUsersOnProfitLimitReach() {
-    this.loggerServce.log(
+    this.loggerService.log(
       `JOB: Notify user on profit limit reach started at: ${moment().unix()}`,
     );
     const activeTraders = await this.userService.getActiveTraders();
@@ -363,14 +367,14 @@ export class PaymentService {
               m.email,
               Notifications.PERFORMANCE_FEE,
             );
-            this.loggerServce.debug(
+            this.loggerService.debug(
               `JOB: Notify user on profit limit reach: ${m.userName}`,
             );
           }
         }
       }),
     ).then(() => {
-      this.loggerServce.log(
+      this.loggerService.log(
         `JOB: Notify user on profit limit reach completed at: ${moment().unix()}`,
       );
       return;
@@ -385,13 +389,13 @@ export class PaymentService {
     name: JOB.NOTIFY_TRADE_LIMIT_EXCEED,
   })
   public async NotifyUsersOnTradeLimitExceed() {
-    this.loggerServce.log(
+    this.loggerService.log(
       `JOB: Notify user on trade limit exceed started at: ${moment().unix()}`,
     );
 
     const users = await this.userService.validateTradeTimeStamp();
     if (!users.length) {
-      this.loggerServce.log(
+      this.loggerService.log(
         `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
       );
       return;
@@ -404,16 +408,16 @@ export class PaymentService {
                 m.email,
                 Notifications.PERFORMANCE_FEE,
               );
-              this.loggerServce.debug(
+              this.loggerService.debug(
                 `JOB: Notify user on trade limit exceed: ${m.userName}`,
               );
             } catch (err) {
-              this.loggerServce.error(err);
+              this.loggerService.error(err);
             }
           }
         }),
       ).then(() => {
-        this.loggerServce.log(
+        this.loggerService.log(
           `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
         );
         return;
@@ -459,7 +463,7 @@ export class PaymentService {
           user.tradeExpiryDate,
         );
         if (!profit) {
-          this.loggerServce.warn(`Profits not found for bot: ${bot.botid}`);
+          this.loggerService.warn(`Profits not found for bot: ${bot.botid}`);
           resolve();
         } else {
           const tradesList = await this.userService.getTradesBetweenRange(
@@ -515,13 +519,13 @@ export class PaymentService {
             trades: tradesList,
           };
           payment.pdf = await this.pdfGenerator.generatePDF(data);
-          this.loggerServce.log(
+          this.loggerService.log(
             `Payment created = ${payment.paymentId}, bot: ${bot.botid}`,
           );
           resolve(await this.paymentRepository.save(payment));
         }
       } catch (err) {
-        this.loggerServce.error(`Preformance Fee payment creation failed !`);
+        this.loggerService.error(`Preformance Fee payment creation failed !`);
         reject(err);
       }
     });

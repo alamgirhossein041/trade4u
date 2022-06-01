@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { ConsoleLogger, Module } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { CommonModule } from '../common/common.module';
@@ -20,6 +20,8 @@ import { WithdrawalModule } from '../../modules/withdrawal/withdrawal.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { GcpSecretModule } from '../../utils/secret-manager/gcp.sm.module';
+import { WinstonModule } from 'nest-winston';
+
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
@@ -34,6 +36,11 @@ import { GcpSecretModule } from '../../utils/secret-manager/gcp.sm.module';
     }),
     ConfigModule.forRoot({
       envFilePath: [AppService.envConfiguration()],
+    }),
+    WinstonModule.forRootAsync({
+      useFactory: async () => {
+        return AppService.createWinstonTransports();
+      },
     }),
     BullModule.forRoot({
       redis: {

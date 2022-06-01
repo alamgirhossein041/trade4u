@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpException,
   Query,
+  Inject,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { Request, Response } from 'express';
@@ -21,13 +22,17 @@ import { Pagination } from '../../utils/paginate';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { LoggerMessages } from '../../utils/enum';
 import { isPositiveInteger } from '../../utils/methods';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Controller('api/payment')
 export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly loggerService: LoggerService,
-  ) {}
+  ) {
+    this.loggerService.setContext('PaymentController')
+  }
 
   @Post(`order_plan/:planId`)
   @UseGuards(AuthGuard('jwt'))

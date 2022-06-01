@@ -4,6 +4,10 @@ import { SeedService } from '../../modules/seed/seed.service';
 import { createDatabase } from 'typeorm-extension';
 import { NodeEnv } from '../../utils/enum';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
+import { ElasticsearchTransport } from 'winston-elasticsearch';
+import Console from 'winston-console-transport';
+import * as winston from 'winston';
+import { WinstonModuleOptions } from 'nest-winston';
 
 @Injectable()
 export class AppService {
@@ -58,6 +62,55 @@ export class AppService {
       },
       logging: false,
     } as TypeOrmModuleAsyncOptions;
+  }
+
+  public static async createWinstonTransports() {
+    let options: WinstonModuleOptions;
+    if (process.env.NODE_ENV === NodeEnv.TEST) {
+      options = {
+        transports: [
+          new Console({
+            level: 'debug',
+            silent: true,
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.printf(
+                (data) => `${data.timestamp} ${data.level}: ${data.message}`,
+              ),
+              winston.format.colorize({
+                all: true,
+                colors: { warn: 'yellow' },
+              }),
+            ),
+          }),
+        ],
+      };
+    } else {
+      options = {
+        transports: [
+          new Console({
+            level: 'debug',
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.printf(
+                (data) => `${data.timestamp} ${data.level}: ${data.message}`,
+              ),
+              winston.format.colorize({
+                all: true,
+                colors: { warn: 'yellow' },
+              }),
+            ),
+          }),
+          new ElasticsearchTransport({
+            level: 'debug',
+            buffering: false,
+            clientOpts: { node: process.env.ELASTIC_SEARCH_NODE },
+          }),
+        ],
+      };
+    }
+
+    return options;
   }
 
   /**

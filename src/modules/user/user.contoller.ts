@@ -10,6 +10,7 @@ import {
   Req,
   Patch,
   Query,
+  Inject,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Request, Response } from 'express';
@@ -35,13 +36,14 @@ import { UserDataDto } from './user.entity';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { Pagination } from '../../utils/paginate';
 import moment from 'moment';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Controller('api/user')
 export class UserContoller {
   constructor(
     private readonly userService: UsersService,
     private readonly seedService: SeedService,
-    private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
   ) {
     this.loggerService.setContext('UserController');
   }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CoinGeckoMarket } from './coingecko.service';
@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import moment from 'moment';
 import { CryptoAsset } from '../../modules/payment/commons/payment.enum';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class PriceService {
@@ -18,7 +19,7 @@ export class PriceService {
   constructor(
     @InjectRepository(Price)
     private readonly priceRepository: Repository<Price>,
-    private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
     private readonly coinGeckoService: CoinGeckoMarket,
   ) {
     this.loggerService.setContext('PriceService');

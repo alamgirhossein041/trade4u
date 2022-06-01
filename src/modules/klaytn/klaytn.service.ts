@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { Account } from './account.entity';
@@ -13,6 +13,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Information } from './information.entity';
 import { InformationEnum } from './commons/klaytn.enum';
 import { CaverService } from './caver.service';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class KlaytnService {
@@ -36,7 +37,7 @@ export class KlaytnService {
   constructor(
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
-    private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
     private readonly caverService: CaverService,
     @InjectQueue(BlockQueue.BLOCK)
     private readonly blockQueue: Queue,

@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import Caver, { Keyring, KeyringContainer } from 'caver-js';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { GcpSecretService } from '../../utils/secret-manager/gcp.sm.service';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class CaverService {
@@ -19,9 +20,9 @@ export class CaverService {
   private MASTER_WALLET_SECRET: string;
 
   constructor(
-    private readonly loggerService: LoggerService,
-    private readonly secretService: GcpSecretService
-  ) {
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
+    private readonly secretService: GcpSecretService)
+    {
     this.caver = new Caver(process.env.KLAYTN_NODE_URL);
     this.wallet = this.caver.wallet;
     (async () => {
@@ -32,6 +33,7 @@ export class CaverService {
       this.FEE_WALLET_SECRET = feeSecret;
       this.MASTER_WALLET_SECRET = masterSecret;
     })();
+    
   }
 
   /**

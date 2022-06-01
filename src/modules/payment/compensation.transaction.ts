@@ -1,6 +1,6 @@
 import { getConnection, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { User } from '../user/user.entity';
 import { UsersService } from '../user/user.service';
 import { LicenseFee } from '../seed/licensefee.entity';
@@ -18,6 +18,7 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { Deposit } from './deposit.entity';
 import { UserCommision } from '../user/user-commision.entity';
 import moment from 'moment';
+import { WINSTON_MODULE_NEST_PROVIDER, WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class CompensationTransaction {
@@ -35,7 +36,7 @@ export class CompensationTransaction {
     private readonly performanceRepository: Repository<PerformanceFee>,
     private readonly userService: UsersService,
     private readonly telegramService: TelegramService,
-    private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
   ) {
     this.loggerService.setContext('CompensationTransaction');
   }

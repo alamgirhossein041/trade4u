@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import bigDecimal from 'js-big-decimal';
 import { CaverService } from '../../modules/klaytn/caver.service';
@@ -7,13 +7,14 @@ import { User, UsersService } from '../../modules/user';
 import { getConnection, QueryRunner } from 'typeorm';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { JOB } from '../../utils/enum';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class WithdrawalService {
   constructor(
     private readonly userService: UsersService,
     private readonly caverService: CaverService,
-    private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
   ) { }
 
   @Cron(CronExpression.EVERY_5_MINUTES, {

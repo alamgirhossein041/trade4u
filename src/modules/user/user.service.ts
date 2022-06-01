@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegisterPayload } from 'modules/auth';
 import {
@@ -57,6 +57,7 @@ import { PriceService } from '../../modules/price/price.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { PlanNameEnum } from '../seed/seed.enums';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class UsersService {
@@ -77,7 +78,7 @@ export class UsersService {
     private readonly telegramService: TelegramService,
     private readonly mailerservice: MailService,
     private readonly klaytnService: KlaytnService,
-    private readonly loggerServce: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
   ) {
     this.botclient = new BOTClient(process.env.BINANCE_BOT_ADDRESS);
   }
@@ -1319,7 +1320,7 @@ export class UsersService {
     name: JOB.TRADE_LIMIT_EXCEED,
   })
   public async tradeLimitExpiry() {
-    this.loggerServce.log(
+    this.loggerService.log(
       `Trade limit exceed job started at: ${moment().unix()}`,
     );
     const users = await this.userRepository.find({
@@ -1332,7 +1333,7 @@ export class UsersService {
       (u) => u.tradeExpiryDate + Time.TEN_DAYS <= moment().unix(),
     );
     if (!filtered.length) {
-      this.loggerServce.log(
+      this.loggerService.log(
         `Trade limit exceed job completed at: ${moment().unix()}`,
       );
       return;
@@ -1340,7 +1341,7 @@ export class UsersService {
       await Promise.all(
         filtered.map(async (m) => {
           if (m.refereeUuid) {
-            this.loggerServce.warn(`Trade limit exceeded: ${m.fullName}`);
+            this.loggerService.warn(`Trade limit exceeded: ${m.fullName}`);
             const bots = await this.getBotsByUserId(m);
             bots.map(async (b) => {
               if (b.pid != -1) await this.stopUserBot(b.botid);
@@ -1348,7 +1349,7 @@ export class UsersService {
           }
         }),
       );
-      this.loggerServce.log(
+      this.loggerService.log(
         `Trade limit exceed job completed at: ${moment().unix()}`,
       );
       return;
@@ -1363,14 +1364,14 @@ export class UsersService {
     name: JOB.PLAN_EXPIRY_LIMIT_EXCEED,
   })
   public async planExpiry() {
-    this.loggerServce.log(
+    this.loggerService.log(
       `Plan Expiry On Time job started at: ${moment().unix()}`,
     );
     const users = await this.userRepository.find({
       planIsActive: true
     });
     if (!users.length) {
-      this.loggerServce.log(
+      this.loggerService.log(
         `Plan Expiry On Time  job completed at: ${moment().unix()}`,
       );
       return;
@@ -1378,7 +1379,7 @@ export class UsersService {
       await Promise.all(
         users.map(async (u: User) => {
           if (moment().unix() >= u.planExpiry && u.refereeUuid) {
-            this.loggerServce.warn(`Plan Expiry Time exceeded: ${u.fullName}`);
+            this.loggerService.warn(`Plan Expiry Time exceeded: ${u.fullName}`);
             u.plan = null;
             u.planIsActive = false;
             u.planExpiry = null;
@@ -1392,7 +1393,7 @@ export class UsersService {
           }
         }),
       );
-      this.loggerServce.log(
+      this.loggerService.log(
         `Plan Expiry On Time job completed at: ${moment().unix()}`,
       );
       return;
