@@ -75,10 +75,10 @@ export enum LoggerMessages {
 }
 
 export enum TelergramBotMessages {
-  ALREADY_ACTIVATED = `You Have <b>Already Activated</b> Binance Plus Notifications`,
-  SUCCCESSFULLY_ACTIVATED = `You Have <b>Successfully Activated</b> Binance Plus Notifications`,
-  ACTIVATE_FIRST = `<b>Activate</b> Binance Plus Notifications <b>First</b>`,
-  SUCCCESSFULLY_DEACTIVATED = `You Have <b>Successfully Deactivated</b> Binance Plus Notifications`,
+  ALREADY_ACTIVATED = `You Have <b>Already Activated</b> Trade4u Notifications`,
+  SUCCCESSFULLY_ACTIVATED = `You Have <b>Successfully Activated</b> Trade4u Notifications`,
+  ACTIVATE_FIRST = `<b>Activate</b> Trade4u Notifications <b>First</b>`,
+  SUCCCESSFULLY_DEACTIVATED = `You Have <b>Successfully Deactivated</b> Trade4u Notifications`,
 }
 
 export enum NodeEnv {

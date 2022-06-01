@@ -16,7 +16,7 @@ import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 import { User } from '../../src/modules/user/user.entity';
 import { GcpSecretService } from '../../src/utils/secret-manager/gcp.sm.service';
 
-describe('BinancePlus User test', () => {
+describe('Trade4u User test', () => {
     let app: INestApplication;
     let helper: Helper;
     let token: string;

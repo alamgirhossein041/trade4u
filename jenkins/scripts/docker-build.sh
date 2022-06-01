@@ -9,4 +9,4 @@ echo "Build docker image with label "$LABEL
 # Empty .env file adding to buld during jenkins pipeline
 # This is a default file for env
 touch .env
-docker build -t rnssolutions/binance_plus-backend:$LABEL .
+docker build -t rnssolutions/trade4u-backend:$LABEL .
