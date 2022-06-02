@@ -6,7 +6,7 @@ import { AppService } from './modules/main/app.service';
 import { HttpExceptionFilter } from './modules/common/filters/http-exception.filter';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { LoggerService } from 'utils/logger/logger.service';
+import { LoggerService } from './utils/logger/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
