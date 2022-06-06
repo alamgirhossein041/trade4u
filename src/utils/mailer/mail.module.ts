@@ -15,7 +15,7 @@ import { MailService } from './mail.service';
         },
       },
       defaults: {
-        from: 'do-not-replay@binanceplus.io',
+        from: 'do-not-replay@trade4u.io',
       },
     }),
   ],
