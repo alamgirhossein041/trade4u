@@ -395,7 +395,7 @@ export class DeficitDepositTransaction {
         let message = `Hi ${userName}!
                         \nThanks for purchasing ${planName}. Your plan has been activated.
                         \nThanks
-                        \nBinancePlus Team`;
+                        \nTrade4u Team`;
         await this.telegramService.sendSystemNotifications(
           userTelegram,
           message,

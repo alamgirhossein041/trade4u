@@ -52,7 +52,7 @@ export class TelegramService {
       message += `\n\u{2705}  <b>System Notifications</b>\n`;
     if (userTelegram.tradeNotificationsActive)
       message += `\n\u{2705}  <b>Trading Notifications</b>\n`;
-    message += `\nThanks!\n\nBinancePlus Team`;
+    message += `\nThanks!\n\nTrade4u Team`;
     const resObj: BotResponse = {
       chat_id: userTelegram.chat_id,
       parse_mode: 'HTML',
@@ -71,7 +71,7 @@ export class TelegramService {
   ): Promise<void> {
     let message = `Hi ${userTelegram.name}!
                 \nYour Telegram comunication code is <u><b>${userTelegram.code}</b></u>
-                \nBinancePlus Team`;
+                \nTrade4u Team`;
     const resObj: BotResponse = {
       chat_id: userTelegram.chat_id,
       parse_mode: 'HTML',
@@ -115,7 +115,7 @@ export class TelegramService {
     \n <b>KLAY Price: US$ ${klayPrice}</b>
     \n <b>Amount (KLAY): ${amountKlay}</b>
     \n <b>Amount(USDT): US$ ${amountUSD}</b>
-    \n Binance Plus Team
+    \n Trade4u Team
     `;
     const resObj: BotResponse = {
       chat_id: userTelegram.chat_id,
@@ -143,7 +143,7 @@ export class TelegramService {
     
     \nThanks
     
-    \nBinance Plus Team
+    \nTrade4u Team
 `;
     const resObj: BotResponse = {
       chat_id: userTelegram.chat_id,
@@ -187,7 +187,7 @@ export class TelegramService {
                 \nYou Have A New Affiliate
                 \nUsername : <b>${affiliateUsername}</b>
                 \nThanks
-                \nBinancePlus Team`;
+                \nTrade4u Team`;
     const resObj: BotResponse = {
       chat_id: userTelegram.chat_id,
       parse_mode: 'HTML',
@@ -210,7 +210,7 @@ export class TelegramService {
     let message = `Hi ${userTelegram.name}!
                 \nYou Received Bonus Of <b>${promotion}</b> KLAY.
                 \nAmount in Dollars : <b>$${promotion}</b> USD.
-                \nBinancePlus Team`;
+                \nTrade4u Team`;
     const resObj: BotResponse = {
       chat_id: userTelegram.chat_id,
       parse_mode: 'HTML',

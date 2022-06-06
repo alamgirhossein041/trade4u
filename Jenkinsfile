@@ -13,7 +13,7 @@
 // ***********************
 
 
-def CONTAINER_NAME="rnssolutions/binance_plus-backend"
+def CONTAINER_NAME="rnssolutions/trade4u-backend"
 def CONTAINER_TAG="0.0.1"
 def DOCKER_HUB_USER="rnssolutions"
 

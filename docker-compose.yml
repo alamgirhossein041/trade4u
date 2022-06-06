@@ -4,21 +4,21 @@ services:
     image: 'postgres'
     volumes:
       - postgres-data:/var/lib/postgresql/data/
-    container_name: 'binanceplus-db'
+    container_name: 'trade4u-db'
     restart: 'always'
     env_file:
       - _database.env
     ports:
       - '5432:5432'
     networks:
-      - binance_plus
+      - trade4u
 
-  binance_plus-backend:
+  trade4u-backend:
     build:
       context: .
       dockerfile: ./Dockerfile
-    image: binance_plus-backend:latest
-    container_name: binance_plus-backend
+    image: trade4u-backend:latest
+    container_name: trade4u-backend
     depends_on:
       - postgres
     volumes:
@@ -28,7 +28,7 @@ services:
       - '3836:3836'
       - '3834:3834'
     networks:
-      - binance_plus
+      - trade4u
   cache:
     image: redis:6.2-alpine
     restart: always
@@ -38,10 +38,10 @@ services:
     volumes: 
       - cache:/data
     networks:
-      - binance_plus    
+      - trade4u    
       
 networks:
-  binance_plus:             
+  trade4u:             
 volumes:
   postgres-data:
   cache:

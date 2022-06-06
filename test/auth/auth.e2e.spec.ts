@@ -14,7 +14,7 @@ import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 import { TelegramService } from '../../src/utils/telegram/telegram-bot.service';
 import { GcpSecretService } from '../../src/utils/secret-manager/gcp.sm.service';
 
-describe('BinancePlus auth test', () => {
+describe('Trade4u auth test', () => {
     let app: INestApplication;
     let helper: Helper;
     let server: any;

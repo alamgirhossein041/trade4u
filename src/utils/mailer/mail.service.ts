@@ -19,7 +19,7 @@ export class MailService {
         await this.mailerService.sendMail({
           to: user.email,
           from: 'do-not-replay@binanceplus.io', // override default from
-          subject: 'Welcome to BinancePlus! Confirm your Email',
+          subject: 'Welcome to Trade4u! Confirm your Email',
           html: `
           <div style="background: #EAF0F6;
     text-align: center;
@@ -43,7 +43,7 @@ export class MailService {
             max-width: 100%;
             width: auto;
         ">
-                <img src='https://cdn.discordapp.com/attachments/939134175997472768/948876373550837780/logo.png' style="
+                <img src='https://cdn.discordapp.com/attachments/891903648370675742/983256941348397096/logo.png' style="
                 margin: 0 auto;
                max-width: 248px;
                width: 100%;
@@ -88,7 +88,7 @@ export class MailService {
             text-align: center;
             max-width: 100%;
             width: auto;">
-                <img src='https://cdn.discordapp.com/attachments/939134175997472768/948876373550837780/logo.png' style=" margin: auto;
+                <img src='https://cdn.discordapp.com/attachments/891903648370675742/983256941348397096/logo.png' style=" margin: auto;
                   max-width: 132px;
                 width: 100%;
                 height: 100%;
@@ -100,7 +100,7 @@ export class MailService {
             line-height: 0.813rem;
             color: #fff;
             margin-bottom: 2rem;">
-                    Copyright©2022 BinancePlus, All rights reserved
+                    Copyright©2022 Trade4u, All rights reserved
                 </p>
                 <a target="_blank" href="hhttps://www.instagram.com/accounts/login/" style="text-decoration:none;">
                     <img style=" height: 0.81rem;
@@ -153,7 +153,7 @@ export class MailService {
         await this.mailerService.sendMail({
           to: user.email,
           from: 'do-not-replay@binanceplus.io', // override default from
-          subject: 'Welcome to BinancePlus! Verification',
+          subject: 'Welcome to Trade4u! Verification',
           html: `
           <div style="background: #EAF0F6;
     text-align: center;
@@ -177,7 +177,7 @@ export class MailService {
             max-width: 100%;
             width: auto;
         ">
-                <img src='https://cdn.discordapp.com/attachments/939134175997472768/948876373550837780/logo.png' style="
+                <img src='https://cdn.discordapp.com/attachments/891903648370675742/983256941348397096/logo.png' style="
                 margin: 0 auto;
                max-width: 248px;
                width: 100%;
@@ -214,7 +214,7 @@ export class MailService {
             text-align: center;
             max-width: 100%;
             width: auto;">
-                <img src='https://cdn.discordapp.com/attachments/939134175997472768/948876373550837780/logo.png' style=" margin: auto;
+                <img src='https://cdn.discordapp.com/attachments/891903648370675742/983256941348397096/logo.png' style=" margin: auto;
                   max-width: 132px;
                 width: 100%;
                 height: 100%;
@@ -226,7 +226,7 @@ export class MailService {
             line-height: 0.813rem;
             color: #fff;
             margin-bottom: 2rem;">
-                    Copyright©2022 BinancePlus, All rights reserved
+                    Copyright©2022 Trade4u, All rights reserved
                 </p>
                 <a target="_blank" href="hhttps://www.instagram.com/accounts/login/" style="text-decoration:none;">
                     <img style=" height: 0.81rem;
@@ -275,7 +275,7 @@ export class MailService {
     await this.mailerService.sendMail({
       to: email,
       from: 'do-not-replay@binanceplus.io', // override default from
-      subject: 'Binance+ ! Forgot Password',
+      subject: 'Trade4u ! Forgot Password',
       html: `
       <div style="background: #EAF0F6;
     text-align: center;
@@ -298,7 +298,7 @@ export class MailService {
         width: auto;
         padding: 2rem 0;
         ">
-            <img src='https://cdn.discordapp.com/attachments/939134175997472768/948876373550837780/logo.png' style="
+            <img src='https://cdn.discordapp.com/attachments/891903648370675742/983256941348397096/logo.png' style="
                 margin: 0 auto;
                max-width: 248px;
                width: 100%;
@@ -341,7 +341,7 @@ export class MailService {
             text-align: center;
             max-width: 100%;
             width: auto;">
-            <img src='https://cdn.discordapp.com/attachments/939134175997472768/948876373550837780/logo.png' style="   max-width: 132px;
+            <img src='https://cdn.discordapp.com/attachments/891903648370675742/983256941348397096/logo.png' style="   max-width: 132px;
                 width: 100%;
                 height: 100%;
                 max-height: 40px;
@@ -352,7 +352,7 @@ export class MailService {
             line-height: 0.813rem;
             color: #fff;
             margin-bottom: 2rem;">
-                Copyright©2022 BinancePlus, All rights reserved
+                Copyright©2022 Trade4u, All rights reserved
             </p>
             <a target="_blank" href="https://www.instagram.com/accounts/login/" style="text-decoration:none;">
                 <img style=" height: 0.81rem;

@@ -11,7 +11,7 @@ import { CoinGeckoMarket } from '../../src/modules/price/coingecko.service';
 import { KlaytnService } from '../../src/modules/klaytn/klaytn.service';
 import { GcpSecretService } from '../../src/utils/secret-manager/gcp.sm.service';
 
-describe('BinancePlus referrals test', () => {
+describe('Trade4u referrals test', () => {
     let app: INestApplication;
     let helper: Helper;
     let token: string;

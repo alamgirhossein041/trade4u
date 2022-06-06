@@ -17,7 +17,7 @@ import { CompensationTransaction } from '../../src/modules/payment/compensation.
 import { GcpSecretService } from '../../src/utils/secret-manager/gcp.sm.service';
 var rimraf = require("rimraf");
 
-describe('BinancePlus payment test', () => {
+describe('Trade4u payment test', () => {
     let app: INestApplication;
     let helper: Helper;
     let blockProcessService: BlockProcessor;
