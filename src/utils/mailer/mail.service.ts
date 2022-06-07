@@ -18,7 +18,7 @@ export class MailService {
       try {
         await this.mailerService.sendMail({
           to: user.email,
-          from: 'do-not-replay@trade4u.io', // override default from
+          from: process.env.SENDGRID_EMAIL, // override default from
           subject: 'Welcome to Trade4u! Confirm your Email',
           html: `
           <div style="background: #EAF0F6;
@@ -152,7 +152,7 @@ export class MailService {
       try {
         await this.mailerService.sendMail({
           to: user.email,
-          from: 'do-not-replay@trade4u.io', // override default from
+          from: process.env.SENDGRID_EMAIL, // override default from
           subject: 'Welcome to Trade4u! Verification',
           html: `
           <div style="background: #EAF0F6;
@@ -274,7 +274,7 @@ export class MailService {
     const subRoute = 'changepassword';
     await this.mailerService.sendMail({
       to: email,
-      from: 'do-not-replay@trade4u.io', // override default from
+      from: process.env.SENDGRID_EMAIL, // override default from
       subject: 'Trade4u ! Forgot Password',
       html: `
       <div style="background: #EAF0F6;
@@ -381,5 +381,22 @@ export class MailService {
     </div>
 </div>`,
     });
+  }
+
+  static configureSendGrid() {
+    return {
+      transport: {
+        service: 'sendgrid',
+        host: 'smtp.sendgrid.net',
+        secure: false,
+        auth: {
+          user: 'apikey',
+          pass: process.env.SENDGRID_API_KEY,
+        },
+      },
+      defaults: {
+        from: process.env.SENDGRID_EMAIL,
+      },
+    };
   }
 }

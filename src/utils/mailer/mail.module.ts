@@ -4,19 +4,10 @@ import { MailService } from './mail.service';
 
 @Module({
   imports: [
-    MailerModule.forRoot({
-      transport: {
-        service: 'sendgrid',
-        host: 'smtp.sendgrid.net',
-        secure: false,
-        auth: {
-          user: 'apikey',
-          pass: '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',
-        },
-      },
-      defaults: {
-        from: 'do-not-replay@trade4u.io',
-      },
+    MailerModule.forRootAsync({
+      useFactory: async ()=>{
+        return MailService.configureSendGrid();
+    }
     }),
   ],
   providers: [MailService],
