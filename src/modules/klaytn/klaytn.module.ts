@@ -17,7 +17,7 @@ import { GcpSecretModule } from '../../utils/secret-manager/gcp.sm.module';
     BullModule.registerQueueAsync({
       name: BlockQueue.BLOCK,
     }),
-    GcpSecretModule
+    GcpSecretModule,
   ],
   controllers: [KlaytnController],
   providers: [KlaytnService, CaverService],

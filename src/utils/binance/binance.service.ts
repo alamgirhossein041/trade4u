@@ -16,7 +16,7 @@ export class BinanceService {
   public async verifyApiKey(apiKey: string, secret: string) {
     this.binanceExchannge = new binance({
       apiKey,
-      secret
+      secret,
     });
     this.binanceExchannge.setSandboxMode(true);
     try {

@@ -5,9 +5,9 @@ import { MailService } from './mail.service';
 @Module({
   imports: [
     MailerModule.forRootAsync({
-      useFactory: async ()=>{
+      useFactory: async () => {
         return MailService.configureSendGrid();
-    }
+      },
     }),
   ],
   providers: [MailService],

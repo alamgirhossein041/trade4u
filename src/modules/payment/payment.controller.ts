@@ -31,7 +31,7 @@ export class PaymentController {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly loggerService: LoggerService,
   ) {
-    this.loggerService.setContext('PaymentController')
+    this.loggerService.setContext('PaymentController');
   }
 
   @Post(`order_plan/:planId`)

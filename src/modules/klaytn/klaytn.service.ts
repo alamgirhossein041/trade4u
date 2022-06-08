@@ -37,7 +37,8 @@ export class KlaytnService {
   constructor(
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly loggerService: LoggerService,
     private readonly caverService: CaverService,
     @InjectQueue(BlockQueue.BLOCK)
     private readonly blockQueue: Queue,

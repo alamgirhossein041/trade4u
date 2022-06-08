@@ -18,7 +18,10 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { Deposit } from './deposit.entity';
 import { UserCommision } from '../user/user-commision.entity';
 import moment from 'moment';
-import { WINSTON_MODULE_NEST_PROVIDER, WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import {
+  WINSTON_MODULE_NEST_PROVIDER,
+  WINSTON_MODULE_PROVIDER,
+} from 'nest-winston';
 
 @Injectable()
 export class CompensationTransaction {
@@ -36,7 +39,8 @@ export class CompensationTransaction {
     private readonly performanceRepository: Repository<PerformanceFee>,
     private readonly userService: UsersService,
     private readonly telegramService: TelegramService,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly loggerService: LoggerService,
   ) {
     this.loggerService.setContext('CompensationTransaction');
   }

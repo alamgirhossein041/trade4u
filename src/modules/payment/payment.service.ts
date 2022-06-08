@@ -62,7 +62,7 @@ export class PaymentService {
     private readonly socketService: SocketService,
     private readonly pdfGenerator: PDFGenerator,
   ) {
-    this.loggerService.setContext('PaymentService')
+    this.loggerService.setContext('PaymentService');
   }
 
   /**

@@ -27,7 +27,8 @@ export class BlockProcessor {
     private eventEmitter: EventEmitter,
     @InjectRepository(Deposit)
     private readonly depositRepository: Repository<Deposit>,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly loggerService: LoggerService,
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
     private readonly socketService: SocketService,
@@ -121,7 +122,11 @@ export class BlockProcessor {
     return new Promise<TransactionReceipt[]>(async (resolve, reject) => {
       try {
         const recipents = await this.caverService.getBlockReceipts(block.hash);
-        const txs = recipents.filter((e) => e.type === TxType.VALUE_TRANSFER || e.type === TxType.LEGACY_TRANSACTION);
+        const txs = recipents.filter(
+          (e) =>
+            e.type === TxType.VALUE_TRANSFER ||
+            e.type === TxType.LEGACY_TRANSACTION,
+        );
         const recipentsAddresses = txs
           .map((t) => t.to)
           .filter((value) => this.klaytnService.listeners.includes(value));

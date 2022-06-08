@@ -41,7 +41,8 @@ export class DepositTransaction {
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
     private readonly telegramService: TelegramService,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly loggerService: LoggerService,
   ) {
     this.loggerService.setContext('DepositTransaction');
   }

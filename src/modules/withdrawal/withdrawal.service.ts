@@ -14,8 +14,9 @@ export class WithdrawalService {
   constructor(
     private readonly userService: UsersService,
     private readonly caverService: CaverService,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
-  ) { }
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly loggerService: LoggerService,
+  ) {}
 
   @Cron(CronExpression.EVERY_5_MINUTES, {
     name: JOB.WITHDRAWAL,

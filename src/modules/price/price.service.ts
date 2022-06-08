@@ -19,7 +19,8 @@ export class PriceService {
   constructor(
     @InjectRepository(Price)
     private readonly priceRepository: Repository<Price>,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly loggerService: LoggerService,
     private readonly coinGeckoService: CoinGeckoMarket,
   ) {
     this.loggerService.setContext('PriceService');

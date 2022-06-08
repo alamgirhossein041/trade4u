@@ -62,7 +62,7 @@ import { WinstonModule } from 'nest-winston';
     SchedulerModule,
     ObserverModule,
     WithdrawalModule,
-    GcpSecretModule
+    GcpSecretModule,
   ],
   controllers: [AppController],
   providers: [AppService],

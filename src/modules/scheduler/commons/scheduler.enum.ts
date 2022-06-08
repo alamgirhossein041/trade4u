@@ -4,7 +4,7 @@ export enum TxCount {
 
 export enum TxType {
   VALUE_TRANSFER = 'TxTypeValueTransfer',
-  LEGACY_TRANSACTION = 'TxTypeLegacyTransaction'
+  LEGACY_TRANSACTION = 'TxTypeLegacyTransaction',
 }
 
 export enum BlockQueue {

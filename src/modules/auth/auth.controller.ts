@@ -34,7 +34,8 @@ import { Logger } from 'winston';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly loggerService: LoggerService,
   ) {
     this.loggerService.setContext('AuthController');
   }

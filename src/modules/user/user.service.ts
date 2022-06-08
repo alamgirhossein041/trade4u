@@ -78,7 +78,8 @@ export class UsersService {
     private readonly telegramService: TelegramService,
     private readonly mailerservice: MailService,
     private readonly klaytnService: KlaytnService,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly loggerService: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly loggerService: LoggerService,
   ) {
     this.botclient = new BOTClient(process.env.BINANCE_BOT_ADDRESS);
   }
@@ -369,10 +370,10 @@ export class UsersService {
       effectivePeriod === 0
         ? accumulated
         : Number(
-          new bigDecimal(accumulated)
-            .divide(new bigDecimal(effectivePeriod), 4)
-            .getValue(),
-        );
+            new bigDecimal(accumulated)
+              .divide(new bigDecimal(effectivePeriod), 4)
+              .getValue(),
+          );
     const dailyPercentage = Number(
       new bigDecimal(dailyAccumulated)
         .divide(new bigDecimal(totalBalance), 4)
@@ -713,12 +714,18 @@ export class UsersService {
     binanceDto: BinanceTradingDto,
   ): Promise<User> {
     if (!user.planIsActive) {
-      throw new HttpException(ResponseMessage.PURCHASE_PLAN, ResponseCode.BAD_REQUEST);
+      throw new HttpException(
+        ResponseMessage.PURCHASE_PLAN,
+        ResponseCode.BAD_REQUEST,
+      );
     }
     try {
       const botServer = await this.botclient.ping();
       if (!botServer) {
-        throw new HttpException(ResponseMessage.BOT_SERVER_DOWN, ResponseCode.BAD_REQUEST);
+        throw new HttpException(
+          ResponseMessage.BOT_SERVER_DOWN,
+          ResponseCode.BAD_REQUEST,
+        );
       }
       user.apiKey = Crypto.encrypt(binanceDto.apiKey);
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
@@ -797,7 +804,10 @@ export class UsersService {
     try {
       const botServer = await this.botclient.ping();
       if (!botServer) {
-        throw new HttpException(ResponseMessage.BOT_SERVER_DOWN, ResponseCode.BAD_REQUEST);
+        throw new HttpException(
+          ResponseMessage.BOT_SERVER_DOWN,
+          ResponseCode.BAD_REQUEST,
+        );
       }
       await this.botclient.stopBot(botId);
       return;
@@ -1325,7 +1335,7 @@ export class UsersService {
     );
     const users = await this.userRepository.find({
       where: {
-        tradeExpiryDate: LessThanOrEqual(moment().unix())
+        tradeExpiryDate: LessThanOrEqual(moment().unix()),
       },
     });
 
@@ -1368,7 +1378,7 @@ export class UsersService {
       `Plan Expiry On Time job started at: ${moment().unix()}`,
     );
     const users = await this.userRepository.find({
-      planIsActive: true
+      planIsActive: true,
     });
     if (!users.length) {
       this.loggerService.log(
