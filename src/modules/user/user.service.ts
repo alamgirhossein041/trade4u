@@ -101,6 +101,20 @@ export class UsersService {
    * @param uuid
    * @returns
    */
+  async getBotIp(): Promise<any> {
+    try {
+      const ip = await this.botclient.getBotIp();
+      return ip.data;
+    } catch (err) {
+      throw new HttpException('Error In  Getting Bot Ip', ResponseCode.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Get user by id
+   * @param uuid
+   * @returns
+   */
   async getByid(uuid: string): Promise<User> {
     return this.userRepository.findOne(uuid);
   }
