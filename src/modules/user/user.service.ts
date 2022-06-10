@@ -106,7 +106,7 @@ export class UsersService {
       const ip = await this.botclient.getBotIp();
       return ip.data;
     } catch (err) {
-      throw new HttpException('Error In  Getting Bot Ip', ResponseCode.BAD_REQUEST);
+      throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
     }
   }
 
