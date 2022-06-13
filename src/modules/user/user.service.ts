@@ -384,10 +384,10 @@ export class UsersService {
       effectivePeriod === 0
         ? accumulated
         : Number(
-            new bigDecimal(accumulated)
-              .divide(new bigDecimal(effectivePeriod), 4)
-              .getValue(),
-          );
+          new bigDecimal(accumulated)
+            .divide(new bigDecimal(effectivePeriod), 4)
+            .getValue(),
+        );
     const dailyPercentage = Number(
       new bigDecimal(dailyAccumulated)
         .divide(new bigDecimal(totalBalance), 4)
@@ -850,6 +850,17 @@ export class UsersService {
     return userTelegram;
   }
 
+
+  /**
+   * Get user by telegram
+   * @param userTelegram
+   * @returns
+   */
+  async getUserByTelegram(userTelegram: UserTelegram) {
+    const user = await this.userRepository.findOne({ userTelegram });
+    return user;
+  }
+
   /**
    * DeActivate user telegram notifications
    * @param chat_id
@@ -859,8 +870,9 @@ export class UsersService {
     try {
       const userTelegram = await this.getUserTelegramByChatId(chat_id);
       if (userTelegram && userTelegram.isActive) {
-        userTelegram.isActive = false;
-        await this.userTelegramRepository.save(userTelegram);
+        const user = await this.getUserByTelegram(userTelegram);
+        await this.userRepository.update({ uuid: user.uuid }, { userTelegram: null });
+        await this.userTelegramRepository.delete({chat_id: userTelegram.chat_id});
         if (TelegramService.connected) {
           await this.telegramService.sendResponseToUser({
             chat_id: userTelegram.chat_id,
