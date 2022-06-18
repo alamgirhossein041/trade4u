@@ -30,7 +30,7 @@ export class RegisterPayload {
   @IsEmail()
   @IsNotEmpty()
   @Matches(
-    /^[a-zA-Z]+[a-zA-Z0-9_\.\-]*[a-zA-Z0-9]+\@(([a-zA-Z0-9\-]){3,30}\.)+([a-zA-Z0-9]{2,5})$/,
+    /^[a-zA-Z0-9_\.\-]*[a-zA-Z0-9]+\@(([a-zA-Z0-9\-]){3,30}\.)+([a-zA-Z0-9]{2,5})$/,
     { message: ResponseMessage.INVALID_EMAIL },
   )
   @Matches(/^(?!.*[\-\_\.]{2}).*$/, { message: ResponseMessage.INVALID_EMAIL })
