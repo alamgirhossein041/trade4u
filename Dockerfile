@@ -8,7 +8,9 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 4000
-EXPOSE 4001
+RUN npm run prestart:prod
 
-CMD [ "npm", "run", "start:dev" ]
+EXPOSE 4000
+EXPOSE 3834
+
+CMD [ "npm", "run", "start:prod" ]

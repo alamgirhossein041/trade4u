@@ -15,4 +15,4 @@ CONTAINER_CURRENT=rnssolutions/$CONTAINER_NAME:$LABEL
 
 docker stop $CONTAINER_NAME-$BRANCH_NAME
 docker rm -f $CONTAINER_NAME-$BRANCH_NAME
-docker run  -v /var/trade4u/secret-manager.json:/app/secret-manager.json -v /var/trade4u/.env:/app/.env  -v /var/trade4u/keystore:/app/database  -d -p $PORT:4000 -p $SOCKET_PORT:4001 --name $CONTAINER_NAME-$BRANCH_NAME $CONTAINER_CURRENT
+docker run  -v /var/trade4u/secret-manager.json:/app/secret-manager.json -v /var/trade4u/.env:/app/.env  -v /var/trade4u/keystore:/app/database  -d -p $PORT:4000 -p $SOCKET_PORT:3834 --name $CONTAINER_NAME-$BRANCH_NAME $CONTAINER_CURRENT
