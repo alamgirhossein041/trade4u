@@ -1026,12 +1026,16 @@ export class UsersService {
         ResponseCode.BAD_REQUEST,
       );
     }
-    const newUser = new User().fromDto(payload);
-    newUser.userStats = await this.initializeStats();
-    newUser.referralLink = this.getUserReferralLink(newUser);
-    newUser.refereeUuid = referrer.uuid;
-    newUser.password = await Hash.make(newUser.password);
-    return await this.userRepository.save(newUser);
+    try {
+      const newUser = new User().fromDto(payload);
+      newUser.userStats = await this.initializeStats();
+      newUser.referralLink = this.getUserReferralLink(newUser);
+      newUser.refereeUuid = referrer.uuid;
+      newUser.password = await Hash.make(newUser.password);
+      return await this.userRepository.save(newUser);
+    } catch (err) {
+      throw new HttpException(err.detail, ResponseCode.BAD_REQUEST);
+    }
   }
 
   /**

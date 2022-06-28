@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   ManyToOne,
+  Unique,
 } from 'typeorm';
 import { Crypto } from '../../utils/crypto';
 import { Plan } from '../seed/plan.entity';
@@ -25,13 +26,13 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @Column({ length: 255 })
+  @Column({ length: 255, unique: true})
   userName: string;
 
   @Column({ length: 255 })
   fullName: string;
 
-  @Column({ length: 255 })
+  @Column({ length: 255, unique: true})
   email: string;
 
   @Column({ length: 255 })
