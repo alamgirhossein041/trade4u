@@ -58,7 +58,7 @@ export class AppService {
       entities: [__dirname + './../**/**.entity{.ts,.js}'],
       synchronize: process.env.DB_SYNC === 'true',
       extra: {
-        connectionLimit: 5,
+        max: 25,
       },
       logging: false,
     } as TypeOrmModuleAsyncOptions;

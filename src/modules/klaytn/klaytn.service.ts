@@ -279,11 +279,20 @@ export class KlaytnService {
    * Get The Last Block Height Processed By Queue
    * @returns Block
    */
-  public async getLastProcessedBlock() {
-    const blockHeight = await this.informationRepository.findOne({
-      keyName: InformationEnum.HEIGHT,
-    });
-    return blockHeight;
+  public async getLastProcessedBlock(height?: number) {
+    try {
+      const blockHeight = await this.informationRepository.findOne({
+        keyName: InformationEnum.HEIGHT,
+      });
+      return blockHeight;
+    } catch (err) {
+      this.loggerService.error(err);
+      const blockHeight: Information = {
+        keyName: InformationEnum.HEIGHT,
+        value: height,
+      };
+      return blockHeight;
+    }
   }
 
   /**
@@ -292,7 +301,7 @@ export class KlaytnService {
    * @returns
    */
   public async updateBlockHeight(height: number) {
-    const blockHeight = await this.getLastProcessedBlock();
+    const blockHeight = await this.getLastProcessedBlock(height);
     if (blockHeight) {
       blockHeight.value = height;
       return await this.informationRepository.save(blockHeight);

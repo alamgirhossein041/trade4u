@@ -692,6 +692,9 @@ export class UsersService {
    * @returns
    */
   public getBonusEarningCap(userStats: UserStats): number {
+    if (!userStats.earning_limit) {
+      return userStats.earning_limit;
+    }
     const amountToMultiplyWith = Number(
       new bigDecimal(userStats.consumed_amount)
         .divide(new bigDecimal(userStats.earning_limit), 4)
