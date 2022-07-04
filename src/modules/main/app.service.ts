@@ -8,7 +8,6 @@ import { ElasticsearchTransport } from 'winston-elasticsearch';
 import Console from 'winston-console-transport';
 import * as winston from 'winston';
 import { WinstonModuleOptions } from 'nest-winston';
-
 @Injectable()
 export class AppService {
   constructor() {}
@@ -126,6 +125,14 @@ export class AppService {
    */
   public static async startup() {
     try {
+      process
+        .on('unhandledRejection', (reason) => {
+          console.error('Unhandled Rejection at Promise', reason);
+        })
+        .on('uncaughtException', (err) => {
+          console.error(err, 'Uncaught Exception thrown');
+          process.exit(1);
+        });
       await SeedService.InsertSeed();
       !(process.env.NODE_ENV === NodeEnv.TEST)
         ? await TelegramService.initBotWebhook()
