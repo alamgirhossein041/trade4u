@@ -82,9 +82,12 @@ export class KlaytnService {
         if (!account) account = await this.generateAccount(queryRunner);
         account = await this.haltAccount(account, queryRunner);
 
-        const sk = await KlaytnService.keyStore.get(account.address);
-        this.caverService.newKeyRing(account.address, sk);
-        this.listeners.push(account.address);
+        const exist = this.caverService.isWalletAddressExisted(account.address);
+        if (!exist) {
+          const sk = await KlaytnService.keyStore.get(account.address);
+          this.caverService.newKeyRing(account.address, sk);
+          this.listeners.push(account.address);
+        }
         this.loggerService.log(`Listening at: ${account.address}`);
         return resolve(account);
       } catch (err) {
@@ -124,6 +127,7 @@ export class KlaytnService {
           keyring.address,
           keyring.key.privateKey,
         );
+        this.listeners.push(keyring.address);
         const account = await this.saveAccount(keyring.address, queryRunner);
         resolve(account);
       } catch (err) {
