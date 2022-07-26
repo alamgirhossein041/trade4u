@@ -833,6 +833,22 @@ export class UsersService {
     }
   }
 
+  async restartUserBot(botId: string): Promise<void> {
+    try {
+      const botServer = await this.botclient.ping();
+      if (!botServer) {
+        throw new HttpException(
+          ResponseMessage.BOT_SERVER_DOWN,
+          ResponseCode.BAD_REQUEST,
+        );
+      }
+      await this.botclient.startBot(botId);
+      return;
+    } catch (err) {
+      throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
+    }
+  }
+
   /**
    * get user telegram by code
    * @param code

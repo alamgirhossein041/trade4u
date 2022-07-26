@@ -19,6 +19,7 @@ import { Time } from '../../utils/enum';
 import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { DeficitDeposit } from './deficit.deposit.entity';
+import { UsersService } from '../../modules/user';
 
 @Injectable()
 export class DepositTransaction {
@@ -41,6 +42,7 @@ export class DepositTransaction {
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
     private readonly telegramService: TelegramService,
+    private readonly userService: UsersService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly loggerService: LoggerService,
   ) {
@@ -121,8 +123,12 @@ export class DepositTransaction {
   public async updateTradeTimeFrames(user: User, queryRunner: QueryRunner) {
     user.tradeStartDate = moment().unix();
     user.tradeExpiryDate = moment().unix() + Time.THIRTY_DAYS; //30 Days after the Preformance fee is paid
-
-    return await queryRunner.manager.save(user);
+    await queryRunner.manager.save(user);
+    const bots = await this.userService.getBotsByUserId(user);
+    bots.map(async (b) => {
+      if (b.pid === -1) await this.userService.restartUserBot(b.botid);
+    });
+    return;
   }
 
   /**
