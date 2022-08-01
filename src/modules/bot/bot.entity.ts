@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Machine } from './machine.entity';
 
 @Entity({
   name: 'bots',
@@ -45,4 +46,8 @@ export class Bot {
 
   @Column({ type: 'double precision', nullable: true })
   efficiencytoday: number;
+
+  @ManyToOne(() => Machine)
+  @JoinColumn({ name: 'machineid' })
+  machine: Machine;
 }
