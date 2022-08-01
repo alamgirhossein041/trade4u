@@ -141,7 +141,7 @@ export class UserContoller {
       firstName = req.body.edited_message.from.first_name;
       chatId = req.body.edited_message.chat.id;
       text = req.body.edited_message.text;
-    } else if (req.body.message.text) {
+    } else if (req.body.message && req.body.message.text) {
       firstName = req.body.message.from.first_name;
       chatId = req.body.message.chat.id;
       text = req.body.message.text;
