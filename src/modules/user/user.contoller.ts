@@ -151,10 +151,11 @@ export class UserContoller {
     } else if (text && text === '/stop') {
       await this.userService.deActivateUserNotifications(chatId);
     }
-    return res.status(ResponseCode.SUCCESS).send({
-      statusCode: ResponseCode.SUCCESS,
-      message: ResponseMessage.SUCCESS,
-    });
+    return
+    // return res.status(ResponseCode.SUCCESS).send({
+    //   statusCode: ResponseCode.SUCCESS,
+    //   message: ResponseMessage.SUCCESS,
+    // });
   }
 
   @UseGuards(AuthGuard('jwt'))
