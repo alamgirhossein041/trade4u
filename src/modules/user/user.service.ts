@@ -136,25 +136,11 @@ export class UsersService {
                       FROM
                         bots as b
                       WHERE b."machineid"=$1`
-            console.log(machine.machineid,'++++ query machineId +++',sql)
               const countOfBots= await getConnection().query(sql,[machine.machineid]);
               if(countOfBots.length && parseInt(countOfBots[0].total_bots) < parseInt(process.env.TOTAL_BOT_CAPACITY)){
                this.botclient = new BOTClient(machine.url);
-               console.log(this.botclient,'--- bot client -- ',machine.url,countOfBots)
                try {
                 await this.botclient.ping()
-                console.log('serverRuning')
-                //  if (!botServer && count===machines.length) {
-                //   console.log(botServer,count===machines.length)
-                //    throw new HttpException(
-                //      ResponseMessage.BOT_SERVER_DOWN,
-                //      ResponseCode.BAD_REQUEST,
-                //    );
-                //  }
-                //  if (!botServer ) {
-                //   count++
-                //   continue;
-                // }
                 return machine;
                } catch (error) {
                 if(count===machines.length){
@@ -851,7 +837,6 @@ export class UsersService {
         machineId:machineId
       };
       if (machineId) {
-        console.log(botData)
         await this.iniateUserBot(binanceDto.tradingSystem, botData);
         return await this.userRepository.save(user);
       }
@@ -915,14 +900,22 @@ export class UsersService {
 
   async stopUserBot(botId: string): Promise<void> {
     try {
-      const botServer = await this.botclient.ping();
-      if (!botServer) {
-        throw new HttpException(
-          ResponseMessage.BOT_SERVER_DOWN,
-          ResponseCode.BAD_REQUEST,
-        );
+      const sql =`SELECT m."url" as url
+                  FROM bots as b
+                  INNER JOIN  machine as m ON b."machineid"=m."machineid"
+                  WHERE  b."botid"=$1`
+      const machine= await getConnection().query(sql,[botId]);
+      if(machine && machine[0] &&machine[0].url){
+        this.botclient= new BOTClient(machine[0].url)
+        const botServer = await this.botclient.ping();
+        if (!botServer) {
+          throw new HttpException(
+            ResponseMessage.BOT_SERVER_DOWN,
+            ResponseCode.BAD_REQUEST,
+          );
+        }
+        await this.botclient.stopBot(botId);
       }
-      await this.botclient.stopBot(botId);
       return;
     } catch (err) {
       throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
