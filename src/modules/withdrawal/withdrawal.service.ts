@@ -27,13 +27,12 @@ export class WithdrawalService {
     const users = await this.userService.getUsersForWithDrawal(balance);
     if (!users.length) return;
     else {
-      return await Promise.all(
-        users.map((u) => {
+        for(let u of users){
           if (u.refereeUuid) {
-            this.withdrawalTransaction(u);
-          }
-        }),
-      );
+            await this.withdrawalTransaction(u);
+           }
+        }
+      return;
     }
   }
 
