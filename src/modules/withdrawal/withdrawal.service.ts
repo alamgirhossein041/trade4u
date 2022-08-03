@@ -27,11 +27,11 @@ export class WithdrawalService {
     const users = await this.userService.getUsersForWithDrawal(balance);
     if (!users.length) return;
     else {
-        for(let u of users){
-          if (u.refereeUuid) {
-            await this.withdrawalTransaction(u);
-           }
+      for (let u of users) {
+        if (u.refereeUuid) {
+          await this.withdrawalTransaction(u);
         }
+      }
       return;
     }
   }
@@ -50,9 +50,13 @@ export class WithdrawalService {
       // lets now open a new transaction:
       await queryRunner.startTransaction();
       try {
-        if (!user.klayWallet) resolve();
-        else {
-          this.loggerService.log(`Withdrawal Transaction Started`);
+        this.loggerService.log(
+          `Withdrawal Transaction Started: ${user.userName}`,
+        );
+        if (!user.klayWallet) {
+          this.loggerService.warn(`Wallet not configured: ${user.userName}`);
+          resolve();
+        } else {
           const amount = new bigDecimal(user.balance)
             .divide(new bigDecimal(PriceService.klayPrice), 4)
             .getValue();
