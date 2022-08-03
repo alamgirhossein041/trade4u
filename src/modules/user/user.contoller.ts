@@ -88,6 +88,34 @@ export class UserContoller {
       message: ResponseMessage.SUCCESS,
     });
   }
+  
+  @UseGuards(AuthGuard('jwt'))
+  @Get('restartBot/:id')
+  public async restartBot(@Res() res: Response,@Param('id') id:string): Promise<Response> {
+    this.loggerService.log(
+      `Get user/restartBot ${LoggerMessages.API_CALLED}`,
+    );
+    const response = await this.userService.restartUserBot(id);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: response,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('stopBot/:id')
+  public async stopBot(@Res() res: Response,@Param('id') id:string): Promise<Response> {
+    this.loggerService.log(
+      `Get user/stopBot ${LoggerMessages.API_CALLED}`,
+    );
+    const response = await this.userService.stopUserBot(id);
+    return res.status(ResponseCode.SUCCESS).send({
+      statusCode: ResponseCode.SUCCESS,
+      data: response,
+      message: ResponseMessage.SUCCESS,
+    });
+  }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('update_plan/:planId')

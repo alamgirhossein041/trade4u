@@ -916,6 +916,12 @@ export class UsersService {
         }
         await this.botclient.stopBot(botId);
       }
+      else{
+        throw new HttpException(
+          ResponseMessage.BOT_SERVER_DOWN,
+          ResponseCode.BAD_REQUEST,
+        );
+      }
       return;
     } catch (err) {
       throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
@@ -924,6 +930,13 @@ export class UsersService {
 
   async restartUserBot(botId: string): Promise<void> {
     try {
+      const sql =`SELECT m."url" as url
+                  FROM bots as b
+                  INNER JOIN  machine as m ON b."machineid"=m."machineid"
+                  WHERE  b."botid"=$1`
+      const machine= await getConnection().query(sql,[botId]);
+      if(machine && machine[0] &&machine[0].url){
+        this.botclient= new BOTClient(machine[0].url)
       const botServer = await this.botclient.ping();
       if (!botServer) {
         throw new HttpException(
@@ -933,6 +946,13 @@ export class UsersService {
       }
       await this.botclient.startBot(botId);
       return;
+    }
+    else{
+      throw new HttpException(
+        ResponseMessage.BOT_SERVER_DOWN,
+        ResponseCode.BAD_REQUEST,
+      );
+    }
     } catch (err) {
       throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
     }
