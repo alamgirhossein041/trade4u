@@ -1,8 +1,8 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Machine } from "modules/bot/machine.entity";
+import { Machine } from "../bot/machine.entity";
 import { Repository } from "typeorm";
-import { ResponseCode, ResponseMessage } from "utils/enum";
+import { ResponseCode, ResponseMessage } from "../../utils/enum";
 import { MachinePayload } from "./machine.payload";
 
 @Injectable()

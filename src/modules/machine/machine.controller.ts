@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Res } from "@nestjs/common";
 import { Response } from "express";
-import { LoggerMessages, ResponseCode, ResponseMessage } from "utils/enum";
-import { LoggerService } from "utils/logger/logger.service";
+import { LoggerMessages, ResponseCode, ResponseMessage } from "../../utils/enum";
+import { LoggerService } from "../../utils/logger/logger.service";
 import { MachinePayload } from "./machine.payload";
 import { MachineService } from "./machine.service";
 

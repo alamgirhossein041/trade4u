@@ -21,7 +21,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { GcpSecretModule } from '../../utils/secret-manager/gcp.sm.module';
 import { WinstonModule } from 'nest-winston';
-import { MachineModule } from 'modules/machine/machine.module';
+import { MachineModule } from '../machine/machine.module';
 
 @Module({
   imports: [
