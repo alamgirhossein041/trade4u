@@ -124,7 +124,8 @@ export class UsersService {
       let sqlMachines =`SELECT 
                               *
                          FROM
-                         machine`
+                            machine
+                         ORDER BY machinename ASC`
 
         let machines=await getConnection().query(sqlMachines);
         if(machines && machines.length>0){
@@ -154,7 +155,11 @@ export class UsersService {
                }
               }
               else{
-                throw new HttpException(ResponseMessage.NO_CAPACITY_AVAILABLE, ResponseCode.BAD_REQUEST);
+                if(count===machines.length){
+                  throw new HttpException(ResponseMessage.NO_CAPACITY_AVAILABLE, ResponseCode.BAD_REQUEST);
+                }
+                count++;
+                continue;
               }
             }
         }
@@ -173,8 +178,8 @@ export class UsersService {
    */
   async getBotIp(): Promise<any> {
     try {
-      const ip = await this.botclient.getBotIp();
-      return ip.data;
+    const machine = await this.getAvailableServerIp()
+     return machine.ip;
     } catch (err) {
       throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
     }
