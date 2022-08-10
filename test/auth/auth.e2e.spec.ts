@@ -63,6 +63,7 @@ describe('Trade4u auth test', () => {
             tradingSystem: null,
             balance: 0,
             phoneNumber: "+14842918831",
+            limitExceeded : false,
             klayWallet: null,
             planIsActive: true,
             planExpiry: null,

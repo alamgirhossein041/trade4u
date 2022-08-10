@@ -1,4 +1,9 @@
-import { Entity, Column, CreateDateColumn,  PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { TelegramNotifyDto } from './commons/user.dtos';
 
 @Entity({
@@ -6,7 +11,7 @@ import { TelegramNotifyDto } from './commons/user.dtos';
 })
 export class UserTelegram {
   @PrimaryGeneratedColumn('increment')
-    id: number;
+  id: number;
 
   @Column({ type: 'bigint' })
   chat_id: number;
