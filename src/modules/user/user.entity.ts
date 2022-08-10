@@ -26,13 +26,13 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   uuid: string;
 
-  @Column({ length: 255, unique: true})
+  @Column({ length: 255, unique: true })
   userName: string;
 
   @Column({ length: 255 })
   fullName: string;
 
-  @Column({ length: 255, unique: true})
+  @Column({ length: 255, unique: true })
   email: string;
 
   @Column({ length: 255 })
@@ -73,6 +73,9 @@ export class User {
 
   @Column({ default: UserActiveStatus.DISABLE })
   activeStatus: string;
+
+  @Column({ nullable: true, default: false })
+  limitExceeded: boolean;
 
   @Column({ nullable: true })
   planExpiry: number;

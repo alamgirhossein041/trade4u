@@ -346,84 +346,78 @@ export class PaymentService {
     }
   }
 
-  // /**
-  //  * Notify the user for preformance fee payment dues
-  //  * @returns
-  //  */
-  // @Cron(CronExpression.EVERY_MINUTE, {
-  //   name: JOB.NOTIFY_PROFIT_LIMIT_EXCEED,
-  // })
-  // public async NotifyUsersOnProfitLimitReach() {
-  //   this.loggerService.log(
-  //     `JOB: Notify user on profit limit reach started at: ${moment().unix()}`,
-  //   );
-  //   const activeTraders = await this.userService.getActiveTraders();
-  //   await Promise.all(
-  //     activeTraders.map(async (m) => {
-  //       if (m.refereeUuid) {
-  //         const valid = await this.userService.validateActiveTradersProfit(m);
-  //         if (valid) {
-  //           await this.socketService.emitNotification(
-  //             m.email,
-  //             Notifications.PERFORMANCE_FEE,
-  //           );
-  //           this.loggerService.debug(
-  //             `JOB: Notify user on profit limit reach: ${m.userName}`,
-  //           );
-  //         }
-  //       }
-  //     }),
-  //   ).then(() => {
-  //     this.loggerService.log(
-  //       `JOB: Notify user on profit limit reach completed at: ${moment().unix()}`,
-  //     );
-  //     return;
-  //   });
-  // }
+  /**
+   * Notify the user for preformance fee payment dues
+   * @returns
+   */
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: JOB.NOTIFY_PROFIT_LIMIT_EXCEED,
+  })
+  public async NotifyUsersOnProfitLimitReach() {
+    this.loggerService.log(
+      `JOB: Notify user on profit limit reach started at: ${moment().unix()}`,
+    );
+    const activeTraders = await this.userService.getActiveTraders();
+    await Promise.all(
+      activeTraders.map(async (m) => {
+        if (m.refereeUuid && !m.limitExceeded) {
+          const valid = await this.userService.validateActiveTradersProfit(m);
+          if (valid) {
+            await this.userService.updateUser(m.uuid, true);
+            this.loggerService.debug(
+              `JOB: Notify user on profit limit reach: ${m.userName}`,
+            );
+          }
+        }
+      }),
+    ).then(() => {
+      this.loggerService.log(
+        `JOB: Notify user on profit limit reach completed at: ${moment().unix()}`,
+      );
+      return;
+    });
+  }
 
-  // /**
-  //  * Notify the user for preformance fee payment dues
-  //  * @returns
-  //  */
-  // @Cron(CronExpression.EVERY_MINUTE, {
-  //   name: JOB.NOTIFY_TRADE_LIMIT_EXCEED,
-  // })
-  // public async NotifyUsersOnTradeLimitExceed() {
-  //   this.loggerService.log(
-  //     `JOB: Notify user on trade limit exceed started at: ${moment().unix()}`,
-  //   );
+  /**
+   * Notify the user for preformance fee payment dues
+   * @returns
+   */
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: JOB.NOTIFY_TRADE_LIMIT_EXCEED,
+  })
+  public async NotifyUsersOnTradeLimitExceed() {
+    this.loggerService.log(
+      `JOB: Notify user on trade limit exceed started at: ${moment().unix()}`,
+    );
 
-  //   const users = await this.userService.validateTradeTimeStamp();
-  //   if (!users.length) {
-  //     this.loggerService.log(
-  //       `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
-  //     );
-  //     return;
-  //   } else {
-  //     Promise.all(
-  //       users.map(async (m) => {
-  //         if (m.refereeUuid) {
-  //           try {
-  //             await this.socketService.emitNotification(
-  //               m.email,
-  //               Notifications.PERFORMANCE_FEE,
-  //             );
-  //             this.loggerService.debug(
-  //               `JOB: Notify user on trade limit exceed: ${m.userName}`,
-  //             );
-  //           } catch (err) {
-  //             this.loggerService.error(err);
-  //           }
-  //         }
-  //       }),
-  //     ).then(() => {
-  //       this.loggerService.log(
-  //         `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
-  //       );
-  //       return;
-  //     });
-  //   }
-  // }
+    const users = await this.userService.validateTradeTimeStamp();
+    if (!users.length) {
+      this.loggerService.log(
+        `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
+      );
+      return;
+    } else {
+      Promise.all(
+        users.map(async (m) => {
+          if (m.refereeUuid && !m.limitExceeded) {
+            try {
+              await this.userService.updateUser(m.uuid, true);
+              this.loggerService.debug(
+                `JOB: Notify user on trade limit exceed: ${m.userName}`,
+              );
+            } catch (err) {
+              this.loggerService.error(err);
+            }
+          }
+        }),
+      ).then(() => {
+        this.loggerService.log(
+          `JOB: Notify user on trade limit exceed completed at: ${moment().unix()}`,
+        );
+        return;
+      });
+    }
+  }
 
   /**
    * Create Preformance fee payment
