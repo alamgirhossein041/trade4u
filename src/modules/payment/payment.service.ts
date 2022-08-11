@@ -350,7 +350,7 @@ export class PaymentService {
    * Notify the user for preformance fee payment dues
    * @returns
    */
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_10_MINUTES, {
     name: JOB.NOTIFY_PROFIT_LIMIT_EXCEED,
   })
   public async NotifyUsersOnProfitLimitReach() {
@@ -360,13 +360,10 @@ export class PaymentService {
     const activeTraders = await this.userService.getActiveTraders();
     await Promise.all(
       activeTraders.map(async (m) => {
-        if (m.refereeUuid) {
+        if (m.refereeUuid && !m.limitExceeded) {
           const valid = await this.userService.validateActiveTradersProfit(m);
           if (valid) {
-            await this.socketService.emitNotification(
-              m.email,
-              Notifications.PERFORMANCE_FEE,
-            );
+            await this.userService.updateUser(m.uuid, true);
             this.loggerService.debug(
               `JOB: Notify user on profit limit reach: ${m.userName}`,
             );
@@ -385,7 +382,7 @@ export class PaymentService {
    * Notify the user for preformance fee payment dues
    * @returns
    */
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_10_MINUTES, {
     name: JOB.NOTIFY_TRADE_LIMIT_EXCEED,
   })
   public async NotifyUsersOnTradeLimitExceed() {
@@ -402,12 +399,9 @@ export class PaymentService {
     } else {
       Promise.all(
         users.map(async (m) => {
-          if (m.refereeUuid) {
+          if (m.refereeUuid && !m.limitExceeded) {
             try {
-              await this.socketService.emitNotification(
-                m.email,
-                Notifications.PERFORMANCE_FEE,
-              );
+              await this.userService.updateUser(m.uuid, true);
               this.loggerService.debug(
                 `JOB: Notify user on trade limit exceed: ${m.userName}`,
               );

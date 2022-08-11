@@ -123,6 +123,7 @@ export class DepositTransaction {
   public async updateTradeTimeFrames(user: User, queryRunner: QueryRunner) {
     user.tradeStartDate = moment().unix();
     user.tradeExpiryDate = moment().unix() + Time.THIRTY_DAYS; //30 Days after the Preformance fee is paid
+    user.limitExceeded = false;
     await queryRunner.manager.save(user);
     const bots = await this.userService.getBotsByUserId(user);
     bots.map(async (b) => {

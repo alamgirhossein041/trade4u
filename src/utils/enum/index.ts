@@ -1,6 +1,7 @@
 export enum ResponseMessage {
   SUCCESS = `Success`,
   CREATED_SUCCESSFULLY = `Created successfully`,
+  USER_UPDATED_SUCCESSFULLY = `User updated successfully`,
   CONTENT_NOT_FOUND = `Content not found`,
 
   CONFIRAMATION_EMAIL_SENT = `Email has been sent to you for verification, Kindly verify your email to get access to the system.`,

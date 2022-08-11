@@ -751,6 +751,23 @@ export class UsersService {
   }
 
   /**
+   * Update user
+   * @returns
+   */
+  public async updateUser(
+    userId: string,
+    isLimitExceed: boolean,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { uuid: userId } });
+    if (user) {
+      this.loggerService.debug(ResponseMessage.USER_UPDATED_SUCCESSFULLY);
+      user.limitExceeded = isLimitExceed;
+      return await this.userRepository.save(user);
+    }
+    this.loggerService.error(ResponseMessage.USER_DOES_NOT_EXIST);
+  }
+
+  /**
    * Update user plan
    * @returns
    */
