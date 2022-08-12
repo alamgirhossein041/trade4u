@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
   name: 'machine',
 })
 export class Machine {
- @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   machineid: string;
 
   @Column()

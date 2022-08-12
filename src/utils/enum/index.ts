@@ -59,7 +59,7 @@ export enum ResponseMessage {
   PROFILE_UPDATED_SUCCESSFULLY = `Profile updated successfully`,
   NO_CAPACITY_AVAILABLE = `No Capacity Available to Create a new Bot`,
   NO_BOT_SERVER_AVAILABLE = `No Bot Server Available`,
-  BOT_ALREADY_EXISTS_MESSAGE = "A bot already exists with the same account and trading pair"
+  BOT_ALREADY_EXISTS_MESSAGE = 'A bot already exists with the same account and trading pair',
 }
 
 // some code enums for sending response code in api response

@@ -6,9 +6,7 @@ import { MachineController } from './machine.controller';
 import { MachineService } from './machine.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([
-    Machine
-  ]),LoggerModule],
+  imports: [TypeOrmModule.forFeature([Machine]), LoggerModule],
   controllers: [MachineController],
   providers: [MachineService],
   exports: [MachineService],
