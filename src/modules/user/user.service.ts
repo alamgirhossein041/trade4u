@@ -119,14 +119,17 @@ export class UsersService {
   async getAvailableServerIp(): Promise<Machine> {
     try {
             let sql =`SELECT 
-                        COUNT(*) as total_bots ,m."machineid",m."url",m."ip",m."machinename"
+                        COUNT(*) as total_bots,
+                        m."machineid",
+                        m."url",
+                        m."ip",
+                        m."machinename"
                       FROM
                         bots as b 
-                      INNER JOIN machine as m ON m."machineid"=b."machineid"
+                        INNER JOIN machine as m ON m."machineid"=b."machineid"
                       GROUP BY m."machineid"
                       ORDER BY m."machinename" ASC`;
       const botsArray = await getConnection().query(sql);
-      console.log(botsArray)
       for (let index = 0; index < botsArray.length; index++) {
         if (
           botsArray.length &&
