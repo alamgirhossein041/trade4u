@@ -167,7 +167,7 @@ describe('Trade4u User test', () => {
                 .post('/api/user/binance_credentials')
                 .set('Authorization', helper.getAccessToken())
                 .send(dtoObj)
-                .expect(200)
+                .expect(400)
         });
 
 

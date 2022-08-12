@@ -8,6 +8,7 @@ import {
   MoreThanOrEqual,
   ILike,
   Repository,
+  getConnection,
 } from 'typeorm';
 import {
   JOB,
@@ -58,6 +59,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { LoggerService } from '../../utils/logger/logger.service';
 import { PlanNameEnum } from '../seed/seed.enums';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Machine } from 'modules/bot/machine.entity';
 
 @Injectable()
 export class UsersService {
@@ -80,9 +82,7 @@ export class UsersService {
     private readonly klaytnService: KlaytnService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly loggerService: LoggerService,
-  ) {
-    this.botclient = new BOTClient(process.env.BINANCE_BOT_ADDRESS);
-  }
+  ) {}
 
   /**
    * Get user by id
@@ -95,6 +95,78 @@ export class UsersService {
       { relations: ['plan', 'userStats', 'userTelegram'] },
     );
   }
+  async checkIfAlreadyExist(userId: string): Promise<boolean> {
+    try {
+      const sql = `SELECT botId, userId, botName FROM bots b WHERE b."userid" = $1`;
+      let bots = await getConnection().query(sql, [userId]);
+
+      if (bots && bots.length) {
+        throw new HttpException(
+          ResponseMessage.BOT_ALREADY_EXISTS_MESSAGE,
+          ResponseCode.BAD_REQUEST,
+        );
+      }
+      return;
+    } catch (error) {
+      throw new HttpException(error.message, ResponseCode.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Get Available Server Ip
+   * @returns
+   */
+  async getAvailableServerIp(): Promise<Machine> {
+    try {
+            let sql =`SELECT 
+                        COUNT(*) as total_bots,
+                        m."machineid",
+                        m."url",
+                        m."ip",
+                        m."machinename"
+                      FROM
+                        bots as b 
+                        INNER JOIN machine as m ON m."machineid"=b."machineid"
+                      GROUP BY m."machineid"
+                      ORDER BY m."machinename" ASC`;
+      const botsArray = await getConnection().query(sql);
+      for (let index = 0; index < botsArray.length; index++) {
+        if (
+          botsArray.length &&
+          parseInt(botsArray[index].total_bots) <
+          parseInt(process.env.TOTAL_BOT_CAPACITY)
+        ) {
+          this.botclient = new BOTClient(botsArray[index].url);
+          try {
+            await this.botclient.ping();
+            return {
+              ip: botsArray[index].ip,
+              machineid: botsArray[index].machineid,
+              url: botsArray[index].url,
+              machinename: botsArray[index].machinename,
+            };
+          } catch (error) {
+            if (index === botsArray.length-1) {
+              throw new HttpException(
+                ResponseMessage.NO_CAPACITY_AVAILABLE,
+                ResponseCode.BAD_REQUEST,
+              );
+            }
+          }
+        }
+        else{
+          if (index === botsArray.length-1) {
+            throw new HttpException(
+              ResponseMessage.NO_CAPACITY_AVAILABLE,
+              ResponseCode.BAD_REQUEST,
+            );
+          }
+        }
+      }
+    } catch (error) {
+      throw new HttpException(error.message, ResponseCode.BAD_REQUEST);
+    }
+  }
 
   /**
    * Get user by id
@@ -103,8 +175,8 @@ export class UsersService {
    */
   async getBotIp(): Promise<any> {
     try {
-      const ip = await this.botclient.getBotIp();
-      return ip.data;
+      const machine = await this.getAvailableServerIp();
+      return machine.ip;
     } catch (err) {
       throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
     }
@@ -754,13 +826,15 @@ export class UsersService {
       );
     }
     try {
-      const botServer = await this.botclient.ping();
-      if (!botServer) {
-        throw new HttpException(
-          ResponseMessage.BOT_SERVER_DOWN,
-          ResponseCode.BAD_REQUEST,
-        );
-      }
+      await this.checkIfAlreadyExist(user.uuid);
+      let machineId = '';
+      await this.getAvailableServerIp()
+        .then((machine) => {
+          machineId = machine.machineid;
+        })
+        .catch((error) => {
+          throw new HttpException(error.message, ResponseCode.BAD_REQUEST);
+        });
       user.apiKey = Crypto.encrypt(binanceDto.apiKey);
       user.apiSecret = Crypto.encrypt(binanceDto.apiSecret);
       user.tradingSystem = binanceDto.tradingSystem;
@@ -778,8 +852,9 @@ export class UsersService {
         strategy: botConstants.strategy,
         riskLevel: botConstants.riskLevel,
         userId: user.uuid,
+        machineId: machineId,
       };
-      if (botServer) {
+      if (machineId) {
         await this.iniateUserBot(binanceDto.tradingSystem, botData);
         return await this.userRepository.save(user);
       }
@@ -792,31 +867,35 @@ export class UsersService {
     tradingSystem: string,
     botData: ICreateBot,
   ): Promise<IBotResponse[]> {
-    let botResponseArr: IBotResponse[] = [];
-    switch (tradingSystem) {
-      case TradingSystem.USDT:
-        botData.baseAsset = CryptoAsset.USDT;
-        botData.quoteAsset = CryptoAsset.BTC;
-        botResponseArr[0] = await this.botclient.createBot(botData);
-        await this.botclient.startBot(botResponseArr[0].data.botId);
-        return botResponseArr;
-      case TradingSystem.BTC:
-        botData.baseAsset = CryptoAsset.BTC;
-        botData.quoteAsset = CryptoAsset.ETH;
-        botResponseArr[0] = await this.botclient.createBot(botData);
-        await this.botclient.startBot(botResponseArr[0].data.botId);
-        return botResponseArr;
-      case TradingSystem.BOTH:
-        botData.baseAsset = CryptoAsset.USDT;
-        botData.quoteAsset = CryptoAsset.BTC;
-        const bot1 = await this.botclient.createBot(botData);
-        await this.botclient.startBot(bot1.data.botId);
-        botData.baseAsset = CryptoAsset.BTC;
-        botData.quoteAsset = CryptoAsset.ETH;
-        const bot2 = await this.botclient.createBot(botData);
-        await this.botclient.startBot(bot2.data.botId);
-        botResponseArr.push(bot1, bot2);
-        return botResponseArr;
+    try {
+      let botResponseArr: IBotResponse[] = [];
+      switch (tradingSystem) {
+        case TradingSystem.USDT:
+          botData.baseAsset = CryptoAsset.USDT;
+          botData.quoteAsset = CryptoAsset.BTC;
+          botResponseArr[0] = await this.botclient.createBot(botData);
+          await this.botclient.startBot(botResponseArr[0].data.botId);
+          return botResponseArr;
+        case TradingSystem.BTC:
+          botData.baseAsset = CryptoAsset.BTC;
+          botData.quoteAsset = CryptoAsset.ETH;
+          botResponseArr[0] = await this.botclient.createBot(botData);
+          await this.botclient.startBot(botResponseArr[0].data.botId);
+          return botResponseArr;
+        case TradingSystem.BOTH:
+          botData.baseAsset = CryptoAsset.USDT;
+          botData.quoteAsset = CryptoAsset.BTC;
+          const bot1 = await this.botclient.createBot(botData);
+          await this.botclient.startBot(bot1.data.botId);
+          botData.baseAsset = CryptoAsset.BTC;
+          botData.quoteAsset = CryptoAsset.ETH;
+          const bot2 = await this.botclient.createBot(botData);
+          await this.botclient.startBot(bot2.data.botId);
+          botResponseArr.push(bot1, bot2);
+          return botResponseArr;
+      }
+    } catch (error) {
+      throw new HttpException(error.message, ResponseCode.BAD_REQUEST);
     }
   }
 
@@ -836,14 +915,27 @@ export class UsersService {
 
   async stopUserBot(botId: string): Promise<void> {
     try {
-      const botServer = await this.botclient.ping();
-      if (!botServer) {
+      const sql = `SELECT m."url" as url
+                  FROM bots as b
+                  INNER JOIN  machine as m ON b."machineid"=m."machineid"
+                  WHERE  b."botid"=$1`;
+      const machine = await getConnection().query(sql, [botId]);
+      if (machine && machine[0] && machine[0].url) {
+        this.botclient = new BOTClient(machine[0].url);
+        const botServer = await this.botclient.ping();
+        if (!botServer) {
+          throw new HttpException(
+            ResponseMessage.BOT_SERVER_DOWN,
+            ResponseCode.BAD_REQUEST,
+          );
+        }
+        await this.botclient.stopBot(botId);
+      } else {
         throw new HttpException(
           ResponseMessage.BOT_SERVER_DOWN,
           ResponseCode.BAD_REQUEST,
         );
       }
-      await this.botclient.stopBot(botId);
       return;
     } catch (err) {
       throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
@@ -852,15 +944,28 @@ export class UsersService {
 
   async restartUserBot(botId: string): Promise<void> {
     try {
-      const botServer = await this.botclient.ping();
-      if (!botServer) {
+      const sql = `SELECT m."url" as url
+                  FROM bots as b
+                  INNER JOIN  machine as m ON b."machineid"=m."machineid"
+                  WHERE  b."botid"=$1`;
+      const machine = await getConnection().query(sql, [botId]);
+      if (machine && machine[0] && machine[0].url) {
+        this.botclient = new BOTClient(machine[0].url);
+        const botServer = await this.botclient.ping();
+        if (!botServer) {
+          throw new HttpException(
+            ResponseMessage.BOT_SERVER_DOWN,
+            ResponseCode.BAD_REQUEST,
+          );
+        }
+        await this.botclient.startBot(botId);
+        return;
+      } else {
         throw new HttpException(
           ResponseMessage.BOT_SERVER_DOWN,
           ResponseCode.BAD_REQUEST,
         );
       }
-      await this.botclient.startBot(botId);
-      return;
     } catch (err) {
       throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
     }
