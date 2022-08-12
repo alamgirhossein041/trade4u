@@ -126,7 +126,7 @@ export class UsersService {
                         m."machinename"
                       FROM
                         bots as b 
-                        INNER JOIN machine as m ON m."machineid"=b."machineid"
+                        RIGHT JOIN machine as m ON m."machineid"=b."machineid"
                       GROUP BY m."machineid"
                       ORDER BY m."machinename" ASC`;
       const botsArray = await getConnection().query(sql);
