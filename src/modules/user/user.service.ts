@@ -168,20 +168,24 @@ export class UsersService {
     }
   }
 
-  /**
+   /**
    * Get user by id
    * @param uuid
    * @returns
    */
-  async getBotIp(): Promise<any> {
-    try {
-      const machine = await this.getAvailableServerIp();
-      return machine.ip;
-    } catch (err) {
-      throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
+    async getBotIp(user: User): Promise<any> {
+      try {
+        const bot = await this.getBotsByUserId(user);
+        if (bot && bot[0] && bot[0].machine && bot[0].machine.ip) {
+          return bot[0].machine.ip;
+        } else {
+          const machine = await this.getAvailableServerIp();
+          return machine.ip;
+        }
+      } catch (err) {
+        throw new HttpException(err.message, ResponseCode.BAD_REQUEST);
+      }
     }
-  }
-
   /**
    * Get user by id
    * @param uuid
@@ -900,7 +904,7 @@ export class UsersService {
   }
 
   async getBotsByUserId(user: User): Promise<Bot[]> {
-    return await this.tradingBotRepository.find({ userid: user.uuid });
+    return await this.tradingBotRepository.find({relations:['machine'],where:{ userid: user.uuid }});
   }
 
   async getBotByUserIdAndBaseAsset(

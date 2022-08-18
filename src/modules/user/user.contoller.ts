@@ -65,9 +65,12 @@ export class UserContoller {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('bot_ip')
-  public async getBotIp(@Res() res: Response): Promise<Response> {
+  public async getBotIp(
+    @CurrentUser() user: User,
+    @Res() res: Response,
+  ): Promise<Response> {
     this.loggerService.log(`Get user/bot_ip ${LoggerMessages.API_CALLED}`);
-    const ip = await this.userService.getBotIp();
+    const ip = await this.userService.getBotIp(user);
     return res.status(ResponseCode.SUCCESS).send({
       statusCode: ResponseCode.SUCCESS,
       data: ip,
