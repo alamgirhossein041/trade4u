@@ -105,11 +105,9 @@ export class AppService {
             buffering: false,
             clientOpts: {
               node: process.env.ELASTIC_SEARCH_NODE,
-              cloud: {
-                id: process.env.ELASTIC_CLOUD_ID,
-                username: process.env.ELASTIC_USERNAME,
-                password: process.env.ELASTIC_PASSWORD,
-              },
+              auth:{
+                apiKey:process.env.ELASTIC_APIKEY
+                  }
             },
           }),
         ],
