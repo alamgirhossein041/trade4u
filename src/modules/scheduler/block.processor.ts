@@ -17,6 +17,8 @@ import { SocketService } from '../../modules/socket/socket.service';
 import { Notifications } from '../../modules/socket/commons/socket.enum';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Inject } from '@nestjs/common';
+import { User } from 'modules/user';
+import { TelegramService } from '../../utils/telegram/telegram-bot.service';
 
 @Processor(BlockQueue.BLOCK)
 export class BlockProcessor {
@@ -32,6 +34,8 @@ export class BlockProcessor {
     private readonly klaytnService: KlaytnService,
     private readonly caverService: CaverService,
     private readonly socketService: SocketService,
+    private readonly telegramService: TelegramService,
+
   ) {
     this.loggerService.setContext('BlockProcessor');
   }
@@ -99,6 +103,12 @@ export class BlockProcessor {
                 Events.DEPOSIT_COMPLETED,
                 depositCompletedEvent,
               );
+              await this.notifyUserOnTelegram(
+                user,
+                user.userName,
+                deposit.payment.type,
+                user.plan?.planName
+              );
               this.loggerService.log(`Deposit complete event emitted`);
             }
           }),
@@ -113,6 +123,7 @@ export class BlockProcessor {
       }
     });
   }
+
   /**
    * Filter transactions from block
    * @param block
@@ -136,5 +147,46 @@ export class BlockProcessor {
         return reject();
       }
     });
+  }
+
+  /**
+   * Notify Parent On Telegram if Parent Notifications are active
+   * @param parent
+   * @returns
+   */
+   private async notifyUserOnTelegram(
+    user: User,
+    userName: string,
+    type:string,
+    planName?: string,
+  ) {
+    let message ="";
+    if(type === PaymentType.TX_PREFORMANCE_BTC ||
+      type === PaymentType.TX_PREFORMANCE_USDT){
+        message = `Hi ${userName}!
+        \nYour bot performance fee has been paid. Trading has been resumed.
+        \nThanks
+        \nTrade4u Team`;
+    }else {
+      message = `Hi ${userName}!
+      \nThanks for purchasing ${planName}. Your plan has been activated.
+      \nThanks
+      \nTrade4u Team`;
+    }
+    if (user.userTelegram && user.userTelegram.isActive) {
+      const userTelegram = user.userTelegram;
+      if (userTelegram.systemNotificationsActive && TelegramService.connected) {
+        try {
+          const result = await this.telegramService.sendSystemNotifications(
+             userTelegram,
+             message,
+           );
+        } catch (error) {
+          this.loggerService.error(error)
+        }
+      }
+
+    }
+    return;
   }
 }
