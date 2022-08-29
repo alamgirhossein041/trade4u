@@ -87,11 +87,6 @@ export class DepositTransaction {
           await this.caverService.moveToMasterWallet(tx.to);
           await this.klaytnService.removeListener(tx.to);
           await this.removeDeficitDeposit(queryRunner, this.payment.user);
-          await this.notifyUserOnTelegram(
-            this.payment.user,
-            this.payment.user.userName,
-            this.payment.plan.planName,
-          );
         } else if (this.payment.type.includes(PaymentType.ACTIVATION)) {
           const deficit = await this.getDeficitAmount();
           if (deficit <= 1) {
@@ -517,29 +512,4 @@ export class DepositTransaction {
     }
   }
 
-  /**
-   * Notify Parent On Telegram if Parent Notifications are active
-   * @param parent
-   * @returns
-   */
-  private async notifyUserOnTelegram(
-    user: User,
-    userName: string,
-    planName: string,
-  ) {
-    if (user.userTelegram && user.userTelegram.isActive) {
-      const userTelegram = user.userTelegram;
-      if (userTelegram.systemNotificationsActive && TelegramService.connected) {
-        let message = `Hi ${userName}!
-                        \nThanks for purchasing ${planName}. Your plan has been activated.
-                        \nThanks
-                        \nTrade4u Team`;
-        await this.telegramService.sendSystemNotifications(
-          userTelegram,
-          message,
-        );
-      }
-    }
-    return;
-  }
 }

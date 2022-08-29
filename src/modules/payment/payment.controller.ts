@@ -126,6 +126,9 @@ export class PaymentController {
     @CurrentUser() user: User,
     @Res() res: Response,
   ) {
+    this.loggerService.log(
+      `POST payment/preformance_fee_payment ${LoggerMessages.API_CALLED}`,
+    );
     const payments = await this.paymentService.createPreformanceFeePayment(
       user,
     );

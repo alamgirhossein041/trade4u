@@ -9,6 +9,7 @@ import { EventEmitter } from './event.emitter';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Deposit } from '../payment/deposit.entity';
 import { SocketModule } from '../../modules/socket/socket.module';
+import { TelegramModule } from '../../utils/telegram/telegram-bot.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { SocketModule } from '../../modules/socket/socket.module';
     PaymentModule,
     KlaytnModule,
     SocketModule,
+    TelegramModule
   ],
   controllers: [SchedulerController],
   providers: [SchedulerService, BlockProcessor, EventEmitter],
