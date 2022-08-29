@@ -60,6 +60,8 @@ import { LoggerService } from '../../utils/logger/logger.service';
 import { PlanNameEnum } from '../seed/seed.enums';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Machine } from 'modules/bot/machine.entity';
+import { timeStamp } from 'console';
+import e from 'express';
 
 @Injectable()
 export class UsersService {
@@ -167,6 +169,62 @@ export class UsersService {
       throw new HttpException(error.message, ResponseCode.BAD_REQUEST);
     }
   }
+
+  /**
+   * Get Aserver Ip of first machine
+   * @returns
+   */
+   async getServerUrl(): Promise<string> {
+    try {
+            let sql =`
+                      SELECT 
+                        url
+                      FROM
+                        machine
+                      LIMIT
+                        1
+                      `;
+      const url = await getConnection().query(sql);
+      if(url.length){
+        return url[0].url
+      }
+      throw new HttpException(ResponseMessage.NO_BOT_SERVER_AVAILABLE, ResponseCode.BAD_REQUEST);
+
+      
+    } catch (error) {
+      throw new HttpException(error.message, ResponseCode.BAD_REQUEST);
+    }
+  }
+  /**
+   * Get Aserver Ip of first machine
+   * @returns
+   */
+   async getUsersWithStoppedBots(): Promise<string[]> {
+    try {
+            let sql =`
+                    SELECT
+                      email 
+                    FROM
+                      users u
+                    JOIN
+                      bots b
+                    ON
+                      CAST(u.uuid as varchar)= CAST(b.userid as varchar)
+                    where 
+                      b.status = 'stopped'
+                      `;
+      const email = await getConnection().query(sql);
+      if(email.length){
+        return email
+      }
+      throw new HttpException(ResponseMessage.NO_STOPPED_BOTS_FOUND, ResponseCode.BAD_REQUEST);
+
+      
+    } catch (error) {
+      throw new HttpException(error.message, ResponseCode.BAD_REQUEST);
+    }
+  }
+
 
    /**
    * Get user by id
@@ -334,6 +392,24 @@ export class UsersService {
     const result = await this.tradingBotRepository.query(sql, [botId]);
     const tradesCount = Number(result[0].total_trades);
     return tradesCount;
+  }
+
+    /**
+   * Get user with bots
+   * @param user
+   * @returns
+   */
+
+  async getUsersWithBot(): Promise<User[]> {
+    let sql = `select 
+                * 
+              from 
+                users 
+              where 
+                "apiKey" !=''`;
+    const usersWithBot = await this.tradingBotRepository.query(sql);
+    // const  = Number(result[0].total_trades);
+    return usersWithBot;
   }
 
   /**
@@ -1588,4 +1664,140 @@ export class UsersService {
       return;
     }
   }
+
+    /**
+   * Send an email to user with IP issue
+   * @param email
+   * @returns
+   */
+    @Cron(CronExpression.EVERY_DAY_AT_7AM, {
+      name:JOB.CONNECTION_ISSUE,
+    })
+     public async emailUserWithIPIssue (){
+      this.loggerService.log(
+        `Connection Issue  notification job started at: ${moment().unix()}`,
+      );
+      const url = await this.getServerUrl();
+      this.botclient = new BOTClient(url)      
+      let userResponseArr: IBotResponse
+      userResponseArr = await this.botclient.getUserWithAPIIssue();
+      if (userResponseArr.data)
+      {
+        const emails = userResponseArr.data.map((user)=>{return user.Email})
+        for(const email of emails){
+          if (email)
+          {
+          await this.mailerservice.sendEmailIpIssue(email)
+          } else {
+          throw new HttpException(
+            ResponseMessage.EMAIL_NOT_REGISTERED,
+            ResponseCode.NOT_FOUND,
+          );
+          }
+        }
+      }
+      return userResponseArr
+    }
+
+   /**
+   * Send an email to user with permission issues while placing orders
+   * @param email
+   * @returns
+   */
+  
+    @Cron(CronExpression.EVERY_DAY_AT_7AM, {
+      name:JOB.PERMISSION_ISSUE,
+    })
+    public async userWithPermissionIssue (){
+      this.loggerService.log(
+        `Permission Issue notification job started at: ${moment().unix()}`,
+      );
+      const url = await this.getServerUrl();
+      this.botclient = new BOTClient(url)     
+      let userResponseArr: IBotResponse
+      userResponseArr = await this.botclient.getUserWithPermissionIssue();
+      if (userResponseArr.data)
+      {
+        const emails = userResponseArr.data.map((user)=>{return user.Email})
+        for(const email of emails){
+          if (email)
+          {
+          await this.mailerservice.sendEmailPermissionIssue(email)
+          } else {
+          throw new HttpException(
+            ResponseMessage.EMAIL_NOT_REGISTERED,
+            ResponseCode.NOT_FOUND,
+          );
+          }
+        }
+      }
+      return userResponseArr
+    }
+
+
+  /**
+   * Send an email to user with insufficient balance
+   * @param email
+   * @returns
+   */
+   @Cron(CronExpression.EVERY_DAY_AT_7AM, {
+    name:JOB.INSUFFICIENT_BALANCE,
+  })
+   public async userWithBalanceIssue (){
+    this.loggerService.log(
+      `Insufficient balance notification job started at: ${moment().unix()}`,
+    );
+    const url = await this.getServerUrl();
+    this.botclient = new BOTClient(url)
+    let userResponseArr: IBotResponse
+    userResponseArr = await this.botclient.getUserWithBalanceIssue();
+    if (userResponseArr.data)
+    {
+      const emails = userResponseArr.data.map((user)=>{return user.Email})
+      for(const email of emails){
+        if (email)
+        {
+        await this.mailerservice.sendEmailInsufficientBalance(email)
+        } else {
+        throw new HttpException(
+          ResponseMessage.EMAIL_NOT_REGISTERED,
+          ResponseCode.NOT_FOUND,
+        );
+        }
+      }
+    }
+    return userResponseArr
+  }
+
+  /**
+   * Send an email to user with stopped bots
+   * @param email
+   * @returns
+   */
+   @Cron(CronExpression.EVERY_DAY_AT_7AM, {
+    name:JOB.PACKAGE_SUSPENDED,
+  })
+   public async userWithStoppedBots (){
+    this.loggerService.log(
+      `Package suspended notification job started at: ${moment().unix()}`,
+    );
+    const url = await this.getServerUrl();
+    this.botclient = new BOTClient(url)
+    
+    const emails = await this.getUsersWithStoppedBots()
+    for(const email of emails){
+      if (email)
+      {
+        await this.mailerservice.sendEmailStoppedBots(email['email'])
+      } else {
+      throw new HttpException(
+        ResponseMessage.EMAIL_NOT_REGISTERED,
+        ResponseCode.NOT_FOUND,
+      );
+      }
+
+    }
+    return
+  }
+
 }
