@@ -26,6 +26,12 @@ export class Slot {
   })
   consumed: boolean;
 
+  @Column({type: 'bigint',nullable:true})
+  createtime: number
+  
+  @Column({type: 'bigint',nullable:true})
+  updatetime: number
+
   @ManyToOne(() => Bot)
   @JoinColumn({ name: 'botid' })
   bot: Bot;
