@@ -387,9 +387,7 @@ export class MailService {
    * Send Email to users with insufficient balance
    * @param email
    */
-   public async sendEmailInsufficientBalance(
-    email: string,
-  ): Promise<void> {
+  public async sendEmailInsufficientBalance(email: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       const url = process.env.APP_URL;
       const subRoute = 'ready_to_go';
@@ -517,14 +515,11 @@ export class MailService {
     });
   }
 
-
   /**
    * Send Email to users with Connection Issues
    * @param email
    */
-   public async sendEmailIpIssue(
-    email: string,
-  ): Promise<void> {
+  public async sendEmailIpIssue(email: string): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       const url = process.env.APP_URL;
       const subRoute = 'ready_to_go';
@@ -654,22 +649,20 @@ export class MailService {
     });
   }
 
-/**
+  /**
    * Send Email to users with Permission Issues
    * @param email
    */
- public async sendEmailPermissionIssue(
-  email: string,
-): Promise<void> {
-  return new Promise<void>(async (resolve, reject) => {
-    const url = process.env.APP_URL;
-    const subRoute = 'ready_to_go';
-    try {
-      await this.mailerService.sendMail({
-        to: email,
-        from: process.env.SENDGRID_EMAIL, // override default from
-        subject: 'Trade4u! Invalid Permissions',
-        html: `
+  public async sendEmailPermissionIssue(email: string): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
+      const url = process.env.APP_URL;
+      const subRoute = 'ready_to_go';
+      try {
+        await this.mailerService.sendMail({
+          to: email,
+          from: process.env.SENDGRID_EMAIL, // override default from
+          subject: 'Trade4u! Invalid Permissions',
+          html: `
         <div style="background: #EAF0F6;
         text-align: center;
         font-family: Arial;
@@ -780,33 +773,29 @@ export class MailService {
         
         </div>
       `,
-      });
-      resolve();
-    } catch (err) {
-      console.log(err);
-      reject();
-    }
-  });
-}
+        });
+        resolve();
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
 
-
-
-/**
+  /**
    * Send Email to users with stopped Bots
    * @param email
    */
- public async sendEmailStoppedBots(
-  email: string,
-): Promise<void> {
-  return new Promise<void>(async (resolve, reject) => {
-    const url = process.env.APP_URL;
-    const subRoute = 'ready_to_go';
-    try {
-      await this.mailerService.sendMail({
-        to: email,
-        from: process.env.SENDGRID_EMAIL, // override default from
-        subject: 'Trade4u! Expired package',
-        html: `
+  public async sendEmailStoppedBots(email: string): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
+      const url = process.env.APP_URL;
+      const subRoute = 'ready_to_go';
+      try {
+        await this.mailerService.sendMail({
+          to: email,
+          from: process.env.SENDGRID_EMAIL, // override default from
+          subject: 'Trade4u! Expired package',
+          html: `
         <div style="background: #EAF0F6;
         text-align: center;
         font-family: Arial;
@@ -917,15 +906,14 @@ export class MailService {
         
         </div>
       `,
-      });
-      resolve();
-    } catch (err) {
-      console.log(err);
-      reject();
-    }
-  });
-}
-
+        });
+        resolve();
+      } catch (err) {
+        console.log(err);
+        reject();
+      }
+    });
+  }
 
   static configureSendGrid() {
     return {

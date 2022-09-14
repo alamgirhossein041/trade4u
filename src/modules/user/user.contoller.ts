@@ -601,17 +601,4 @@ export class UserContoller {
       message: ResponseMessage.SUCCESS,
     });
   }
-
-  @Get('userWithIpIssue')
-  async emailUserwithIPIssue( @Res() res: Response,
-  ): Promise<Response> {
-    await this.userService.emailUserWithIPIssue()
-    return res.status(ResponseCode.SUCCESS).send({
-      statusCode: ResponseCode.SUCCESS,
-      message: ResponseMessage.SUCCESS,
-    });
-  }
-
-
-  
 }
