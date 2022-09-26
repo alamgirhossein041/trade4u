@@ -1653,7 +1653,7 @@ export class UsersService {
    * @param email
    * @returns
    */
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_DAY_AT_7AM, {
     name: JOB.CONNECTION_ISSUE,
   })
   public async emailUserWithIPIssue() {
@@ -1688,7 +1688,7 @@ export class UsersService {
    * @returns
    */
 
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_DAY_AT_7AM, {
     name: JOB.PERMISSION_ISSUE,
   })
   public async userWithPermissionIssue() {
@@ -1722,7 +1722,7 @@ export class UsersService {
    * @param email
    * @returns
    */
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_DAY_AT_7AM, {
     name: JOB.INSUFFICIENT_BALANCE,
   })
   public async userWithBalanceIssue() {
@@ -1756,7 +1756,7 @@ export class UsersService {
    * @param email
    * @returns
    */
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_DAY_AT_7AM, {
     name: JOB.PACKAGE_SUSPENDED,
   })
   public async userWithStoppedBots() {
